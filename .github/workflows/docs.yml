@@ -19,7 +19,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10' # Or your project's Python version
+          python-version: '3.13' # Or your project's Python version
 
       - name: Install Poetry
         uses: snok/install-poetry@v1
@@ -27,8 +27,5 @@ jobs:
       - name: Install dependencies
         run: poetry install --with dev
 
-      - name: Build Sphinx API Reference
-        run: poetry run sphinx-build -b html docs/api_reference/source docs/user_guide/api_reference
-
-      - name: Deploy MkDocs User Guide (including API Reference)
+      - name: Deploy MkDocs User Guide
         run: poetry run mkdocs gh-deploy --clean --strict --force

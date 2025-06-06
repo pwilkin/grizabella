@@ -87,7 +87,7 @@ class ObjectTypeDefinition(BaseModel):
 # )
 ```
 
-*(The actual `ObjectTypeDefinition` and `PropertyDefinition` models are available in [`grizabella.core.models`](grizabella/core/models.py:1))*
+*(The actual `ObjectTypeDefinition` and `PropertyDefinition` models are available in [`grizabella.core.models`][])*
 
 ### Embedding Definitions
 
@@ -134,7 +134,7 @@ Embedding Definitions specify how vector embeddings should be generated and stor
 # )
 ```
 
-*(The actual `EmbeddingDefinition` model is available in [`grizabella.core.models`](grizabella/core/models.py:178))*
+*(The actual `EmbeddingDefinition` model is available in [`grizabella.core.models`][])*
 
 ### Relation Types
 
@@ -175,7 +175,7 @@ Relation Types define the schema for relationships between `ObjectInstance`s. Th
 # )
 ```
 
-*(The actual `RelationTypeDefinition` model is available in [`grizabella.core.models`](grizabella/core/models.py:235))*
+*(The actual `RelationTypeDefinition` model is available in [`grizabella.core.models`][])*
 
 ## Data Instances
 

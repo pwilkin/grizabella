@@ -382,7 +382,14 @@ async def mcp_delete_object(object_id: str, type_name: str) -> bool:
         '}'
     ),
 )
-async def mcp_find_objects(type_name: str, filter_criteria: Optional[dict[str, Any]] = None, limit: Optional[int] = None) -> list[ObjectInstance]:
+async def mcp_find_objects(
+    type_name: str,
+    filter_criteria: Optional[dict[str, Any]] = None,
+    limit: Optional[int] = None,
+) -> list[ObjectInstance]:
+    """
+    Finds and retrieves a list of objects of a given type, with optional filtering criteria.
+    """
     # ctx: ToolContext,
     try:
         gb = get_grizabella_client()
@@ -394,7 +401,7 @@ async def mcp_find_objects(type_name: str, filter_criteria: Optional[dict[str, A
     except GrizabellaException as e:
         msg = f"MCP: Error finding objects of type '{type_name}': {e}"
         raise GrizabellaException(msg) from e
-    except Exception as e: # pylint: disable=broad-except
+    except Exception as e:  # pylint: disable=broad-except
         msg = f"MCP: Unexpected error finding objects of type '{type_name}': {e}"
         raise Exception(msg) from e
 
@@ -511,20 +518,25 @@ class GetRelationsArgs(BaseModel):
         '}'
     ),
 )
-async def mcp_get_outgoing_relations(args: GetRelationsArgs) -> list[RelationInstance]:
+async def mcp_get_outgoing_relations(
+    object_id: str, type_name: str, relation_type_name: Optional[str] = None
+) -> list[RelationInstance]:
+    """
+    Retrieves all outgoing relations from a specific object.
+    """
     # ctx: ToolContext,
     try:
         gb = get_grizabella_client()
         return gb.get_outgoing_relations(
-            object_id=args.object_id,
-            type_name=args.type_name,
-            relation_type_name=args.relation_type_name,
+            object_id=object_id,
+            type_name=type_name,
+            relation_type_name=relation_type_name,
         )
     except GrizabellaException as e:
-        msg = f"MCP: Error getting outgoing relations for object '{args.object_id}': {e}"
+        msg = f"MCP: Error getting outgoing relations for object '{object_id}': {e}"
         raise GrizabellaException(msg) from e
-    except Exception as e: # pylint: disable=broad-except
-        msg = f"MCP: Unexpected error getting outgoing relations for object '{args.object_id}': {e}"
+    except Exception as e:  # pylint: disable=broad-except
+        msg = f"MCP: Unexpected error getting outgoing relations for object '{object_id}': {e}"
         raise Exception(msg) from e
 
 
@@ -542,20 +554,25 @@ async def mcp_get_outgoing_relations(args: GetRelationsArgs) -> list[RelationIns
         '}'
     ),
 )
-async def mcp_get_incoming_relations(args: GetRelationsArgs) -> list[RelationInstance]:
+async def mcp_get_incoming_relations(
+    object_id: str, type_name: str, relation_type_name: Optional[str] = None
+) -> list[RelationInstance]:
+    """
+    Retrieves all incoming relations to a specific object.
+    """
     # ctx: ToolContext,
     try:
         gb = get_grizabella_client()
         return gb.get_incoming_relations(
-            object_id=args.object_id,
-            type_name=args.type_name,
-            relation_type_name=args.relation_type_name,
+            object_id=object_id,
+            type_name=type_name,
+            relation_type_name=relation_type_name,
         )
     except GrizabellaException as e:
-        msg = f"MCP: Error getting incoming relations for object '{args.object_id}': {e}"
+        msg = f"MCP: Error getting incoming relations for object '{object_id}': {e}"
         raise GrizabellaException(msg) from e
-    except Exception as e: # pylint: disable=broad-except
-        msg = f"MCP: Unexpected error getting incoming relations for object '{args.object_id}': {e}"
+    except Exception as e:  # pylint: disable=broad-except
+        msg = f"MCP: Unexpected error getting incoming relations for object '{object_id}': {e}"
         raise Exception(msg) from e
 
 
@@ -584,8 +601,14 @@ class SearchSimilarObjectsArgs(BaseModel):
     ),
 )
 async def mcp_search_similar_objects(
-    args: SearchSimilarObjectsArgs,
+    object_id: str,
+    type_name: str,
+    n_results: int = 5,
+    search_properties: Optional[list[str]] = None,
 ) -> list[tuple[ObjectInstance, float]]:
+    """
+    Searches for objects that are semantically similar to a given object, based on embeddings of their properties.
+    """
     # ctx: ToolContext,
     try:
         gb = get_grizabella_client()
@@ -600,13 +623,15 @@ async def mcp_search_similar_objects(
         # Other GrizabellaExceptions or general Exceptions will be caught below.
         try:
             # This line will raise NotImplementedError based on current client.py
-            results: list[tuple[ObjectInstance, float]] = gb.search_similar_objects(
-                object_id=args.object_id,
-                type_name=args.type_name,
-                n_results=args.n_results,
-                search_properties=args.search_properties,
+            results: list[
+                tuple[ObjectInstance, float]
+            ] = gb.search_similar_objects(
+                object_id=object_id,
+                type_name=type_name,
+                n_results=n_results,
+                search_properties=search_properties,
             )
-            return results # This line will not be reached if NotImplementedError is raised
+            return results  # This line will not be reached if NotImplementedError is raised
         except NotImplementedError as nie:
             # Specific handling for the known unimplemented feature.
             # Raising a general Exception here for the MCP layer is acceptable to signal this state.
@@ -615,11 +640,11 @@ async def mcp_search_similar_objects(
 
     except GrizabellaException as e:
         # Handle other Grizabella-specific errors, re-raise as GrizabellaException
-        msg = f"MCP: Error searching similar objects for '{args.object_id}': {e}"
+        msg = f"MCP: Error searching similar objects for '{object_id}': {e}"
         raise GrizabellaException(msg) from e
-    except Exception as e: # pylint: disable=broad-except
+    except Exception as e:  # pylint: disable=broad-except
         # Handle any other unexpected errors, re-raise as general Exception
-        msg = f"MCP: Unexpected error searching similar objects for '{args.object_id}': {e}"
+        msg = f"MCP: Unexpected error searching similar objects for '{object_id}': {e}"
         raise Exception(msg) from e
 
 

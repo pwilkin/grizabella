@@ -12,11 +12,11 @@ Before contributing, please take a moment to read through the documentation loca
 
 We welcome pull requests! If you have an improvement or a bug fix, please feel free to submit a pull request.
 
-1.  Fork the repository.
-2.  Create a new branch for your feature or bug fix.
-3.  Make your changes.
-4.  Please make sure to update the documentation if your changes require it.
-5.  Submit a pull request with a clear description of your changes.
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix.
+3. Make your changes.
+4. Please make sure to update the documentation if your changes require it.
+5. Submit a pull request with a clear description of your changes.
 
 ## Questions?
 

@@ -44,6 +44,7 @@ mkdocs = "^1.6.0"
 mkdocs-material = "^9.5.0"
 sphinx = "^7.3.0"
 sphinx-rtd-theme = "^2.0.0"
+mkdocstrings = {extras = ["python"], version = "^0.25.1"}
 
 [tool.poetry.scripts]
 grizabella-ui = "grizabella.ui.app:main"

@@ -8,6 +8,8 @@
       
       
       
+        <link rel="canonical" href="https://pwilkin.github.io/grizabella/">
+      
       
       
         <link rel="next" href="installation/">
@@ -41,6 +43,8 @@
       
     
     
+      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+    
     <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -60,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#grizabella-user-guide" class="md-skip">
+        <a href="#introduction-to-grizabella" class="md-skip">
           Skip to content
         </a>
       
@@ -149,6 +153,18 @@
       
     
     
+      <div class="md-header__source">
+        <a href="https://github.com/pwilkin/grizabella" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pwilkin/grizabella
+  </div>
+</a>
+      </div>
+    
   </nav>
   
 </header>
@@ -183,6 +199,18 @@
     Grizabella
   </label>
   
+    <div class="md-nav__source">
+      <a href="https://github.com/pwilkin/grizabella" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pwilkin/grizabella
+  </div>
+</a>
+    </div>
+  
   <ul class="md-nav__list" data-md-scrollfix>
     
       
@@ -201,6 +229,19 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="." class="md-nav__link md-nav__link--active">
         
   
@@ -212,6 +253,52 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-grizabella" class="md-nav__link">
+    <span class="md-ellipsis">
+      What is Grizabella?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Features
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture Overview
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -230,6 +317,275 @@
   
   <span class="md-ellipsis">
     Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="core_concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core Concepts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="python_api_detailed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Python API Detailed Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="mcp_server_api_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Server API Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="pyside6_ui_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PySide6 UI Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/core_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/query_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Query Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/mcp_server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Server
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="troubleshooting_faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting & FAQ
     
   </span>
   
@@ -259,6 +615,41 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-grizabella" class="md-nav__link">
+    <span class="md-ellipsis">
+      What is Grizabella?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Key Features
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture Overview
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -272,8 +663,34 @@
                   
 
 
+  
+  
 
-<h1 id="grizabella-user-guide">Grizabella User Guide</h1>
+
+<h1 id="introduction-to-grizabella">Introduction to Grizabella</h1>
+<p>Welcome to Grizabella, a powerful tri-layer memory framework designed to enhance Large Language Model (LLM) solutions by providing robust, multi-faceted data storage and retrieval capabilities.</p>
+<h2 id="what-is-grizabella">What is Grizabella?</h2>
+<p>Grizabella is engineered to serve as a comprehensive memory backbone for applications leveraging LLMs. It allows developers to seamlessly integrate structured, unstructured, and graph-based data, enabling LLMs to access and utilize a rich, context-aware knowledge base. This facilitates more intelligent, accurate, and personalized interactions.</p>
+<h2 id="key-features">Key Features</h2>
+<p>Grizabella offers a suite of features to empower your LLM applications:</p>
+<ul>
+<li><strong>Versatile Data Storage:</strong></li>
+<li><strong>SQLite Integration:</strong> For robust relational data storage, ideal for structured metadata and transactional information.</li>
+<li><strong>LanceDB Integration:</strong> For efficient vector storage and similarity search, crucial for semantic retrieval and embedding-based lookups.</li>
+<li><strong>Kuzu Integration:</strong> For powerful graph database capabilities, enabling the modeling and querying of complex relationships between data entities.</li>
+<li><strong>Unified Python API:</strong> A consistent and intuitive Python library (<code>grizabella</code>) for interacting with all three database layers, simplifying development and data management.</li>
+<li><strong>PySide6 User Interface:</strong> A standalone desktop application (<code>grizabella-ui</code>) providing a visual way to manage schemas, explore data, and interact with the Grizabella framework.</li>
+<li><strong>MCP Server:</strong> A Model Context Protocol (MCP) server (<code>grizabella-mcp</code>) allowing other applications or agents to interact with Grizabella's data and functionalities through a standardized protocol.</li>
+</ul>
+<h2 id="architecture-overview">Architecture Overview</h2>
+<p>Grizabella's power stems from its unique tri-layer architecture:</p>
+<ol>
+<li><strong>Relational Layer (SQLite):</strong> Forms the foundation for structured data. It stores object metadata, schema definitions, and other relational information, ensuring data integrity and providing a solid base for other layers.</li>
+<li><strong>Vector Layer (LanceDB):</strong> Handles high-dimensional vector embeddings. This layer is optimized for fast similarity searches, enabling semantic understanding and retrieval of unstructured or semi-structured data.</li>
+<li><strong>Graph Layer (Kuzu):</strong> Manages complex relationships between data entities. This layer allows for sophisticated graph-based queries and analysis, uncovering insights from interconnected data.</li>
+</ol>
+<p>These three layers work in concert, managed by a central <code>DBManager</code>, to provide a holistic and flexible memory solution.</p>
+<p>This guide will walk you through installing Grizabella, getting started with its core functionalities, and leveraging its advanced features to build next-generation LLM-powered applications.</p>
 
 
 

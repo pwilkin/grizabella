@@ -118,7 +118,12 @@ class Grizabella:
         self.connect()
         return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+    def __exit__(
+        self,
+        exc_type: Optional[type[BaseException]],
+        exc_val: Optional[BaseException],
+        exc_tb: Optional[Any],
+    ) -> None:
         """Context manager exit point. Closes the database connection.
 
         Args:

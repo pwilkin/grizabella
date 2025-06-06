@@ -4,7 +4,7 @@ This guide provides a detailed walkthrough of the Grizabella Python API, coverin
 
 ## Connecting to Grizabella
 
-The primary entry point to interacting with Grizabella is the `Grizabella` class from the [`grizabella.api.client`](grizabella/api/client.py:18) module.
+The primary entry point to interacting with Grizabella is the `Grizabella` class from the [`grizabella.api.client`][] module.
 
 ### `Grizabella(db_name_or_path: Union[str, Path] = "default", create_if_not_exists: bool = True)`
 
@@ -535,7 +535,7 @@ with Grizabella(db_name_or_path="user_guide_db") as gz:
 
 #### `get_relation(...)` and `delete_relation(...)`
 
-* **Note:** As per the [`grizabella.api.client.py`](grizabella/api/client.py:329) source, `get_relation` and `delete_relation` methods that take `from_object_id`, `to_object_id`, and `relation_type_name` are currently marked as `NotImplementedError`. The underlying DB manager expects a `relation_id`.
+* **Note:** As per the [`grizabella.api.client`][] source, `get_relation` and `delete_relation` methods that take `from_object_id`, `to_object_id`, and `relation_type_name` are currently marked as `NotImplementedError`. The underlying DB manager expects a `relation_id`.
     For now, to manage relations by ID, you would typically:
     1. Find relations using `get_outgoing_relations` or `get_incoming_relations`.
     2. Identify the specific `RelationInstance` and use its `id` with the underlying `_db_manager` methods (though direct `_db_manager` access is not the public API).
@@ -664,7 +664,7 @@ Grizabella provides several ways to query your data, from simple object lookups 
 
   * **Example using `query_text` (Conceptual):**
 
-        ```python
+```python
         # CONCEPTUAL EXAMPLE - Method does not exist with this signature in current client
         # Assuming 'gz' is an active Grizabella client and "user_profile_bio_sbert" embedding def exists
         # with Grizabella(db_name_or_path="user_guide_db") as gz:
@@ -684,11 +684,11 @@ Grizabella provides several ways to query your data, from simple object lookups 
         #             print("No similar users found.")
         #     except Exception as e:
         #         print(f"Error during conceptual similarity search: {e}")
-        ```
+```
 
-  * **Example using `query_vector` (Conceptual):**
+* **Example using `query_vector` (Conceptual):**
 
-        ```python
+```python
         # CONCEPTUAL EXAMPLE
         # import numpy as np # For generating a dummy vector
         # with Grizabella(db_name_or_path="user_guide_db") as gz:
@@ -708,9 +708,9 @@ Grizabella provides several ways to query your data, from simple object lookups 
         #             print("No users found similar to the vector.")
         #     except Exception as e:
         #         print(f"Error during conceptual vector similarity search: {e}")
-        ```
+```
 
-  * **Example with `limit` and `filter_condition` (Conceptual):**
+* **Example with `limit` and `filter_condition` (Conceptual):**
         The `filter_condition` would likely be a dictionary similar to `find_objects`' `filter_criteria`, applied *after* the similarity search to the candidate objects, or potentially pushed down to the vector DB if supported.
         The `retrieve_full_objects` parameter (boolean) would control whether the full `ObjectInstance` is returned or perhaps just IDs and scores.
 
@@ -718,7 +718,7 @@ Grizabella provides several ways to query your data, from simple object lookups 
 
 * **Signature:** `def execute_complex_query(self, query: ComplexQuery) -> QueryResult:`
 * **Purpose:** Executes a sophisticated query that can combine relational filters, graph traversals, and embedding searches across multiple object types and database layers.
-* **Pydantic Models:** Uses `ComplexQuery`, `QueryComponent`, `RelationalFilter`, `EmbeddingSearchClause`, `GraphTraversalClause` from [`grizabella.core.query_models`](grizabella/core/query_models.py:1).
+* **Pydantic Models:** Uses `ComplexQuery`, `QueryComponent`, `RelationalFilter`, `EmbeddingSearchClause`, `GraphTraversalClause` from [`grizabella.core.query_models`][].
 * **Example 1: Find active users who authored posts about "Python"**
 
     ```python

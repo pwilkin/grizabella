@@ -2,9 +2,7 @@
 
 A tri-layer memory framework for LLM solutions.
 
-[![PyPI version](https://badge.fury.io/py/grizabella.svg)](https://badge.fury.io/py/grizabella)
-[![Build Status](https://github.com/example/grizabella/actions/workflows/ci.yml/badge.svg)](https://github.com/example/grizabella/actions/workflows/ci.yml)
-[![Docs](https://img.shields.io/badge/docs-passing-brightgreen)](https://example.github.io/grizabella/)
+[![Docs](https://img.shields.io/badge/docs-passing-brightgreen)](https://pwilkin.github.io/grizabella/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ## Overview
@@ -21,8 +19,8 @@ Grizabella is a sophisticated memory layer designed for Large Language Model (LL
 
 ## Quick Links
 
-* [User Guide](https://example.github.io/grizabella/)
-* [API Reference](https://example.github.io/grizabella/api_reference/)
+* [User Guide](./docs/user_guide/)
+* [API Reference](./docs/api_reference/build/html/)
 * [Examples](./examples/)
 
 ## Quick Installation

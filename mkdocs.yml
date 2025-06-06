@@ -1,9 +1,20 @@
 site_name: Grizabella
-site_url: https://example.github.io/grizabella/
-repo_url: https://github.com/example/grizabella
-repo_name: example/grizabella
+site_url: https://pwilkin.github.io/grizabella/
+repo_url: https://github.com/pwilkin/grizabella
+repo_name: pwilkin/grizabella
 theme: material
 docs_dir: docs/user_guide
+watch:
+  - grizabella
+plugins:
+  - search
+  - autorefs
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_root_heading: true
+            show_source: true
 nav:
   - Home: index.md
   - Installation: installation.md
@@ -12,5 +23,9 @@ nav:
   - Python API Detailed Guide: python_api_detailed.md
   - MCP Server API Guide: mcp_server_api_guide.md
   - PySide6 UI Guide: pyside6_ui_guide.md
-  - API Reference: api_reference/index.html
+  - API Reference:
+    - Core Models: api/core_models.md
+    - Query Models: api/query_models.md
+    - API Client: api/client.md
+    - MCP Server: api/mcp_server.md
   - Troubleshooting & FAQ: troubleshooting_faq.md

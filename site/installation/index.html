@@ -8,9 +8,13 @@
       
       
       
+        <link rel="canonical" href="https://pwilkin.github.io/grizabella/installation/">
+      
       
         <link rel="prev" href="..">
       
+      
+        <link rel="next" href="../getting_started/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -40,6 +44,8 @@
         <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
       
     
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
     <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
@@ -149,6 +155,18 @@
       
     
     
+      <div class="md-header__source">
+        <a href="https://github.com/pwilkin/grizabella" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pwilkin/grizabella
+  </div>
+</a>
+      </div>
+    
   </nav>
   
 </header>
@@ -182,6 +200,18 @@
     </a>
     Grizabella
   </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pwilkin/grizabella" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pwilkin/grizabella
+  </div>
+</a>
+    </div>
   
   <ul class="md-nav__list" data-md-scrollfix>
     
@@ -223,6 +253,19 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -235,6 +278,384 @@
 
       </a>
       
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#as-a-library" class="md-nav__link">
+    <span class="md-ellipsis">
+      As a Library
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="As a Library">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-pip-future-once-published" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using pip (Future - Once Published)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-source-for-development-or-current-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      From Source (for Development or Current Use)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#standalone-pyside6-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Standalone PySide6 Application
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Standalone PySide6 Application">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#running-from-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running from Source
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#system-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Dependencies
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="System Dependencies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python Version
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#arrow-c-libraries-for-lancedb" class="md-nav__link">
+    <span class="md-ellipsis">
+      Arrow C++ Libraries (for LanceDB)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core_concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core Concepts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python_api_detailed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Python API Detailed Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp_server_api_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Server API Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyside6_ui_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PySide6 UI Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/core_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/query_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Query Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/mcp_server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Server
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting_faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting & FAQ
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -259,6 +680,104 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#as-a-library" class="md-nav__link">
+    <span class="md-ellipsis">
+      As a Library
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="As a Library">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#using-pip-future-once-published" class="md-nav__link">
+    <span class="md-ellipsis">
+      Using pip (Future - Once Published)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#from-source-for-development-or-current-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      From Source (for Development or Current Use)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#standalone-pyside6-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Standalone PySide6 Application
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Standalone PySide6 Application">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#running-from-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      Running from Source
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#system-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Dependencies
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="System Dependencies">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      Python Version
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#arrow-c-libraries-for-lancedb" class="md-nav__link">
+    <span class="md-ellipsis">
+      Arrow C++ Libraries (for LanceDB)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -272,8 +791,84 @@
                   
 
 
+  
+  
+
 
 <h1 id="installation">Installation</h1>
+<p>This guide provides instructions for installing Grizabella in different ways, depending on your needs.</p>
+<h2 id="as-a-library">As a Library</h2>
+<h3 id="using-pip-future-once-published">Using pip (Future - Once Published)</h3>
+<p>Once Grizabella is published to the Python Package Index (PyPI), you will be able to install it easily using pip:</p>
+<pre><code class="language-bash">pip install grizabella
+</code></pre>
+<p>Stay tuned for updates on our official PyPI release!</p>
+<h3 id="from-source-for-development-or-current-use">From Source (for Development or Current Use)</h3>
+<p>If you want to use the latest development version or contribute to Grizabella, you can install it from source:</p>
+<ol>
+<li>
+<p><strong>Clone the repository:</strong></p>
+<p><code>bash
+git clone https://github.com/example/grizabella.git
+cd grizabella</code></p>
+</li>
+<li>
+<p><strong>Install using Poetry:</strong>
+    We use Poetry for dependency management and packaging. Ensure you have Poetry installed.</p>
+<p><code>bash
+poetry install</code></p>
+<p>This command will create a virtual environment (if one isn't active) and install all necessary dependencies.</p>
+</li>
+</ol>
+<h2 id="standalone-pyside6-application">Standalone PySide6 Application</h2>
+<p>Grizabella includes a PySide6-based graphical user interface for managing your data.</p>
+<h3 id="running-from-source">Running from Source</h3>
+<p>After installing from source using Poetry (see above), you can run the UI application with:</p>
+<pre><code class="language-bash">poetry run grizabella-ui
+</code></pre>
+<h2 id="system-dependencies">System Dependencies</h2>
+<h3 id="python-version">Python Version</h3>
+<p>Grizabella requires <strong>Python version &gt;=3.10 and &lt;3.14</strong>. Please ensure you have a compatible Python version installed.</p>
+<h3 id="arrow-c-libraries-for-lancedb">Arrow C++ Libraries (for LanceDB)</h3>
+<p>The <code>lancedb</code> library, used by Grizabella for vector storage, depends on the Apache Arrow C++ libraries. You'll need to install these on your system if they are not already present.</p>
+<ul>
+<li>
+<p><strong>For Debian/Ubuntu:</strong></p>
+<p>```bash
+sudo apt update
+sudo apt install -y -V libarrow-dev</p>
+<h1 id="you-might-also-need">You might also need:</h1>
+<h1 id="sudo-apt-install-y-v-libarrow-python-dev">sudo apt install -y -V libarrow-python-dev</h1>
+<p>```</p>
+</li>
+<li>
+<p><strong>For macOS (using Homebrew):</strong></p>
+<p><code>bash
+brew install apache-arrow</code></p>
+</li>
+<li>
+<p><strong>For other systems or Conda:</strong>
+    Please refer to the official Apache Arrow installation guide: <a href="https://arrow.apache.org/install/">https://arrow.apache.org/install/</a></p>
+<p>If you are using Conda, you might be able to install Arrow via:</p>
+<p><code>bash
+conda install -c conda-forge pyarrow</code></p>
+<p>Ensure that the <code>pyarrow</code> version is compatible with <code>lancedb</code>.</p>
+</li>
+</ul>
+<h2 id="verifying-installation">Verifying Installation</h2>
+<h3 id="library">Library</h3>
+<p>To verify that the Grizabella library is installed correctly, open a Python interpreter and try importing it:</p>
+<pre><code class="language-python">try:
+    from grizabella.api import Grizabella
+    print(&quot;Grizabella library imported successfully!&quot;)
+except ImportError:
+    print(&quot;Failed to import Grizabella library.&quot;)
+</code></pre>
+<h3 id="pyside6-ui">PySide6 UI</h3>
+<p>Launch the UI as described above:</p>
+<pre><code class="language-bash">poetry run grizabella-ui
+</code></pre>
+<p>If the application window appears, the UI component is likely installed correctly. You can try connecting to a database (or creating a new one) to further verify.</p>
 
 
 
