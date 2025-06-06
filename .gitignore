@@ -1,2 +1,7 @@
 site
 dist
+__pycache__
+grizabella/api/__pycache__
+tests/integration/core/__pycache__
+tests/integration/core/__pycache__
+tests/unit/core/__pycache__
