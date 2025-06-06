@@ -1,0 +1,34 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main  # Or master, depending on your default branch
+
+permissions:
+  contents: write # Needed to push to gh-pages branch
+  pages: write    # Needed to deploy to GitHub Pages
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10' # Or your project's Python version
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+
+      - name: Install dependencies
+        run: poetry install --with dev
+
+      - name: Build Sphinx API Reference
+        run: poetry run sphinx-build -b html docs/api_reference/source docs/user_guide/api_reference
+
+      - name: Deploy MkDocs User Guide (including API Reference)
+        run: poetry run mkdocs gh-deploy --clean --strict --force

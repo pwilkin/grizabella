@@ -1,0 +1,1 @@
+# Grizabella LanceDB adapter module

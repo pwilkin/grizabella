@@ -1,0 +1,5 @@
+[FORMAT]
+max-line-length=240
+
+[MASTER]
+extension-pkg-whitelist=PySide6

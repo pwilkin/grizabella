@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>grizabella.core.query_engine &mdash; Grizabella API 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=01f34227"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Grizabella API
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_client.html">API Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_models.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_query_models.html">Core Query Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_exceptions.html">Core Exceptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_db_manager.html">Core DB Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_query_engine.html">Core Query Engine</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Grizabella API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">grizabella.core.query_engine</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for grizabella.core.query_engine</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Query Planner and Executor for Grizabella&#39;s Complex Query Engine.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Literal</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">uuid</span><span class="w"> </span><span class="kn">import</span> <span class="n">UUID</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span> <span class="c1"># Actual Pydantic import</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.core.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ObjectInstance</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.core.query_models</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ComplexQuery</span><span class="p">,</span> <span class="n">QueryResult</span><span class="p">,</span> <span class="n">QueryComponent</span><span class="p">,</span> <span class="n">RelationalFilter</span><span class="p">,</span>
+    <span class="n">EmbeddingSearchClause</span><span class="p">,</span> <span class="n">GraphTraversalClause</span>
+<span class="p">)</span>
+<span class="c1"># Schema models for validation</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.core.models</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ObjectTypeDefinition</span><span class="p">,</span> <span class="n">EmbeddingDefinition</span><span class="p">,</span> <span class="n">RelationTypeDefinition</span><span class="p">,</span> <span class="n">PropertyDefinition</span>
+<span class="p">)</span>
+
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="c1"># Forward declaration for type hinting GrizabellaDBManager</span>
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.core.db_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">GrizabellaDBManager</span>
+
+
+<span class="c1"># New/Updated Pydantic models for planning</span>
+<div class="viewcode-block" id="PlannedStep">
+<a class="viewcode-back" href="../../../core_query_engine.html#grizabella.core.query_engine.PlannedStep">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PlannedStep</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a single step in an execution plan for a query component.&quot;&quot;&quot;</span>
+    <span class="n">step_type</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;sqlite_filter&quot;</span><span class="p">,</span> <span class="s2">&quot;lancedb_search&quot;</span><span class="p">,</span> <span class="s2">&quot;kuzu_traversal&quot;</span><span class="p">]</span>
+    <span class="n">details</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+    <span class="n">input_object_ids_source_step_index</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Index of the step within this component&#39;s plan providing input IDs&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PlannedComponentExecution">
+<a class="viewcode-back" href="../../../core_query_engine.html#grizabella.core.query_engine.PlannedComponentExecution">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PlannedComponentExecution</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents the execution plan for a single QueryComponent.&quot;&quot;&quot;</span>
+    <span class="n">component_index</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">object_type_name</span><span class="p">:</span> <span class="nb">str</span> <span class="c1"># Target object type for this component</span>
+    <span class="n">steps</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PlannedStep</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="PlannedQuery">
+<a class="viewcode-back" href="../../../core_query_engine.html#grizabella.core.query_engine.PlannedQuery">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PlannedQuery</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents the full execution plan for a ComplexQuery.&quot;&quot;&quot;</span>
+    <span class="n">original_query</span><span class="p">:</span> <span class="n">ComplexQuery</span>
+    <span class="n">final_target_object_type_name</span><span class="p">:</span> <span class="nb">str</span> <span class="c1"># Primary object type for final result fetching</span>
+    <span class="n">component_plans</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PlannedComponentExecution</span><span class="p">]</span></div>
+
+
+
+<div class="viewcode-block" id="QueryPlanner">
+<a class="viewcode-back" href="../../../core_query_engine.html#grizabella.core.query_engine.QueryPlanner">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QueryPlanner</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Analyzes a ComplexQuery and decomposes it into an executable plan (PlannedQuery).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_manager</span><span class="p">:</span> <span class="s1">&#39;GrizabellaDBManager&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the QueryPlanner.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            db_manager: An instance of GrizabellaDBManager to access schema information.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span> <span class="o">=</span> <span class="n">db_manager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_schema_manager</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">_schema_manager</span> <span class="c1"># Access via db_manager</span>
+
+<div class="viewcode-block" id="QueryPlanner.plan">
+<a class="viewcode-back" href="../../../core_query_engine.html#grizabella.core.query_engine.QueryPlanner.plan">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plan</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">ComplexQuery</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">PlannedQuery</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates an execution plan for the given complex query.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            query: The ComplexQuery object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A PlannedQuery object.</span>
+<span class="sd">        Raises:</span>
+<span class="sd">            ValueError: If the query is invalid or schema validation fails.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Planning complex query: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">query</span><span class="o">.</span><span class="n">description</span> <span class="ow">or</span> <span class="s2">&quot;Untitled Query&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">query</span><span class="o">.</span><span class="n">components</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;ComplexQuery must have at least one component.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Determine the final target object type from the first component.</span>
+        <span class="n">final_target_object_type</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">components</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">object_type_name</span>
+        <span class="n">otd_final_target</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_schema_manager</span><span class="o">.</span><span class="n">get_object_type_definition</span><span class="p">(</span><span class="n">final_target_object_type</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">otd_final_target</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Primary target ObjectTypeDefinition &#39;</span><span class="si">{</span><span class="n">final_target_object_type</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+                <span class="s2">&quot;from first query component not found in schema.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">all_component_plans</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PlannedComponentExecution</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">component</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">components</span><span class="p">):</span>
+            <span class="n">component_steps</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">PlannedStep</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">current_input_source_idx_for_component</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">component_object_type_name</span> <span class="o">=</span> <span class="n">component</span><span class="o">.</span><span class="n">object_type_name</span>
+
+            <span class="n">otd_component</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_schema_manager</span><span class="o">.</span><span class="n">get_object_type_definition</span><span class="p">(</span><span class="n">component_object_type_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">otd_component</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;QueryComponent </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">: ObjectTypeDefinition &#39;</span><span class="si">{</span><span class="n">component_object_type_name</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="c1"># 1. Relational Filters (SQLite)</span>
+            <span class="k">if</span> <span class="n">component</span><span class="o">.</span><span class="n">relational_filters</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">rel_filter</span> <span class="ow">in</span> <span class="n">component</span><span class="o">.</span><span class="n">relational_filters</span><span class="p">:</span>
+                    <span class="n">prop_def</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_schema_manager</span><span class="o">.</span><span class="n">get_property_definition_for_object_type</span><span class="p">(</span>
+                        <span class="n">component_object_type_name</span><span class="p">,</span> <span class="n">rel_filter</span><span class="o">.</span><span class="n">property_name</span>
+                    <span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">prop_def</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;QueryComponent </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">: Property &#39;</span><span class="si">{</span><span class="n">rel_filter</span><span class="o">.</span><span class="n">property_name</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;not found for ObjectType &#39;</span><span class="si">{</span><span class="n">component_object_type_name</span><span class="si">}</span><span class="s2">&#39;.&quot;</span>
+                        <span class="p">)</span>
+                    <span class="c1"># TODO: Add operator/value type compatibility check with prop_def.data_type</span>
+
+                <span class="n">component_steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PlannedStep</span><span class="p">(</span>
+                    <span class="n">step_type</span><span class="o">=</span><span class="s2">&quot;sqlite_filter&quot;</span><span class="p">,</span>
+                    <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                        <span class="s2">&quot;object_type_name&quot;</span><span class="p">:</span> <span class="n">component_object_type_name</span><span class="p">,</span>
+                        <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="n">component</span><span class="o">.</span><span class="n">relational_filters</span>
+                    <span class="p">},</span>
+                    <span class="n">input_object_ids_source_step_index</span><span class="o">=</span><span class="kc">None</span>
+                <span class="p">))</span>
+                <span class="n">current_input_source_idx_for_component</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">component_steps</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+
+            <span class="c1"># 2. Embedding Searches (LanceDB)</span>
+            <span class="k">if</span> <span class="n">component</span><span class="o">.</span><span class="n">embedding_searches</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">emb_search</span> <span class="ow">in</span> <span class="n">component</span><span class="o">.</span><span class="n">embedding_searches</span><span class="p">:</span>
+                    <span class="n">emb_def</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_schema_manager</span><span class="o">.</span><span class="n">get_embedding_definition</span><span class="p">(</span><span class="n">emb_search</span><span class="o">.</span><span class="n">embedding_definition_name</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">emb_def</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;QueryComponent </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">: EmbeddingDefinition &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">emb_search</span><span class="o">.</span><span class="n">embedding_definition_name</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span>
+                        <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">emb_def</span><span class="o">.</span><span class="n">object_type_name</span> <span class="o">!=</span> <span class="n">component_object_type_name</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;QueryComponent </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">: EmbeddingDefinition &#39;</span><span class="si">{</span><span class="n">emb_search</span><span class="o">.</span><span class="n">embedding_definition_name</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;is for ObjectType &#39;</span><span class="si">{</span><span class="n">emb_def</span><span class="o">.</span><span class="n">object_type_name</span><span class="si">}</span><span class="s2">&#39;, but component targets &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">component_object_type_name</span><span class="si">}</span><span class="s2">&#39;.&quot;</span>
+                        <span class="p">)</span>
+                    <span class="c1"># TODO: Validate query_vector dimension matches emb_def.dimensions</span>
+
+                    <span class="n">component_steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PlannedStep</span><span class="p">(</span>
+                        <span class="n">step_type</span><span class="o">=</span><span class="s2">&quot;lancedb_search&quot;</span><span class="p">,</span>
+                        <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                            <span class="s2">&quot;embedding_search_clause&quot;</span><span class="p">:</span> <span class="n">emb_search</span>
+                        <span class="p">},</span>
+                        <span class="n">input_object_ids_source_step_index</span><span class="o">=</span><span class="n">current_input_source_idx_for_component</span>
+                    <span class="p">))</span>
+                    <span class="n">current_input_source_idx_for_component</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">component_steps</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            
+            <span class="c1"># 3. Graph Traversals (Kuzu)</span>
+            <span class="k">if</span> <span class="n">component</span><span class="o">.</span><span class="n">graph_traversals</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">traversal</span> <span class="ow">in</span> <span class="n">component</span><span class="o">.</span><span class="n">graph_traversals</span><span class="p">:</span>
+                    <span class="n">rtd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_schema_manager</span><span class="o">.</span><span class="n">get_relation_type_definition</span><span class="p">(</span><span class="n">traversal</span><span class="o">.</span><span class="n">relation_type_name</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">rtd</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;QueryComponent </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">: RelationTypeDefinition &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">traversal</span><span class="o">.</span><span class="n">relation_type_name</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span>
+                        <span class="p">)</span>
+                    
+                    <span class="k">if</span> <span class="n">component_object_type_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rtd</span><span class="o">.</span><span class="n">source_object_type_names</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;QueryComponent </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">: Relation &#39;</span><span class="si">{</span><span class="n">traversal</span><span class="o">.</span><span class="n">relation_type_name</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;cannot originate from ObjectType &#39;</span><span class="si">{</span><span class="n">component_object_type_name</span><span class="si">}</span><span class="s2">&#39;. &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;Allowed sources: </span><span class="si">{</span><span class="n">rtd</span><span class="o">.</span><span class="n">source_object_type_names</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="p">)</span>
+                    <span class="k">if</span> <span class="n">traversal</span><span class="o">.</span><span class="n">target_object_type_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">rtd</span><span class="o">.</span><span class="n">target_object_type_names</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;QueryComponent </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">: Relation &#39;</span><span class="si">{</span><span class="n">traversal</span><span class="o">.</span><span class="n">relation_type_name</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;cannot target ObjectType &#39;</span><span class="si">{</span><span class="n">traversal</span><span class="o">.</span><span class="n">target_object_type_name</span><span class="si">}</span><span class="s2">&#39;. &quot;</span>
+                            <span class="sa">f</span><span class="s2">&quot;Allowed targets: </span><span class="si">{</span><span class="n">rtd</span><span class="o">.</span><span class="n">target_object_type_names</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="p">)</span>
+
+                    <span class="k">if</span> <span class="n">traversal</span><span class="o">.</span><span class="n">target_object_properties</span><span class="p">:</span>
+                        <span class="n">target_otd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_schema_manager</span><span class="o">.</span><span class="n">get_object_type_definition</span><span class="p">(</span>
+                            <span class="n">traversal</span><span class="o">.</span><span class="n">target_object_type_name</span>
+                        <span class="p">)</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">target_otd</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                                <span class="sa">f</span><span class="s2">&quot;QueryComponent </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">: Target ObjectTypeDefinition &quot;</span>
+                                <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">traversal</span><span class="o">.</span><span class="n">target_object_type_name</span><span class="si">}</span><span class="s2">&#39; for graph traversal not found.&quot;</span>
+                            <span class="p">)</span>
+                        <span class="k">for</span> <span class="n">rel_filter</span> <span class="ow">in</span> <span class="n">traversal</span><span class="o">.</span><span class="n">target_object_properties</span><span class="p">:</span>
+                            <span class="n">prop_def</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_schema_manager</span><span class="o">.</span><span class="n">get_property_definition_for_object_type</span><span class="p">(</span>
+                                <span class="n">traversal</span><span class="o">.</span><span class="n">target_object_type_name</span><span class="p">,</span> <span class="n">rel_filter</span><span class="o">.</span><span class="n">property_name</span>
+                            <span class="p">)</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">prop_def</span><span class="p">:</span>
+                                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                                    <span class="sa">f</span><span class="s2">&quot;QueryComponent </span><span class="si">{</span><span class="n">idx</span><span class="si">}</span><span class="s2">: Property &#39;</span><span class="si">{</span><span class="n">rel_filter</span><span class="o">.</span><span class="n">property_name</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+                                    <span class="sa">f</span><span class="s2">&quot;for graph traversal not found for target ObjectType &quot;</span>
+                                    <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">traversal</span><span class="o">.</span><span class="n">target_object_type_name</span><span class="si">}</span><span class="s2">&#39;.&quot;</span>
+                                <span class="p">)</span>
+                            <span class="c1"># TODO: Add operator/value type compatibility check</span>
+
+                    <span class="n">component_steps</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PlannedStep</span><span class="p">(</span>
+                        <span class="n">step_type</span><span class="o">=</span><span class="s2">&quot;kuzu_traversal&quot;</span><span class="p">,</span>
+                        <span class="n">details</span><span class="o">=</span><span class="p">{</span>
+                            <span class="s2">&quot;source_object_type_name&quot;</span><span class="p">:</span> <span class="n">component_object_type_name</span><span class="p">,</span>
+                            <span class="s2">&quot;graph_traversal_clause&quot;</span><span class="p">:</span> <span class="n">traversal</span>
+                        <span class="p">},</span>
+                        <span class="n">input_object_ids_source_step_index</span><span class="o">=</span><span class="n">current_input_source_idx_for_component</span>
+                    <span class="p">))</span>
+                    <span class="n">current_input_source_idx_for_component</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">component_steps</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+            
+            <span class="n">all_component_plans</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PlannedComponentExecution</span><span class="p">(</span>
+                <span class="n">component_index</span><span class="o">=</span><span class="n">idx</span><span class="p">,</span>
+                <span class="n">object_type_name</span><span class="o">=</span><span class="n">component_object_type_name</span><span class="p">,</span>
+                <span class="n">steps</span><span class="o">=</span><span class="n">component_steps</span>
+            <span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">PlannedQuery</span><span class="p">(</span>
+            <span class="n">original_query</span><span class="o">=</span><span class="n">query</span><span class="p">,</span>
+            <span class="n">final_target_object_type_name</span><span class="o">=</span><span class="n">final_target_object_type</span><span class="p">,</span>
+            <span class="n">component_plans</span><span class="o">=</span><span class="n">all_component_plans</span>
+        <span class="p">)</span></div>
+</div>
+
+
+
+<div class="viewcode-block" id="QueryExecutor">
+<a class="viewcode-back" href="../../../core_query_engine.html#grizabella.core.query_engine.QueryExecutor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QueryExecutor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Executes a PlannedQuery using the GrizabellaDBManager and its adapters.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_manager</span><span class="p">:</span> <span class="s1">&#39;GrizabellaDBManager&#39;</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the QueryExecutor.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            db_manager: An instance of GrizabellaDBManager to execute sub-queries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span> <span class="o">=</span> <span class="n">db_manager</span>
+
+<div class="viewcode-block" id="QueryExecutor.execute">
+<a class="viewcode-back" href="../../../core_query_engine.html#grizabella.core.query_engine.QueryExecutor.execute">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">planned_query</span><span class="p">:</span> <span class="n">PlannedQuery</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QueryResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes the planned query steps for each component and aggregates results.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            planned_query: The PlannedQuery object.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            A QueryResult object.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s2">&quot;Executing planned query for: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">planned_query</span><span class="o">.</span><span class="n">original_query</span><span class="o">.</span><span class="n">description</span> <span class="ow">or</span> <span class="s2">&quot;Untitled Query&quot;</span>
+        <span class="p">)</span>
+        
+        <span class="n">all_component_final_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">UUID</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># Stores final list of Object UUIDs for each component</span>
+        <span class="n">errors</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">comp_plan_idx</span><span class="p">,</span> <span class="n">component_plan</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">planned_query</span><span class="o">.</span><span class="n">component_plans</span><span class="p">):</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">&quot;Executing component </span><span class="si">%d</span><span class="s2"> (ObjectType: </span><span class="si">%s</span><span class="s2">)&quot;</span><span class="p">,</span>
+                <span class="n">component_plan</span><span class="o">.</span><span class="n">component_index</span><span class="p">,</span> <span class="n">component_plan</span><span class="o">.</span><span class="n">object_type_name</span>
+            <span class="p">)</span>
+            <span class="n">intermediate_step_results</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="n">List</span><span class="p">[</span><span class="n">UUID</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># IDs per step within this component</span>
+            <span class="n">current_component_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">UUID</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+
+            <span class="k">for</span> <span class="n">step_idx</span><span class="p">,</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">component_plan</span><span class="o">.</span><span class="n">steps</span><span class="p">):</span>
+                <span class="n">input_ids_for_step</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">UUID</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="n">step</span><span class="o">.</span><span class="n">input_object_ids_source_step_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">input_ids_for_step</span> <span class="o">=</span> <span class="n">intermediate_step_results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">step</span><span class="o">.</span><span class="n">input_object_ids_source_step_index</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">input_ids_for_step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Internal planning error: Missing input IDs for component &quot;</span>
+                               <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">comp_plan_idx</span><span class="si">}</span><span class="s2">, step </span><span class="si">{</span><span class="n">step_idx</span><span class="si">}</span><span class="s2"> from source step &quot;</span>
+                               <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">step</span><span class="o">.</span><span class="n">input_object_ids_source_step_index</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                        <span class="c1"># This component fails, skip to next component or return error</span>
+                        <span class="n">current_component_ids</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># Mark as failed for this component</span>
+                        <span class="k">break</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">input_ids_for_step</span><span class="p">:</span> <span class="c1"># Previous step in this component yielded no results</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                            <span class="s2">&quot;Component </span><span class="si">%d</span><span class="s2">, Step </span><span class="si">%d</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">) received no input IDs, short-circuiting component.&quot;</span><span class="p">,</span>
+                            <span class="n">comp_plan_idx</span><span class="p">,</span> <span class="n">step_idx</span><span class="p">,</span> <span class="n">step</span><span class="o">.</span><span class="n">step_type</span>
+                        <span class="p">)</span>
+                        <span class="n">current_component_ids</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="k">break</span>
+                
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">step_output_ids</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">UUID</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">if</span> <span class="n">step</span><span class="o">.</span><span class="n">step_type</span> <span class="o">==</span> <span class="s2">&quot;sqlite_filter&quot;</span><span class="p">:</span>
+                        <span class="n">details</span> <span class="o">=</span> <span class="n">step</span><span class="o">.</span><span class="n">details</span>
+                        <span class="n">rel_filters</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">RelationalFilter</span><span class="p">]</span> <span class="o">=</span> <span class="n">details</span><span class="p">[</span><span class="s2">&quot;filters&quot;</span><span class="p">]</span>
+                        <span class="n">obj_type_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">details</span><span class="p">[</span><span class="s2">&quot;object_type_name&quot;</span><span class="p">]</span>
+                        
+                        <span class="n">step_output_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">sqlite_adapter</span><span class="o">.</span><span class="n">find_object_ids_by_properties</span><span class="p">(</span>
+                            <span class="n">object_type_name</span><span class="o">=</span><span class="n">obj_type_name</span><span class="p">,</span>
+                            <span class="n">filters</span><span class="o">=</span><span class="n">rel_filters</span><span class="p">,</span>
+                            <span class="n">initial_ids</span><span class="o">=</span><span class="n">input_ids_for_step</span> <span class="c1"># Pass previous step&#39;s IDs to refine</span>
+                        <span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;SQLite filter step yielded </span><span class="si">%d</span><span class="s2"> IDs&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">step_output_ids</span><span class="p">))</span>
+
+                    <span class="k">elif</span> <span class="n">step</span><span class="o">.</span><span class="n">step_type</span> <span class="o">==</span> <span class="s2">&quot;lancedb_search&quot;</span><span class="p">:</span>
+                        <span class="n">emb_clause</span><span class="p">:</span> <span class="n">EmbeddingSearchClause</span> <span class="o">=</span> <span class="n">step</span><span class="o">.</span><span class="n">details</span><span class="p">[</span><span class="s2">&quot;embedding_search_clause&quot;</span><span class="p">]</span>
+                        <span class="n">step_output_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">lancedb_adapter</span><span class="o">.</span><span class="n">find_object_ids_by_similarity</span><span class="p">(</span>
+                            <span class="n">embedding_definition_name</span><span class="o">=</span><span class="n">emb_clause</span><span class="o">.</span><span class="n">embedding_definition_name</span><span class="p">,</span>
+                            <span class="n">query_vector</span><span class="o">=</span><span class="n">emb_clause</span><span class="o">.</span><span class="n">similar_to_payload</span><span class="p">,</span>
+                            <span class="n">limit</span><span class="o">=</span><span class="n">emb_clause</span><span class="o">.</span><span class="n">limit</span><span class="p">,</span>
+                            <span class="n">initial_ids</span><span class="o">=</span><span class="n">input_ids_for_step</span> <span class="c1"># Pass previous step&#39;s IDs to refine</span>
+                            <span class="c1"># filter_condition might be added later if needed from emb_clause</span>
+                        <span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;LanceDB search step yielded </span><span class="si">%d</span><span class="s2"> IDs&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">step_output_ids</span><span class="p">))</span>
+
+                    <span class="k">elif</span> <span class="n">step</span><span class="o">.</span><span class="n">step_type</span> <span class="o">==</span> <span class="s2">&quot;kuzu_traversal&quot;</span><span class="p">:</span>
+                        <span class="n">trav_clause</span><span class="p">:</span> <span class="n">GraphTraversalClause</span> <span class="o">=</span> <span class="n">step</span><span class="o">.</span><span class="n">details</span><span class="p">[</span><span class="s2">&quot;graph_traversal_clause&quot;</span><span class="p">]</span>
+                        <span class="n">source_obj_type_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">step</span><span class="o">.</span><span class="n">details</span><span class="p">[</span><span class="s2">&quot;source_object_type_name&quot;</span><span class="p">]</span>
+                        <span class="k">if</span> <span class="n">input_ids_for_step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># Kuzu step must have input IDs</span>
+                            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Kuzu traversal (Comp </span><span class="si">{</span><span class="n">comp_plan_idx</span><span class="si">}</span><span class="s2">, Step </span><span class="si">{</span><span class="n">step_idx</span><span class="si">}</span><span class="s2">) &quot;</span>
+                                   <span class="sa">f</span><span class="s2">&quot;requires input IDs, but none were provided.&quot;</span><span class="p">)</span>
+                            <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                            <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                            <span class="n">step_output_ids</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">step_output_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">kuzu_adapter</span><span class="o">.</span><span class="n">filter_object_ids_by_relations</span><span class="p">(</span>
+                                <span class="n">source_object_type_name</span><span class="o">=</span><span class="n">source_obj_type_name</span><span class="p">,</span>
+                                <span class="n">object_ids</span><span class="o">=</span><span class="n">input_ids_for_step</span><span class="p">,</span>
+                                <span class="n">traversals</span><span class="o">=</span><span class="p">[</span><span class="n">trav_clause</span><span class="p">]</span> <span class="c1"># Expects a list</span>
+                            <span class="p">)</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Kuzu traversal step yielded </span><span class="si">%d</span><span class="s2"> IDs&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">step_output_ids</span><span class="p">))</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Unknown query step type &#39;</span><span class="si">{</span><span class="n">step</span><span class="o">.</span><span class="n">step_type</span><span class="si">}</span><span class="s2">&#39; at component </span><span class="si">{</span><span class="n">comp_plan_idx</span><span class="si">}</span><span class="s2">, step </span><span class="si">{</span><span class="n">step_idx</span><span class="si">}</span><span class="s2">.&quot;</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                        <span class="n">step_output_ids</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># Mark as failed</span>
+
+                    <span class="n">intermediate_step_results</span><span class="p">[</span><span class="n">step_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">step_output_ids</span>
+                    <span class="n">current_component_ids</span> <span class="o">=</span> <span class="n">step_output_ids</span> <span class="c1"># Update with the latest set of IDs for this component</span>
+
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">current_component_ids</span><span class="p">:</span> <span class="c1"># No results after this step</span>
+                        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                            <span class="s2">&quot;Component </span><span class="si">%d</span><span class="s2">, Step </span><span class="si">%d</span><span class="s2"> (</span><span class="si">%s</span><span class="s2">) yielded no results. Aborting component execution.&quot;</span><span class="p">,</span>
+                            <span class="n">comp_plan_idx</span><span class="p">,</span> <span class="n">step_idx</span><span class="p">,</span> <span class="n">step</span><span class="o">.</span><span class="n">step_type</span>
+                        <span class="p">)</span>
+                        <span class="k">break</span> <span class="c1"># Break from steps loop for this component</span>
+
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error in component </span><span class="si">{</span><span class="n">comp_plan_idx</span><span class="si">}</span><span class="s2">, step </span><span class="si">{</span><span class="n">step_idx</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">step</span><span class="o">.</span><span class="n">step_type</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                    <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                    <span class="n">current_component_ids</span> <span class="o">=</span> <span class="p">[]</span> <span class="c1"># Mark component as failed</span>
+                    <span class="k">break</span> <span class="c1"># Break from steps loop for this component</span>
+            
+            <span class="c1"># After all steps for a component are done (or short-circuited)</span>
+            <span class="k">if</span> <span class="n">current_component_ids</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># Should not happen if steps were processed</span>
+                <span class="n">current_component_ids</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">all_component_final_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_component_ids</span><span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                <span class="s2">&quot;Component </span><span class="si">%d</span><span class="s2"> finished with </span><span class="si">%d</span><span class="s2"> IDs.&quot;</span><span class="p">,</span>
+                <span class="n">component_plan</span><span class="o">.</span><span class="n">component_index</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_component_ids</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Aggregate results from all components (Intersection for AND logic)</span>
+        <span class="n">final_aggregated_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">UUID</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">errors</span><span class="p">:</span> <span class="c1"># Only aggregate if no critical errors stopped a component prematurely</span>
+            <span class="k">if</span> <span class="n">all_component_final_ids</span><span class="p">:</span>
+                <span class="c1"># Start with the IDs from the first component</span>
+                <span class="n">final_aggregated_ids_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">all_component_final_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="c1"># Intersect with subsequent components</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_component_final_ids</span><span class="p">)):</span>
+                    <span class="n">final_aggregated_ids_set</span><span class="o">.</span><span class="n">intersection_update</span><span class="p">(</span><span class="n">all_component_final_ids</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">final_aggregated_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">final_aggregated_ids_set</span><span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Final aggregated query resulted in </span><span class="si">%d</span><span class="s2"> IDs after intersection.&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">final_aggregated_ids</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span> <span class="c1"># No components or all components failed to produce IDs</span>
+                <span class="n">final_aggregated_ids</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1"># If there were errors, result is empty or partial (currently empty)</span>
+            <span class="n">final_aggregated_ids</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Query execution had errors, final ID list is empty.&quot;</span><span class="p">)</span>
+
+
+        <span class="c1"># Fetch full ObjectInstances for the final_aggregated_ids</span>
+        <span class="n">final_instances</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ObjectInstance</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">final_aggregated_ids</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># GrizabellaDBManager.get_objects_by_ids should handle UUIDs directly</span>
+                <span class="n">final_instances</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">get_objects_by_ids</span><span class="p">(</span>
+                    <span class="n">object_type_name</span><span class="o">=</span><span class="n">planned_query</span><span class="o">.</span><span class="n">final_target_object_type_name</span><span class="p">,</span>
+                    <span class="n">object_ids</span><span class="o">=</span><span class="n">final_aggregated_ids</span>
+                <span class="p">)</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Fetched </span><span class="si">%d</span><span class="s2"> full object instances.&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">final_instances</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error fetching final object instances: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="c1"># Potentially return partial results if some IDs were fetched before error</span>
+                <span class="c1"># For now, if fetching fails, results are empty.</span>
+
+        <span class="k">return</span> <span class="n">QueryResult</span><span class="p">(</span><span class="n">object_instances</span><span class="o">=</span><span class="n">final_instances</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="n">errors</span> <span class="k">if</span> <span class="n">errors</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span></div>
+</div>
+
+
+<span class="c1"># The BaseModel placeholder and its related TYPE_CHECKING block are removed</span>
+<span class="c1"># as Pydantic&#39;s BaseModel is now properly imported at the top of the file.</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Grizabella Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

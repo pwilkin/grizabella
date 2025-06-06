@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>grizabella.ui.dialogs.relation_type_dialog &mdash; Grizabella API 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=01f34227"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            Grizabella API
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api_client.html">API Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_models.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_query_models.html">Core Query Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_exceptions.html">Core Exceptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_db_manager.html">Core DB Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_query_engine.html">Core Query Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_utils.html">grizabella.core (Utilities)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../db_layers.html">grizabella.db_layers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ui_main.html">grizabella.ui (Main Components)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ui_dialogs.html">grizabella.ui.dialogs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Grizabella API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">grizabella.ui.dialogs.relation_type_dialog</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for grizabella.ui.dialogs.relation_type_dialog</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Dialog for creating and editing RelationTypeDefinitions.&quot;&quot;&quot;</span>
+
+<span class="c1"># Standard library imports</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span> <span class="c1"># Add logging import</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">TYPE_CHECKING</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">PySide6.QtCore</span><span class="w"> </span><span class="kn">import</span> <span class="n">Qt</span><span class="p">,</span> <span class="n">Signal</span><span class="p">,</span> <span class="n">Slot</span> <span class="c1"># QThread removed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PySide6.QtWidgets</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">QApplication</span><span class="p">,</span> <span class="c1"># Added</span>
+    <span class="n">QCheckBox</span><span class="p">,</span>
+    <span class="n">QComboBox</span><span class="p">,</span>
+    <span class="n">QDialog</span><span class="p">,</span>
+    <span class="n">QDialogButtonBox</span><span class="p">,</span>
+    <span class="n">QFormLayout</span><span class="p">,</span>
+    <span class="n">QHBoxLayout</span><span class="p">,</span>
+    <span class="n">QHeaderView</span><span class="p">,</span>
+    <span class="n">QLabel</span><span class="p">,</span>
+    <span class="n">QLineEdit</span><span class="p">,</span>
+    <span class="n">QMessageBox</span><span class="p">,</span>
+    <span class="n">QPushButton</span><span class="p">,</span>
+    <span class="n">QTableWidget</span><span class="p">,</span>
+    <span class="n">QTextEdit</span><span class="p">,</span>
+    <span class="n">QVBoxLayout</span><span class="p">,</span>
+    <span class="n">QWidget</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.api.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">Grizabella</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">SchemaError</span><span class="p">,</span> <span class="n">DatabaseError</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.core.models</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ObjectTypeDefinition</span><span class="p">,</span>
+    <span class="n">PropertyDataType</span><span class="p">,</span>
+    <span class="n">PropertyDefinition</span><span class="p">,</span>
+    <span class="n">RelationTypeDefinition</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.ui.threads.api_client_thread</span><span class="w"> </span><span class="kn">import</span> <span class="n">ApiClientThread</span> <span class="c1"># Import new thread</span>
+<span class="c1"># from grizabella.ui.main_window import MainWindow # For connecting signals &lt;- REMOVED FOR CIRCULAR IMPORT</span>
+
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.ui.main_window</span><span class="w"> </span><span class="kn">import</span> <span class="n">MainWindow</span>
+
+
+<div class="viewcode-block" id="RelationTypeDialog">
+<a class="viewcode-back" href="../../../../ui_dialogs.html#grizabella.ui.dialogs.RelationTypeDialog">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RelationTypeDialog</span><span class="p">(</span><span class="n">QDialog</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dialog for creating or editing a RelationTypeDefinition.&quot;&quot;&quot;</span>
+
+    <span class="n">relation_type_changed</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">()</span>
+    <span class="n">busy_signal</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span> <span class="c1"># To indicate busy state</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">grizabella_client</span><span class="p">:</span> <span class="s2">&quot;Grizabella&quot;</span><span class="p">,</span> <span class="c1"># Retain for now</span>
+        <span class="n">existing_rtd</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">RelationTypeDefinition</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">grizabella_client_ref</span> <span class="o">=</span> <span class="n">grizabella_client</span> <span class="c1"># Store ref, API calls via MainWindow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">existing_rtd</span> <span class="o">=</span> <span class="n">existing_rtd</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ApiClientThread</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ApiClientThread</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+        <span class="c1"># Client connection check is less critical here as operations go via MainWindow</span>
+        <span class="c1"># if not self.grizabella_client_ref or not self.grizabella_client_ref._is_connected:</span>
+        <span class="c1">#     self._logger.error(&quot;Grizabella client is not available or not connected in RelationTypeDialog.&quot;)</span>
+        <span class="c1">#     QMessageBox.critical(self, &quot;Initialization Error&quot;, &quot;Grizabella client is not available or not connected.&quot;)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">existing_rtd</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Edit Relation Type: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">existing_rtd</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span><span class="s2">&quot;Create New Relation Type&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setMinimumWidth</span><span class="p">(</span><span class="mi">750</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setMinimumHeight</span><span class="p">(</span><span class="mi">550</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_init_ui</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_object_types</span><span class="p">()</span>  <span class="c1"># Trigger loading object types for combos</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">existing_rtd</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_load_existing_data</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Add a default empty property row for new relation types</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_add_property_row</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_ui</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="n">form_layout</span> <span class="o">=</span> <span class="n">QFormLayout</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_edit</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description_edit</span> <span class="o">=</span> <span class="n">QTextEdit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description_edit</span><span class="o">.</span><span class="n">setPlaceholderText</span><span class="p">(</span>
+            <span class="s2">&quot;Optional description for the relation type.&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description_edit</span><span class="o">.</span><span class="n">setFixedHeight</span><span class="p">(</span><span class="mi">80</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_object_type_combo</span> <span class="o">=</span> <span class="n">QComboBox</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_object_type_combo</span> <span class="o">=</span> <span class="n">QComboBox</span><span class="p">()</span>
+
+        <span class="n">form_layout</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="s2">&quot;Name:&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_edit</span><span class="p">)</span>
+        <span class="n">form_layout</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="s2">&quot;Description:&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">description_edit</span><span class="p">)</span>
+        <span class="n">form_layout</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="s2">&quot;Source Object Type:&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_object_type_combo</span><span class="p">)</span>
+        <span class="n">form_layout</span><span class="o">.</span><span class="n">addRow</span><span class="p">(</span><span class="s2">&quot;Target Object Type:&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_object_type_combo</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">form_layout</span><span class="p">)</span>
+
+        <span class="n">properties_layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">()</span>
+        <span class="n">properties_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Properties (for the relation itself):&quot;</span><span class="p">)</span>
+        <span class="n">properties_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">properties_label</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span> <span class="o">=</span> <span class="n">QTableWidget</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">setColumnCount</span><span class="p">(</span>
+            <span class="mi">6</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># Name, Data Type, Nullable, Indexed, Unique, Description</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">setHorizontalHeaderLabels</span><span class="p">(</span>
+            <span class="p">[</span><span class="s2">&quot;Name&quot;</span><span class="p">,</span> <span class="s2">&quot;Data Type&quot;</span><span class="p">,</span> <span class="s2">&quot;Nullable&quot;</span><span class="p">,</span> <span class="s2">&quot;Indexed&quot;</span><span class="p">,</span> <span class="s2">&quot;Unique&quot;</span><span class="p">,</span> <span class="s2">&quot;Description&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">horizontalHeader</span><span class="p">()</span>
+        <span class="n">header</span><span class="o">.</span><span class="n">setSectionResizeMode</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">QHeaderView</span><span class="o">.</span><span class="n">ResizeMode</span><span class="o">.</span><span class="n">Stretch</span><span class="p">)</span>  <span class="c1"># Name</span>
+        <span class="n">header</span><span class="o">.</span><span class="n">setSectionResizeMode</span><span class="p">(</span>
+            <span class="mi">1</span><span class="p">,</span> <span class="n">QHeaderView</span><span class="o">.</span><span class="n">ResizeMode</span><span class="o">.</span><span class="n">ResizeToContents</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># Data Type</span>
+        <span class="n">header</span><span class="o">.</span><span class="n">setSectionResizeMode</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="n">QHeaderView</span><span class="o">.</span><span class="n">ResizeMode</span><span class="o">.</span><span class="n">Stretch</span><span class="p">)</span>  <span class="c1"># Description</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>  <span class="c1"># Nullable, Indexed, Unique</span>
+            <span class="n">header</span><span class="o">.</span><span class="n">setSectionResizeMode</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">QHeaderView</span><span class="o">.</span><span class="n">ResizeMode</span><span class="o">.</span><span class="n">ResizeToContents</span><span class="p">)</span>
+
+        <span class="n">properties_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="p">)</span>
+
+        <span class="n">prop_buttons_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_prop_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;Add Property&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_prop_button</span> <span class="o">=</span> <span class="n">QPushButton</span><span class="p">(</span><span class="s2">&quot;Remove Selected Property&quot;</span><span class="p">)</span>
+        <span class="n">prop_buttons_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">add_prop_button</span><span class="p">)</span>
+        <span class="n">prop_buttons_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remove_prop_button</span><span class="p">)</span>
+        <span class="n">prop_buttons_layout</span><span class="o">.</span><span class="n">addStretch</span><span class="p">()</span>
+        <span class="n">properties_layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">prop_buttons_layout</span><span class="p">)</span>
+
+        <span class="n">layout</span><span class="o">.</span><span class="n">addLayout</span><span class="p">(</span><span class="n">properties_layout</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">button_box</span> <span class="o">=</span> <span class="n">QDialogButtonBox</span><span class="p">(</span>
+            <span class="n">QDialogButtonBox</span><span class="o">.</span><span class="n">StandardButton</span><span class="o">.</span><span class="n">Ok</span> <span class="o">|</span> <span class="n">QDialogButtonBox</span><span class="o">.</span><span class="n">StandardButton</span><span class="o">.</span><span class="n">Cancel</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">button_box</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_prop_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_add_property_row</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remove_prop_button</span><span class="o">.</span><span class="n">clicked</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_remove_property_row</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">button_box</span><span class="o">.</span><span class="n">accepted</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_accept</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">button_box</span><span class="o">.</span><span class="n">rejected</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reject</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_object_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">busy_signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_object_type_combo</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_object_type_combo</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_object_type_combo</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_object_type_combo</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_object_type_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="s2">&quot;Loading...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_object_type_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="s2">&quot;Loading...&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span><span class="o">.</span><span class="n">isRunning</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Load object types already in progress.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">busy_signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># Reset if not proceeding</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Client connection check will be handled by MainWindow</span>
+        <span class="c1"># if not self.grizabella_client_ref or not self.grizabella_client_ref._is_connected:</span>
+        <span class="c1">#     self._handle_object_types_load_failure(&quot;Client not available or not connected.&quot;)</span>
+        <span class="c1">#     self.busy_signal.emit(False)</span>
+        <span class="c1">#     return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span> <span class="o">=</span> <span class="n">ApiClientThread</span><span class="p">(</span>
+            <span class="n">operation_name</span><span class="o">=</span><span class="s2">&quot;list_object_types&quot;</span><span class="p">,</span>
+            <span class="n">parent</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+        <span class="n">main_win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_main_window</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">main_win</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span><span class="o">.</span><span class="n">apiRequestReady</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">main_win</span><span class="o">.</span><span class="n">handleApiRequest</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle_object_types_load_failure</span><span class="p">(</span><span class="s2">&quot;Internal error: Cannot connect to API handler.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span><span class="o">.</span><span class="n">deleteLater</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">busy_signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span>
+            
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span><span class="o">.</span><span class="n">result_ready</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_populate_object_type_combos</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span><span class="o">.</span><span class="n">error_occurred</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handle_object_types_load_failure</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cleanup_load_ot_thread</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="nd">@Slot</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span> <span class="c1"># Changed from list[str]</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_populate_object_type_combos</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle_object_types_load_failure</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected data type for object types: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        
+        <span class="n">object_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ObjectTypeDefinition</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span> <span class="c1"># Assuming full OTDs are returned</span>
+        <span class="n">object_type_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">ot</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">ot</span> <span class="ow">in</span> <span class="n">object_types</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_object_type_combo</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_object_type_combo</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">object_type_names</span><span class="p">:</span>
+            <span class="n">no_types_msg</span> <span class="o">=</span> <span class="s2">&quot;No object types found&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">source_object_type_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">no_types_msg</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">target_object_type_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">no_types_msg</span><span class="p">)</span>
+            <span class="c1"># SetEnabled handled by cleanup</span>
+            <span class="k">return</span>
+
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">object_type_names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">source_object_type_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">target_object_type_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="c1"># SetEnabled handled by cleanup</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">existing_rtd</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">existing_rtd</span><span class="o">.</span><span class="n">source_object_type_names</span><span class="p">:</span>
+                <span class="n">idx_s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_object_type_combo</span><span class="o">.</span><span class="n">findText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">existing_rtd</span><span class="o">.</span><span class="n">source_object_type_names</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">idx_s</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span> 
+                    <span class="bp">self</span><span class="o">.</span><span class="n">source_object_type_combo</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">idx_s</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">existing_rtd</span><span class="o">.</span><span class="n">target_object_type_names</span><span class="p">:</span>
+                <span class="n">idx_t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_object_type_combo</span><span class="o">.</span><span class="n">findText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">existing_rtd</span><span class="o">.</span><span class="n">target_object_type_names</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">idx_t</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span> 
+                    <span class="bp">self</span><span class="o">.</span><span class="n">target_object_type_combo</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">idx_t</span><span class="p">)</span>
+
+    <span class="nd">@Slot</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_handle_object_types_load_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">QMessageBox</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Load Error&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Could not load object types: </span><span class="si">{</span><span class="n">error_message</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_object_type_combo</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_object_type_combo</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_object_type_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="s2">&quot;Error loading&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_object_type_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="s2">&quot;Error loading&quot;</span><span class="p">)</span>
+        <span class="c1"># SetEnabled handled by cleanup</span>
+
+    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_cleanup_load_ot_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">busy_signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_object_type_combo</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_object_type_combo</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span><span class="o">.</span><span class="n">deleteLater</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_existing_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">existing_rtd</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_edit</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">existing_rtd</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_edit</span><span class="o">.</span><span class="n">setReadOnly</span><span class="p">(</span>
+            <span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># Typically, name is not editable after creation</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description_edit</span><span class="o">.</span><span class="n">setPlainText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">existing_rtd</span><span class="o">.</span><span class="n">description</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Object types will be selected by _populate_object_type_combos if data is already loaded</span>
+        <span class="c1"># Or when it finishes loading.</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">setRowCount</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">prop_def</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">existing_rtd</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_add_property_row</span><span class="p">(</span>
+                <span class="n">prop_def</span><span class="p">,</span> <span class="n">read_only_name</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="p">)</span>  <span class="c1"># Property names also usually not editable</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_add_property_row</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">prop_def</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PropertyDefinition</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">read_only_name</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">row_position</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">rowCount</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">insertRow</span><span class="p">(</span><span class="n">row_position</span><span class="p">)</span>
+
+        <span class="n">name_edit</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">(</span><span class="n">prop_def</span><span class="o">.</span><span class="n">name</span> <span class="k">if</span> <span class="n">prop_def</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">read_only_name</span><span class="p">:</span>
+            <span class="n">name_edit</span><span class="o">.</span><span class="n">setReadOnly</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">setCellWidget</span><span class="p">(</span><span class="n">row_position</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">name_edit</span><span class="p">)</span>
+
+        <span class="n">combo_data_type</span> <span class="o">=</span> <span class="n">QComboBox</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">data_type</span> <span class="ow">in</span> <span class="n">PropertyDataType</span><span class="p">:</span>
+            <span class="n">combo_data_type</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">data_type</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">data_type</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">prop_def</span><span class="p">:</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">combo_data_type</span><span class="o">.</span><span class="n">findData</span><span class="p">(</span><span class="n">prop_def</span><span class="o">.</span><span class="n">data_type</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">index</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">combo_data_type</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">setCellWidget</span><span class="p">(</span><span class="n">row_position</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">combo_data_type</span><span class="p">)</span>
+
+        <span class="c1"># PK is not relevant for relation properties</span>
+        <span class="c1"># Column indices shift: Nullable (2), Indexed (3), Unique (4), Description (5)</span>
+
+        <span class="n">nullable_check</span> <span class="o">=</span> <span class="n">QCheckBox</span><span class="p">()</span>
+        <span class="n">nullable_check</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="n">prop_def</span><span class="o">.</span><span class="n">is_nullable</span> <span class="k">if</span> <span class="n">prop_def</span> <span class="k">else</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">setCellWidget</span><span class="p">(</span>
+            <span class="n">row_position</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_center_widget_in_cell</span><span class="p">(</span><span class="n">nullable_check</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">indexed_check</span> <span class="o">=</span> <span class="n">QCheckBox</span><span class="p">()</span>
+        <span class="n">indexed_check</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="n">prop_def</span><span class="o">.</span><span class="n">is_indexed</span> <span class="k">if</span> <span class="n">prop_def</span> <span class="k">else</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">setCellWidget</span><span class="p">(</span>
+            <span class="n">row_position</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_center_widget_in_cell</span><span class="p">(</span><span class="n">indexed_check</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">unique_check</span> <span class="o">=</span> <span class="n">QCheckBox</span><span class="p">()</span>
+        <span class="n">unique_check</span><span class="o">.</span><span class="n">setChecked</span><span class="p">(</span><span class="n">prop_def</span><span class="o">.</span><span class="n">is_unique</span> <span class="k">if</span> <span class="n">prop_def</span> <span class="k">else</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">setCellWidget</span><span class="p">(</span>
+            <span class="n">row_position</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_center_widget_in_cell</span><span class="p">(</span><span class="n">unique_check</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="n">desc_edit</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">(</span><span class="n">prop_def</span><span class="o">.</span><span class="n">description</span> <span class="k">if</span> <span class="n">prop_def</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">desc_edit</span><span class="o">.</span><span class="n">setPlaceholderText</span><span class="p">(</span><span class="s2">&quot;Optional property description&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">setCellWidget</span><span class="p">(</span><span class="n">row_position</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="n">desc_edit</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_center_widget_in_cell</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">widget</span><span class="p">:</span> <span class="n">QWidget</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QWidget</span><span class="p">:</span>
+        <span class="n">cell_container_widget</span> <span class="o">=</span> <span class="n">QWidget</span><span class="p">()</span>
+        <span class="n">cell_layout</span> <span class="o">=</span> <span class="n">QHBoxLayout</span><span class="p">(</span><span class="n">cell_container_widget</span><span class="p">)</span>
+        <span class="n">cell_layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="n">widget</span><span class="p">)</span>
+        <span class="n">cell_layout</span><span class="o">.</span><span class="n">setAlignment</span><span class="p">(</span><span class="n">Qt</span><span class="o">.</span><span class="n">AlignmentFlag</span><span class="o">.</span><span class="n">AlignCenter</span><span class="p">)</span>
+        <span class="n">cell_layout</span><span class="o">.</span><span class="n">setContentsMargins</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">cell_container_widget</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_remove_property_row</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">current_row</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">currentRow</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">current_row</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">removeRow</span><span class="p">(</span><span class="n">current_row</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Warning&quot;</span><span class="p">,</span> <span class="s2">&quot;Please select a property row to remove.&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_on_accept</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span><span class="o">.</span><span class="n">isRunning</span><span class="p">():</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">information</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;In Progress&quot;</span><span class="p">,</span> <span class="s2">&quot;An operation is already in progress. Please wait.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">rtd_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_edit</span><span class="o">.</span><span class="n">text</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">rtd_name</span><span class="p">:</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Input Error&quot;</span><span class="p">,</span> <span class="s2">&quot;Relation Type Name cannot be empty.&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">name_edit</span><span class="o">.</span><span class="n">setFocus</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="n">source_ot_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_object_type_combo</span><span class="o">.</span><span class="n">currentText</span><span class="p">()</span>
+        <span class="n">target_ot_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_object_type_combo</span><span class="o">.</span><span class="n">currentText</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">source_ot_name</span> <span class="ow">or</span> <span class="n">source_ot_name</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;Loading...&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Error loading&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;No object types found&quot;</span><span class="p">,</span>
+        <span class="p">]:</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Input Error&quot;</span><span class="p">,</span> <span class="s2">&quot;A valid Source Object Type must be selected.&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">source_object_type_combo</span><span class="o">.</span><span class="n">setFocus</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">target_ot_name</span> <span class="ow">or</span> <span class="n">target_ot_name</span> <span class="ow">in</span> <span class="p">[</span>
+            <span class="s2">&quot;Loading...&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Error loading&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;No object types found&quot;</span><span class="p">,</span>
+        <span class="p">]:</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Input Error&quot;</span><span class="p">,</span> <span class="s2">&quot;A valid Target Object Type must be selected.&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">target_object_type_combo</span><span class="o">.</span><span class="n">setFocus</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="n">rtd_description</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">description_edit</span><span class="o">.</span><span class="n">toPlainText</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="kc">None</span>
+
+        <span class="n">properties</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG: RelationTypeDialog._on_accept: Starting to process </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">rowCount</span><span class="p">()</span><span class="si">}</span><span class="s2"> properties.&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">rowCount</span><span class="p">()):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG: RelationTypeDialog._on_accept: Processing property row </span><span class="si">{</span><span class="n">row</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">name_edit_widget</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">cellWidget</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">prop_name</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">name_edit_widget</span><span class="o">.</span><span class="n">text</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">name_edit_widget</span><span class="p">,</span> <span class="n">QLineEdit</span><span class="p">)</span>
+                <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG: RelationTypeDialog._on_accept: Row </span><span class="si">{</span><span class="n">row</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">, prop_name: &#39;</span><span class="si">{</span><span class="n">prop_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">prop_name</span><span class="p">:</span>
+                <span class="n">QMessageBox</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">,</span>
+                    <span class="s2">&quot;Input Error&quot;</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">&quot;Property name in row </span><span class="si">{</span><span class="n">row</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2"> cannot be empty.&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">name_edit_widget</span><span class="p">:</span>
+                    <span class="n">name_edit_widget</span><span class="o">.</span><span class="n">setFocus</span><span class="p">()</span>
+                <span class="k">return</span>
+
+            <span class="n">data_type_combo_widget</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">cellWidget</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">current_text</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># Initialize current_text</span>
+            <span class="n">prop_data_type_enum_member</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_type_combo_widget</span><span class="p">,</span> <span class="n">QComboBox</span><span class="p">):</span>
+                <span class="n">current_text</span> <span class="o">=</span> <span class="n">data_type_combo_widget</span><span class="o">.</span><span class="n">currentText</span><span class="p">()</span>
+                <span class="c1"># Find the enum member corresponding to the currentText</span>
+                <span class="k">for</span> <span class="n">enum_member</span> <span class="ow">in</span> <span class="n">PropertyDataType</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">enum_member</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="n">current_text</span><span class="p">:</span>
+                        <span class="n">prop_data_type_enum_member</span> <span class="o">=</span> <span class="n">enum_member</span>
+                        <span class="k">break</span>
+            
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG: RelationTypeDialog._on_accept: Row </span><span class="si">{</span><span class="n">row</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">, prop_data_type_value from combo.currentText(): &#39;</span><span class="si">{</span><span class="n">current_text</span><span class="si">}</span><span class="s2">&#39;, Found enum member: </span><span class="si">{</span><span class="n">prop_data_type_enum_member</span><span class="si">}</span><span class="s2"> (type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">prop_data_type_enum_member</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">prop_data_type_enum_member</span><span class="p">,</span> <span class="n">PropertyDataType</span><span class="p">):</span>
+                <span class="n">QMessageBox</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Input Error&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Invalid data type selected in row </span><span class="si">{</span><span class="n">row</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">. Current text: &#39;</span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">current_text</span><span class="p">)</span><span class="si">}</span><span class="s2">&#39; could not be mapped to a PropertyDataType.&quot;</span><span class="p">,</span> <span class="c1"># Use str(current_text) for safety in f-string</span>
+                <span class="p">)</span>
+                <span class="c1"># Attempt to focus the combo box if possible</span>
+                <span class="k">if</span> <span class="n">data_type_combo_widget</span><span class="p">:</span>
+                    <span class="n">data_type_combo_widget</span><span class="o">.</span><span class="n">setFocus</span><span class="p">()</span>
+                <span class="k">return</span>
+            <span class="n">prop_data_type</span> <span class="o">=</span> <span class="n">prop_data_type_enum_member</span> <span class="c1"># This is now the actual enum member</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG: RelationTypeDialog._on_accept: Row </span><span class="si">{</span><span class="n">row</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">, validated prop_data_type: </span><span class="si">{</span><span class="n">prop_data_type</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Nullable (idx 2), Indexed (idx 3), Unique (idx 4)</span>
+            <span class="n">nullable_check_container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">cellWidget</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+            <span class="n">is_nullable</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">nullable_check_container</span><span class="p">:</span>
+                <span class="n">nullable_check</span> <span class="o">=</span> <span class="n">nullable_check_container</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QCheckBox</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">nullable_check</span><span class="p">:</span>
+                    <span class="n">is_nullable</span> <span class="o">=</span> <span class="n">nullable_check</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span>
+
+            <span class="n">indexed_check_container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">cellWidget</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+            <span class="n">is_indexed</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">indexed_check_container</span><span class="p">:</span>
+                <span class="n">indexed_check</span> <span class="o">=</span> <span class="n">indexed_check_container</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QCheckBox</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">indexed_check</span><span class="p">:</span>
+                    <span class="n">is_indexed</span> <span class="o">=</span> <span class="n">indexed_check</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span>
+
+            <span class="n">unique_check_container</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">cellWidget</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+            <span class="n">is_unique</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">unique_check_container</span><span class="p">:</span>
+                <span class="n">unique_check</span> <span class="o">=</span> <span class="n">unique_check_container</span><span class="o">.</span><span class="n">findChild</span><span class="p">(</span><span class="n">QCheckBox</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">unique_check</span><span class="p">:</span>
+                    <span class="n">is_unique</span> <span class="o">=</span> <span class="n">unique_check</span><span class="o">.</span><span class="n">isChecked</span><span class="p">()</span>
+
+            <span class="n">desc_edit_widget</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">properties_table</span><span class="o">.</span><span class="n">cellWidget</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+            <span class="n">prop_description</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">desc_edit_widget</span><span class="o">.</span><span class="n">text</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">desc_edit_widget</span><span class="p">,</span> <span class="n">QLineEdit</span><span class="p">)</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">)</span>
+
+            <span class="n">properties</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="n">PropertyDefinition</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="n">prop_name</span><span class="p">,</span>
+                    <span class="n">data_type</span><span class="o">=</span><span class="n">prop_data_type</span><span class="p">,</span>
+                    <span class="n">is_primary_key</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>  <span class="c1"># PK not applicable for relation properties</span>
+                    <span class="n">is_nullable</span><span class="o">=</span><span class="n">is_nullable</span><span class="p">,</span>
+                    <span class="n">is_indexed</span><span class="o">=</span><span class="n">is_indexed</span><span class="p">,</span>
+                    <span class="n">is_unique</span><span class="o">=</span><span class="n">is_unique</span><span class="p">,</span>
+                    <span class="n">description</span><span class="o">=</span><span class="n">prop_description</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG: RelationTypeDialog._on_accept: Row </span><span class="si">{</span><span class="n">row</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">, PropertyDefinition created: </span><span class="si">{</span><span class="n">properties</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Unlike Object Types, Relation Types can exist without properties.</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG: RelationTypeDialog._on_accept: All properties processed. Collected properties list: </span><span class="si">{</span><span class="n">properties</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG: RelationTypeDialog._on_accept: Attempting to create RelationTypeDefinition model with name=&#39;</span><span class="si">{</span><span class="n">rtd_name</span><span class="si">}</span><span class="s2">&#39;, desc=&#39;</span><span class="si">{</span><span class="n">rtd_description</span><span class="si">}</span><span class="s2">&#39;, src=&#39;</span><span class="si">{</span><span class="n">source_ot_name</span><span class="si">}</span><span class="s2">&#39;, tgt=&#39;</span><span class="si">{</span><span class="n">target_ot_name</span><span class="si">}</span><span class="s2">&#39;, props_count=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">properties</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">rtd_model</span> <span class="o">=</span> <span class="n">RelationTypeDefinition</span><span class="p">(</span>
+                <span class="n">name</span><span class="o">=</span><span class="n">rtd_name</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="n">rtd_description</span><span class="p">,</span>
+                <span class="n">source_object_type_names</span><span class="o">=</span><span class="p">[</span><span class="n">source_ot_name</span><span class="p">],</span>  <span class="c1"># Model expects a list</span>
+                <span class="n">target_object_type_names</span><span class="o">=</span><span class="p">[</span><span class="n">target_ot_name</span><span class="p">],</span>  <span class="c1"># Model expects a list</span>
+                <span class="n">properties</span><span class="o">=</span><span class="n">properties</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG: RelationTypeDialog._on_accept: RelationTypeDefinition model created successfully: </span><span class="si">{</span><span class="n">rtd_model</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># Pydantic validation error</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG: RelationTypeDialog._on_accept: Pydantic ValueError during RelationTypeDefinition creation: </span><span class="si">{</span><span class="n">e</span><span class="si">!s}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span>
+                <span class="bp">self</span><span class="p">,</span>
+                <span class="s2">&quot;Validation Error&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;Error creating relation type definition: </span><span class="si">{</span><span class="n">e</span><span class="si">!s}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Client connection check will be handled by MainWindow</span>
+        <span class="c1"># if not self.grizabella_client_ref: # Check api_worker as well</span>
+        <span class="c1">#     QMessageBox.critical(self, &quot;Error&quot;, &quot;Grizabella client reference not available.&quot;)</span>
+        <span class="c1">#     self._reset_buttons_and_worker_state() # Ensure buttons are reset</span>
+        <span class="c1">#     return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_buttons_enabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">busy_signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        
+        <span class="n">operation_name</span> <span class="o">=</span> <span class="s2">&quot;update_relation_type&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">existing_rtd</span> <span class="k">else</span> <span class="s2">&quot;create_relation_type&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">existing_rtd</span><span class="p">:</span> <span class="c1"># Ensure name is not changed on update</span>
+            <span class="n">rtd_model</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">existing_rtd</span><span class="o">.</span><span class="n">name</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span> <span class="o">=</span> <span class="n">ApiClientThread</span><span class="p">(</span>
+            <span class="n">operation_name</span><span class="p">,</span> <span class="c1"># operation_name variable passed positionally</span>
+            <span class="n">rtd_model</span><span class="p">,</span>      <span class="c1"># rtd_model for *args</span>
+            <span class="n">parent</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+        <span class="n">main_win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_main_window</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">main_win</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span><span class="o">.</span><span class="n">apiRequestReady</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">main_win</span><span class="o">.</span><span class="n">handleApiRequest</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_handle_operation_failure</span><span class="p">(</span><span class="n">operation_name</span><span class="p">,</span> <span class="s2">&quot;Internal error: Cannot connect to API handler.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span><span class="o">.</span><span class="n">deleteLater</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_reset_buttons_and_worker_state</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">existing_rtd</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span><span class="o">.</span><span class="n">result_ready</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handle_update_success</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span><span class="o">.</span><span class="n">error_occurred</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span> <span class="n">err</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_operation_failure</span><span class="p">(</span><span class="s2">&quot;update_relation_type&quot;</span><span class="p">,</span> <span class="n">err</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span><span class="o">.</span><span class="n">result_ready</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_handle_creation_success</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span><span class="o">.</span><span class="n">error_occurred</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">lambda</span> <span class="n">err</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_operation_failure</span><span class="p">(</span><span class="s2">&quot;create_relation_type&quot;</span><span class="p">,</span> <span class="n">err</span><span class="p">))</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_reset_buttons_and_worker_state</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_set_buttons_enabled</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enabled</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">ok_button</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">button_box</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="n">QDialogButtonBox</span><span class="o">.</span><span class="n">StandardButton</span><span class="o">.</span><span class="n">Ok</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ok_button</span><span class="p">:</span> 
+            <span class="n">ok_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="n">enabled</span><span class="p">)</span>
+        <span class="n">cancel_button</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">button_box</span><span class="o">.</span><span class="n">button</span><span class="p">(</span><span class="n">QDialogButtonBox</span><span class="o">.</span><span class="n">StandardButton</span><span class="o">.</span><span class="n">Cancel</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cancel_button</span><span class="p">:</span> 
+            <span class="n">cancel_button</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="n">enabled</span><span class="p">)</span>
+
+    <span class="nd">@Slot</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span> <span class="c1"># Result is Any</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_handle_creation_success</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># create_relation_type API returns None. Success is implicit.</span>
+        <span class="c1"># result here might be the input model if ApiClientThread passes it.</span>
+        <span class="n">created_rtd_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_edit</span><span class="o">.</span><span class="n">text</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="c1"># Get name from form</span>
+        <span class="n">QMessageBox</span><span class="o">.</span><span class="n">information</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Success&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Relation Type &#39;</span><span class="si">{</span><span class="n">created_rtd_name</span><span class="si">}</span><span class="s2">&#39; created successfully.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relation_type_changed</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+
+    <span class="nd">@Slot</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span> <span class="c1"># Result is Any</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_handle_update_success</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># update_relation_type API might return the updated model or None.</span>
+        <span class="c1"># For now, assume success means the operation completed.</span>
+        <span class="n">updated_rtd_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_edit</span><span class="o">.</span><span class="n">text</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="c1"># Name is read-only in edit mode</span>
+        <span class="n">QMessageBox</span><span class="o">.</span><span class="n">information</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Success&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Relation Type &#39;</span><span class="si">{</span><span class="n">updated_rtd_name</span><span class="si">}</span><span class="s2">&#39; updated successfully.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">relation_type_changed</span><span class="o">.</span><span class="n">emit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+
+    <span class="nd">@Slot</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="c1"># operation_name, error_message</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_handle_operation_failure</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">operation_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">error_message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Operation Failed&quot;</span>
+        <span class="k">if</span> <span class="n">operation_name</span> <span class="o">==</span> <span class="s2">&quot;create_relation_type&quot;</span><span class="p">:</span> 
+            <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Creation Failed&quot;</span>
+        <span class="k">elif</span> <span class="n">operation_name</span> <span class="o">==</span> <span class="s2">&quot;update_relation_type&quot;</span><span class="p">:</span> 
+            <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Update Failed&quot;</span>
+        <span class="n">QMessageBox</span><span class="o">.</span><span class="n">critical</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">title</span><span class="p">,</span> <span class="n">error_message</span><span class="p">)</span>
+        <span class="c1"># Buttons reset by _reset_buttons_and_worker_state via &#39;finished&#39;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_reset_buttons_and_worker_state</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_buttons_enabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">busy_signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span><span class="o">.</span><span class="n">deleteLater</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span><span class="p">:</span> <span class="c1"># Also ensure load thread is cleaned up if it was active</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span><span class="o">.</span><span class="n">deleteLater</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span> <span class="o">=</span> <span class="kc">None</span>
+            
+    <span class="k">def</span><span class="w"> </span><span class="nf">_find_main_window</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s1">&#39;MainWindow&#39;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Helper to find the MainWindow instance.&quot;&quot;&quot;</span>
+        <span class="c1"># Import MainWindow locally to break circular dependency</span>
+        <span class="c1"># This import is already guarded by TYPE_CHECKING at the top for type hints</span>
+        <span class="c1"># For runtime, it needs to be available here.</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.ui.main_window</span><span class="w"> </span><span class="kn">import</span> <span class="n">MainWindow</span>
+
+        <span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">MainWindow</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">parent</span>
+            <span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span>
+        
+        <span class="n">app_instance</span> <span class="o">=</span> <span class="n">QApplication</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">app_instance</span><span class="p">,</span> <span class="n">QApplication</span><span class="p">):</span>
+            <span class="n">active_window</span> <span class="o">=</span> <span class="n">app_instance</span><span class="o">.</span><span class="n">activeWindow</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">active_window</span><span class="p">,</span> <span class="n">MainWindow</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">active_window</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Could not find MainWindow instance for RelationTypeDialog.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="RelationTypeDialog.closeEvent">
+<a class="viewcode-back" href="../../../../ui_dialogs.html#grizabella.ui.dialogs.RelationTypeDialog.closeEvent">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">closeEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;RelationTypeDialog closeEvent triggered for </span><span class="si">{</span><span class="bp">self</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="n">threads_to_manage</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">thread_instance</span> <span class="ow">in</span> <span class="n">threads_to_manage</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">thread_instance</span> <span class="ow">and</span> <span class="n">thread_instance</span><span class="o">.</span><span class="n">isRunning</span><span class="p">():</span>
+                <span class="n">thread_instance</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">thread_instance</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="mi">500</span><span class="p">):</span>
+                    <span class="n">thread_instance</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+                    <span class="n">thread_instance</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_load_ot_thread</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_rtd_operation_thread</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">closeEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+</div>
+
+
+
+<span class="c1"># For testing the dialog independently</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>  <span class="c1"># Standard library</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">PySide6.QtWidgets</span><span class="w"> </span><span class="kn">import</span> <span class="n">QApplication</span>  <span class="c1"># Third-party</span>
+
+    <span class="c1"># First-party imports</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.api.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">Grizabella</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.core.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">RelationInstance</span>
+
+    <span class="c1"># Mock GrizabellaClient for standalone testing</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">MockGrizabellaClient</span><span class="p">(</span><span class="n">Grizabella</span><span class="p">):</span>  <span class="c1"># Inherit from Grizabella</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Mock Grizabella client for testing RelationTypeDialog.&quot;&quot;&quot;</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Call super init as Grizabella requires db_name_or_path</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">db_name_or_path</span><span class="o">=</span><span class="s2">&quot;mock_relation_type_dialog_db&quot;</span><span class="p">)</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">create_relation_type</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">relation_type_def</span><span class="p">:</span> <span class="n">RelationTypeDefinition</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># Corrected signature</span>
+            <span class="c1"># import time; time.sleep(1) # Simulate delay</span>
+            <span class="k">if</span> <span class="n">relation_type_def</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;ErrorTest&quot;</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;This is a mock schema error for ErrorTest.&quot;</span>
+                <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c1"># update_relation_type is not in the base Grizabella client.</span>
+        <span class="c1"># The RelationApiWorker uses getattr, so it will correctly report</span>
+        <span class="c1"># &quot;Client does not support &#39;update_relation_type&#39;&quot; if this mock is used for edit testing.</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_relation</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">from_object_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">to_object_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">relation_type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">RelationInstance</span><span class="p">]:</span> <span class="c1"># Match base class signature</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Mocked get_relation.&quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="p">[]</span> <span class="c1"># Return empty list</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">delete_relation</span><span class="p">(</span> <span class="c1"># Corrected signature</span>
+            <span class="bp">self</span><span class="p">,</span> <span class="n">relation_type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">relation_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="c1"># Match Grizabella.delete_relation</span>
+        <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">            </span><span class="sd">&quot;&quot;&quot;Mocked delete_relation.&quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">list_object_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ObjectTypeDefinition</span><span class="p">]:</span>
+            <span class="c1"># import time; time.sleep(0.5)</span>
+            <span class="k">return</span> <span class="p">[</span>
+                <span class="n">ObjectTypeDefinition</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Document&quot;</span><span class="p">,</span>
+                    <span class="n">properties</span><span class="o">=</span><span class="p">[</span>
+                        <span class="n">PropertyDefinition</span><span class="p">(</span>
+                            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="n">PropertyDataType</span><span class="o">.</span><span class="n">TEXT</span><span class="p">,</span>
+                        <span class="p">),</span>
+                    <span class="p">],</span>
+                <span class="p">),</span>
+                <span class="n">ObjectTypeDefinition</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Person&quot;</span><span class="p">,</span>
+                    <span class="n">properties</span><span class="o">=</span><span class="p">[</span>
+                        <span class="n">PropertyDefinition</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="n">PropertyDataType</span><span class="o">.</span><span class="n">TEXT</span><span class="p">),</span>
+                    <span class="p">],</span>
+                <span class="p">),</span>
+                <span class="n">ObjectTypeDefinition</span><span class="p">(</span>
+                    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Event&quot;</span><span class="p">,</span>
+                    <span class="n">properties</span><span class="o">=</span><span class="p">[</span>
+                        <span class="n">PropertyDefinition</span><span class="p">(</span>
+                            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;date&quot;</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="n">PropertyDataType</span><span class="o">.</span><span class="n">DATETIME</span><span class="p">,</span>
+                        <span class="p">),</span>
+                    <span class="p">],</span>
+                <span class="p">),</span>
+            <span class="p">]</span>
+
+    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span>
+    <span class="n">mock_client</span> <span class="o">=</span> <span class="n">MockGrizabellaClient</span><span class="p">()</span>
+
+    <span class="n">dialog_new</span> <span class="o">=</span> <span class="n">RelationTypeDialog</span><span class="p">(</span><span class="n">grizabella_client</span><span class="o">=</span><span class="n">mock_client</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">dialog_new</span><span class="o">.</span><span class="n">exec</span><span class="p">():</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="c1"># Test with existing data (simplified, edit not fully implemented)</span>
+    <span class="c1"># existing_prop = PropertyDefinition(name=&quot;role&quot;, data_type=PropertyDataType.TEXT)</span>
+    <span class="c1"># mock_rtd = RelationTypeDefinition(</span>
+    <span class="c1">#     name=&quot;HAS_AUTHOR&quot;,</span>
+    <span class="c1">#     description=&quot;Indicates authorship.&quot;,</span>
+    <span class="c1">#     source_object_type_names=[&quot;Document&quot;],</span>
+    <span class="c1">#     target_object_type_names=[&quot;Person&quot;],</span>
+    <span class="c1">#     properties=[existing_prop]</span>
+    <span class="c1"># )</span>
+    <span class="c1"># dialog_edit = RelationTypeDialog(grizabella_client=mock_client, existing_rtd=mock_rtd)</span>
+    <span class="c1"># if dialog_edit.exec():</span>
+    <span class="c1">#     print(&quot;Dialog accepted (Edit RTD).&quot;)</span>
+    <span class="c1"># else:</span>
+    <span class="c1">#     print(&quot;Dialog cancelled (Edit RTD).&quot;)</span>
+
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">exec</span><span class="p">())</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Grizabella Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

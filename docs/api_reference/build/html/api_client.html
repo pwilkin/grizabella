@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Client &mdash; Grizabella API 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=01f34227"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Core Models" href="core_models.html" />
+    <link rel="prev" title="Grizabella API documentation" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Grizabella API
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Client</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#grizabella.api.client.Grizabella"><code class="docutils literal notranslate"><span class="pre">Grizabella</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella._db_manager"><code class="docutils literal notranslate"><span class="pre">Grizabella._db_manager</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella._is_connected"><code class="docutils literal notranslate"><span class="pre">Grizabella._is_connected</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.add_relation"><code class="docutils literal notranslate"><span class="pre">Grizabella.add_relation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.close"><code class="docutils literal notranslate"><span class="pre">Grizabella.close()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.connect"><code class="docutils literal notranslate"><span class="pre">Grizabella.connect()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.create_embedding_definition"><code class="docutils literal notranslate"><span class="pre">Grizabella.create_embedding_definition()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.create_object_type"><code class="docutils literal notranslate"><span class="pre">Grizabella.create_object_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.create_relation_type"><code class="docutils literal notranslate"><span class="pre">Grizabella.create_relation_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.db_name_or_path"><code class="docutils literal notranslate"><span class="pre">Grizabella.db_name_or_path</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.delete_embedding_definition"><code class="docutils literal notranslate"><span class="pre">Grizabella.delete_embedding_definition()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.delete_object"><code class="docutils literal notranslate"><span class="pre">Grizabella.delete_object()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.delete_object_type"><code class="docutils literal notranslate"><span class="pre">Grizabella.delete_object_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.delete_relation"><code class="docutils literal notranslate"><span class="pre">Grizabella.delete_relation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.delete_relation_type"><code class="docutils literal notranslate"><span class="pre">Grizabella.delete_relation_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.execute_complex_query"><code class="docutils literal notranslate"><span class="pre">Grizabella.execute_complex_query()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.find_objects"><code class="docutils literal notranslate"><span class="pre">Grizabella.find_objects()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.find_similar"><code class="docutils literal notranslate"><span class="pre">Grizabella.find_similar()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.get_embedding_definition"><code class="docutils literal notranslate"><span class="pre">Grizabella.get_embedding_definition()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.get_incoming_relations"><code class="docutils literal notranslate"><span class="pre">Grizabella.get_incoming_relations()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.get_object_by_id"><code class="docutils literal notranslate"><span class="pre">Grizabella.get_object_by_id()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.get_object_type_definition"><code class="docutils literal notranslate"><span class="pre">Grizabella.get_object_type_definition()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.get_outgoing_relations"><code class="docutils literal notranslate"><span class="pre">Grizabella.get_outgoing_relations()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.get_relation"><code class="docutils literal notranslate"><span class="pre">Grizabella.get_relation()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.get_relation_type"><code class="docutils literal notranslate"><span class="pre">Grizabella.get_relation_type()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.list_embedding_definitions"><code class="docutils literal notranslate"><span class="pre">Grizabella.list_embedding_definitions()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.list_object_types"><code class="docutils literal notranslate"><span class="pre">Grizabella.list_object_types()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.list_relation_types"><code class="docutils literal notranslate"><span class="pre">Grizabella.list_relation_types()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.query_relations"><code class="docutils literal notranslate"><span class="pre">Grizabella.query_relations()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.search_similar_objects"><code class="docutils literal notranslate"><span class="pre">Grizabella.search_similar_objects()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.api.client.Grizabella.upsert_object"><code class="docutils literal notranslate"><span class="pre">Grizabella.upsert_object()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core_models.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_query_models.html">Core Query Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_exceptions.html">Core Exceptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_db_manager.html">Core DB Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_query_engine.html">Core Query Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_utils.html">grizabella.core (Utilities)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="db_layers.html">grizabella.db_layers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ui_main.html">grizabella.ui (Main Components)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ui_dialogs.html">grizabella.ui.dialogs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Grizabella API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API Client</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/api_client.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-grizabella.api.client">
+<span id="api-client"></span><h1>API Client<a class="headerlink" href="#module-grizabella.api.client" title="Link to this heading"></a></h1>
+<p>Grizabella API Client.</p>
+<p>This module provides the main Grizabella class, which serves as the public
+API for interacting with the Grizabella data store.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grizabella.api.client.</span></span><span class="sig-name descname"><span class="pre">Grizabella</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">db_name_or_path</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'default'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">create_if_not_exists</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Public API for interacting with the Grizabella data store.</p>
+<p>This class provides a high-level interface to manage and query data
+within a Grizabella database instance. It handles connection management,
+schema operations (object and relation types), data manipulation (objects
+and relations), embedding definitions, and complex queries.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella._db_manager">
+<span class="sig-name descname"><span class="pre">_db_manager</span></span><a class="headerlink" href="#grizabella.api.client.Grizabella._db_manager" title="Link to this definition"></a></dt>
+<dd><p>An instance of the database manager
+responsible for lower-level database interactions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core_db_manager.html#grizabella.core.db_manager.GrizabellaDBManager" title="grizabella.core.db_manager.GrizabellaDBManager">GrizabellaDBManager</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella._is_connected">
+<span class="sig-name descname"><span class="pre">_is_connected</span></span><a class="headerlink" href="#grizabella.api.client.Grizabella._is_connected" title="Link to this definition"></a></dt>
+<dd><p>Tracks the connection state to the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.add_relation">
+<span class="sig-name descname"><span class="pre">add_relation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">relation</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core_models.html#grizabella.core.models.RelationInstance" title="grizabella.core.models.RelationInstance"><span class="pre">RelationInstance</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core_models.html#grizabella.core.models.RelationInstance" title="grizabella.core.models.RelationInstance"><span class="pre">RelationInstance</span></a></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.add_relation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.add_relation" title="Link to this definition"></a></dt>
+<dd><p>Adds a new relation instance or updates an existing one (upsert).</p>
+<p>If the provided <cite>RelationInstance</cite> object includes an <cite>id</cite> that matches
+an existing relation, it will be updated. Otherwise, a new relation
+instance will be created. The <cite>upsert_date</cite> metadata field is
+automatically updated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>relation</strong> (<a class="reference internal" href="core_models.html#grizabella.core.models.RelationInstance" title="grizabella.core.models.RelationInstance"><em>RelationInstance</em></a>) – The relation instance to add or update.
+It must specify the relation type name, source object ID,
+target object ID, and any properties of the relation.
+The <cite>id</cite> field can be provided for updates.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The created or updated relation instance,
+potentially with a newly assigned ID or updated timestamps.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core_models.html#grizabella.core.models.RelationInstance" title="grizabella.core.models.RelationInstance">RelationInstance</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If the relation type or involved objects do
+    not exist, or if there is an error during the upsert operation.</p></li>
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.close">
+<span class="sig-name descname"><span class="pre">close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.close" title="Link to this definition"></a></dt>
+<dd><p>Closes the connection to the underlying Grizabella database.</p>
+<p>Releases any resources held by the database connection. It’s important
+to close the connection when it’s no longer needed, especially if not
+using the client as a context manager.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If there is an error closing the database connection.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.connect">
+<span class="sig-name descname"><span class="pre">connect</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.connect"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.connect" title="Link to this definition"></a></dt>
+<dd><p>Connects to the underlying Grizabella database.</p>
+<p>Establishes a connection to the database if not already connected.
+This method is typically called automatically when using the client
+as a context manager or before performing database operations if
+the connection was previously closed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If there is an error connecting to the database.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.create_embedding_definition">
+<span class="sig-name descname"><span class="pre">create_embedding_definition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embedding_def</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core_models.html#grizabella.core.models.EmbeddingDefinition" title="grizabella.core.models.EmbeddingDefinition"><span class="pre">EmbeddingDefinition</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core_models.html#grizabella.core.models.EmbeddingDefinition" title="grizabella.core.models.EmbeddingDefinition"><span class="pre">EmbeddingDefinition</span></a></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.create_embedding_definition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.create_embedding_definition" title="Link to this definition"></a></dt>
+<dd><p>Creates a new embedding definition.</p>
+<p>Embedding definitions specify how embeddings should be generated and
+stored for objects of a particular type or for specific properties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>embedding_def</strong> (<a class="reference internal" href="core_models.html#grizabella.core.models.EmbeddingDefinition" title="grizabella.core.models.EmbeddingDefinition"><em>EmbeddingDefinition</em></a>) – The definition of the
+embedding to create, including its name, model details,
+and associated object type or properties.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The created embedding definition.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core_models.html#grizabella.core.models.EmbeddingDefinition" title="grizabella.core.models.EmbeddingDefinition">EmbeddingDefinition</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If an embedding definition with the same name
+    already exists or if there is an error during creation.</p></li>
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.create_object_type">
+<span class="sig-name descname"><span class="pre">create_object_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_type_def</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core_models.html#grizabella.core.models.ObjectTypeDefinition" title="grizabella.core.models.ObjectTypeDefinition"><span class="pre">ObjectTypeDefinition</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.create_object_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.create_object_type" title="Link to this definition"></a></dt>
+<dd><p>Creates a new object type in the database.</p>
+<p>Object types define the schema for a category of objects, similar to
+tables in a relational database or node labels in a graph database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>object_type_def</strong> (<a class="reference internal" href="core_models.html#grizabella.core.models.ObjectTypeDefinition" title="grizabella.core.models.ObjectTypeDefinition"><em>ObjectTypeDefinition</em></a>) – The definition of the
+object type to create, including its name and properties.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If the object type already exists or if there
+    is an error during creation.</p></li>
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.create_relation_type">
+<span class="sig-name descname"><span class="pre">create_relation_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">relation_type_def</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core_models.html#grizabella.core.models.RelationTypeDefinition" title="grizabella.core.models.RelationTypeDefinition"><span class="pre">RelationTypeDefinition</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.create_relation_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.create_relation_type" title="Link to this definition"></a></dt>
+<dd><p>Creates a new relation type in the database.</p>
+<p>Relation types define the schema for relationships between objects,
+including the source and target object types and any properties of
+the relation itself.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>relation_type_def</strong> (<a class="reference internal" href="core_models.html#grizabella.core.models.RelationTypeDefinition" title="grizabella.core.models.RelationTypeDefinition"><em>RelationTypeDefinition</em></a>) – The definition of the
+relation type to create.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If the relation type already exists or if
+    there is an error during creation.</p></li>
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.db_name_or_path">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">db_name_or_path</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Path</span></em><a class="headerlink" href="#grizabella.api.client.Grizabella.db_name_or_path" title="Link to this definition"></a></dt>
+<dd><p>Returns the database name or path this client was initialized with.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.delete_embedding_definition">
+<span class="sig-name descname"><span class="pre">delete_embedding_definition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.delete_embedding_definition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.delete_embedding_definition" title="Link to this definition"></a></dt>
+<dd><p>Deletes an embedding definition.</p>
+<p>Warning: This may also delete associated embedding vectors from the
+vector store, depending on the implementation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The name of the embedding definition to delete.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the definition was successfully deleted, False
+otherwise (e.g., if not found).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If there is an error during deletion.</p></li>
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.delete_object">
+<span class="sig-name descname"><span class="pre">delete_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.delete_object"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.delete_object" title="Link to this definition"></a></dt>
+<dd><p>Deletes an object by its ID and type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>object_id</strong> (<em>str</em>) – The unique identifier of the object to delete.</p></li>
+<li><p><strong>type_name</strong> (<em>str</em>) – The name of the object type.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the object was successfully deleted, False otherwise
+(e.g., if the object was not found).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If the object type does not exist or if there
+    is an error during deletion.</p></li>
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.delete_object_type">
+<span class="sig-name descname"><span class="pre">delete_object_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.delete_object_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.delete_object_type" title="Link to this definition"></a></dt>
+<dd><p>Deletes an object type from the database.</p>
+<p>Warning: This operation may also delete all associated object instances
+and relations, depending on the underlying database implementation and
+cascade rules.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>type_name</strong> (<em>str</em>) – The name of the object type to delete.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If the object type does not exist or if there
+    is an error during deletion.</p></li>
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.delete_relation">
+<span class="sig-name descname"><span class="pre">delete_relation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">relation_type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relation_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">bool</span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.delete_relation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.delete_relation" title="Link to this definition"></a></dt>
+<dd><p>Deletes a specific relation instance by its type and unique ID.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>relation_type_name</strong> (<em>str</em>) – The name of the relation type.</p></li>
+<li><p><strong>relation_id</strong> (<em>str</em>) – The unique identifier of the relation instance to delete.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>True if the relation was successfully deleted, False otherwise
+(e.g., if the relation was not found).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If there is an error during deletion.</p></li>
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+<li><p><strong>ValueError</strong> – If <cite>relation_id</cite> is not a valid UUID string.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.delete_relation_type">
+<span class="sig-name descname"><span class="pre">delete_relation_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.delete_relation_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.delete_relation_type" title="Link to this definition"></a></dt>
+<dd><p>Deletes a relation type from the database.</p>
+<p>Warning: This operation may also delete all associated relation instances,
+depending on the underlying database implementation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>type_name</strong> (<em>str</em>) – The name of the relation type to delete.</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If the relation type does not exist or if
+    there is an error during deletion.</p></li>
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.execute_complex_query">
+<span class="sig-name descname"><span class="pre">execute_complex_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core_query_models.html#grizabella.core.query_models.ComplexQuery" title="grizabella.core.query_models.ComplexQuery"><span class="pre">ComplexQuery</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core_query_models.html#grizabella.core.query_models.QueryResult" title="grizabella.core.query_models.QueryResult"><span class="pre">QueryResult</span></a></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.execute_complex_query"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.execute_complex_query" title="Link to this definition"></a></dt>
+<dd><p>Executes a complex query spanning multiple database layers.</p>
+<p>Complex queries allow for sophisticated search patterns, including
+graph traversals, relational filters, and embedding-based searches,
+combined into a single query operation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>query</strong> (<a class="reference internal" href="core_query_models.html#grizabella.core.query_models.ComplexQuery" title="grizabella.core.query_models.ComplexQuery"><em>ComplexQuery</em></a>) – A <code class="docutils literal notranslate"><span class="pre">ComplexQuery</span></code> object defining the
+components of the search, such as graph traversals,
+relational filters, and embedding searches.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A <code class="docutils literal notranslate"><span class="pre">QueryResult</span></code> object containing a list of matching
+<a href="#id1"><span class="problematic" id="id2">``</span></a>ObjectInstance``s and a list of any errors encountered during
+query processing.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core_query_models.html#grizabella.core.query_models.QueryResult" title="grizabella.core.query_models.QueryResult">QueryResult</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If there is an error during query planning
+    or execution.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.find_objects">
+<span class="sig-name descname"><span class="pre">find_objects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_criteria</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core_models.html#grizabella.core.models.ObjectInstance" title="grizabella.core.models.ObjectInstance"><span class="pre">ObjectInstance</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.find_objects"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.find_objects" title="Link to this definition"></a></dt>
+<dd><p>Finds objects of a given type, optionally matching filter criteria.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>type_name</strong> (<em>str</em>) – The name of the object type to search for.</p></li>
+<li><p><strong>filter_criteria</strong> (<em>Optional</em><em>[</em><em>Dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – A dictionary where
+keys are property names and values are the values to filter by.
+Only objects matching all criteria will be returned.
+Defaults to None (no filtering).</p></li>
+<li><p><strong>limit</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – The maximum number of objects to return.
+Defaults to None (no limit).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of object instances matching the
+criteria.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="core_models.html#grizabella.core.models.ObjectInstance" title="grizabella.core.models.ObjectInstance">ObjectInstance</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If the object type does not exist or if there
+    is an error during the search.</p></li>
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.find_similar">
+<span class="sig-name descname"><span class="pre">find_similar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">embedding_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">filter_condition</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core_models.html#grizabella.core.models.ObjectInstance" title="grizabella.core.models.ObjectInstance"><span class="pre">ObjectInstance</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.find_similar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.find_similar" title="Link to this definition"></a></dt>
+<dd><p>Finds objects semantically similar to a given query text.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>embedding_name</strong> (<em>str</em>) – The name of the EmbeddingDefinition to use.</p></li>
+<li><p><strong>query_text</strong> (<em>str</em>) – The text to find similar objects for.</p></li>
+<li><p><strong>limit</strong> (<em>int</em>) – The maximum number of similar results to return. Defaults to 5.</p></li>
+<li><p><strong>filter_condition</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – An SQL-like WHERE clause to pre-filter results.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of ObjectInstances that are semantically
+similar to the query_text, ordered by similarity.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="core_models.html#grizabella.core.models.ObjectInstance" title="grizabella.core.models.ObjectInstance">ObjectInstance</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.SchemaError" title="grizabella.core.exceptions.SchemaError"><strong>SchemaError</strong></a> – If the specified EmbeddingDefinition is not found or is invalid.</p></li>
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.EmbeddingError" title="grizabella.core.exceptions.EmbeddingError"><strong>EmbeddingError</strong></a> – If an error occurs during embedding generation or search.</p></li>
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – For other underlying database or processing errors.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.get_embedding_definition">
+<span class="sig-name descname"><span class="pre">get_embedding_definition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core_models.html#grizabella.core.models.EmbeddingDefinition" title="grizabella.core.models.EmbeddingDefinition"><span class="pre">EmbeddingDefinition</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.get_embedding_definition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.get_embedding_definition" title="Link to this definition"></a></dt>
+<dd><p>Retrieves an embedding definition by its name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>name</strong> (<em>str</em>) – The name of the embedding definition to retrieve.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The embedding definition if found,
+otherwise None.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[<a class="reference internal" href="core_models.html#grizabella.core.models.EmbeddingDefinition" title="grizabella.core.models.EmbeddingDefinition">EmbeddingDefinition</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.get_incoming_relations">
+<span class="sig-name descname"><span class="pre">get_incoming_relations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relation_type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core_models.html#grizabella.core.models.RelationInstance" title="grizabella.core.models.RelationInstance"><span class="pre">RelationInstance</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.get_incoming_relations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.get_incoming_relations" title="Link to this definition"></a></dt>
+<dd><p>Retrieves all incoming relations to a given object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>object_id</strong> (<em>str</em>) – The ID of the target object.</p></li>
+<li><p><strong>type_name</strong> (<em>str</em>) – The type name of the target object. (Note: This
+parameter is not directly used by the underlying DBManager’s
+<cite>find_relation_instances</cite> for this specific query but is kept
+for API consistency or future use).</p></li>
+<li><p><strong>relation_type_name</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – If provided, filters relations
+by this specific relation type name. Defaults to None (no filter).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of incoming relation instances.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="core_models.html#grizabella.core.models.RelationInstance" title="grizabella.core.models.RelationInstance">RelationInstance</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If there is an error during retrieval.</p></li>
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+<li><p><strong>ValueError</strong> – If <cite>object_id</cite> is not a valid UUID string.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.get_object_by_id">
+<span class="sig-name descname"><span class="pre">get_object_by_id</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core_models.html#grizabella.core.models.ObjectInstance" title="grizabella.core.models.ObjectInstance"><span class="pre">ObjectInstance</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.get_object_by_id"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.get_object_by_id" title="Link to this definition"></a></dt>
+<dd><p>Retrieves an object by its ID and type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>object_id</strong> (<em>str</em>) – The unique identifier of the object.</p></li>
+<li><p><strong>type_name</strong> (<em>str</em>) – The name of the object type.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The object instance if found,
+otherwise None.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[<a class="reference internal" href="core_models.html#grizabella.core.models.ObjectInstance" title="grizabella.core.models.ObjectInstance">ObjectInstance</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If the object type does not exist or if there
+    is an error during retrieval.</p></li>
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.get_object_type_definition">
+<span class="sig-name descname"><span class="pre">get_object_type_definition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core_models.html#grizabella.core.models.ObjectTypeDefinition" title="grizabella.core.models.ObjectTypeDefinition"><span class="pre">ObjectTypeDefinition</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.get_object_type_definition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.get_object_type_definition" title="Link to this definition"></a></dt>
+<dd><p>Retrieves the definition of an object type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>type_name</strong> (<em>str</em>) – The name of the object type to retrieve.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The definition of the object type
+if found, otherwise None.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[<a class="reference internal" href="core_models.html#grizabella.core.models.ObjectTypeDefinition" title="grizabella.core.models.ObjectTypeDefinition">ObjectTypeDefinition</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.get_outgoing_relations">
+<span class="sig-name descname"><span class="pre">get_outgoing_relations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relation_type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core_models.html#grizabella.core.models.RelationInstance" title="grizabella.core.models.RelationInstance"><span class="pre">RelationInstance</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.get_outgoing_relations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.get_outgoing_relations" title="Link to this definition"></a></dt>
+<dd><p>Retrieves all outgoing relations from a given object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>object_id</strong> (<em>str</em>) – The ID of the source object.</p></li>
+<li><p><strong>type_name</strong> (<em>str</em>) – The type name of the source object. (Note: This
+parameter is not directly used by the underlying DBManager’s
+<cite>find_relation_instances</cite> for this specific query but is kept
+for API consistency or future use).</p></li>
+<li><p><strong>relation_type_name</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – If provided, filters relations
+by this specific relation type name. Defaults to None (no filter).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of outgoing relation instances.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="core_models.html#grizabella.core.models.RelationInstance" title="grizabella.core.models.RelationInstance">RelationInstance</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If there is an error during retrieval.</p></li>
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+<li><p><strong>ValueError</strong> – If <cite>object_id</cite> is not a valid UUID string.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.get_relation">
+<span class="sig-name descname"><span class="pre">get_relation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">from_object_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to_object_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relation_type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core_models.html#grizabella.core.models.RelationInstance" title="grizabella.core.models.RelationInstance"><span class="pre">RelationInstance</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.get_relation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.get_relation" title="Link to this definition"></a></dt>
+<dd><p>Retrieves relation instances between two objects of a specific type.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>This method’s current implementation in the client API differs
+from the underlying <cite>GrizabellaDBManager</cite> which expects a
+<cite>relation_id</cite>. This method currently raises <cite>NotImplementedError</cite>
+and requires rework to correctly map to the DBManager’s capabilities
+or a change in the client API signature.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>from_object_id</strong> (<em>str</em>) – The ID of the source object of the relation.</p></li>
+<li><p><strong>to_object_id</strong> (<em>str</em>) – The ID of the target object of the relation.</p></li>
+<li><p><strong>relation_type_name</strong> (<em>str</em>) – The name of the relation type.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of relation instances matching the criteria.
+An empty list is returned if no matching relations are found.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="core_models.html#grizabella.core.models.RelationInstance" title="grizabella.core.models.RelationInstance">RelationInstance</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If there is an error during retrieval.</p></li>
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+<li><p><strong>ValueError</strong> – If <cite>from_object_id</cite> or <cite>to_object_id</cite> are not valid UUID strings.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.get_relation_type">
+<span class="sig-name descname"><span class="pre">get_relation_type</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core_models.html#grizabella.core.models.RelationTypeDefinition" title="grizabella.core.models.RelationTypeDefinition"><span class="pre">RelationTypeDefinition</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.get_relation_type"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.get_relation_type" title="Link to this definition"></a></dt>
+<dd><p>Retrieves the definition of a relation type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>type_name</strong> (<em>str</em>) – The name of the relation type to retrieve.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The definition of the relation
+type if found, otherwise None.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[<a class="reference internal" href="core_models.html#grizabella.core.models.RelationTypeDefinition" title="grizabella.core.models.RelationTypeDefinition">RelationTypeDefinition</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.list_embedding_definitions">
+<span class="sig-name descname"><span class="pre">list_embedding_definitions</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core_models.html#grizabella.core.models.EmbeddingDefinition" title="grizabella.core.models.EmbeddingDefinition"><span class="pre">EmbeddingDefinition</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.list_embedding_definitions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.list_embedding_definitions" title="Link to this definition"></a></dt>
+<dd><p>Lists all embedding definitions in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of all embedding definitions.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[<a class="reference internal" href="core_models.html#grizabella.core.models.EmbeddingDefinition" title="grizabella.core.models.EmbeddingDefinition">EmbeddingDefinition</a>]</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.list_object_types">
+<span class="sig-name descname"><span class="pre">list_object_types</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core_models.html#grizabella.core.models.ObjectTypeDefinition" title="grizabella.core.models.ObjectTypeDefinition"><span class="pre">ObjectTypeDefinition</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.list_object_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.list_object_types" title="Link to this definition"></a></dt>
+<dd><p>Lists all defined object types in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of all object type definitions.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[<a class="reference internal" href="core_models.html#grizabella.core.models.ObjectTypeDefinition" title="grizabella.core.models.ObjectTypeDefinition">ObjectTypeDefinition</a>]</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.list_relation_types">
+<span class="sig-name descname"><span class="pre">list_relation_types</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core_models.html#grizabella.core.models.RelationTypeDefinition" title="grizabella.core.models.RelationTypeDefinition"><span class="pre">RelationTypeDefinition</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.list_relation_types"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.list_relation_types" title="Link to this definition"></a></dt>
+<dd><p>Lists all defined relation types in the database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of all relation type definitions.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>List[<a class="reference internal" href="core_models.html#grizabella.core.models.RelationTypeDefinition" title="grizabella.core.models.RelationTypeDefinition">RelationTypeDefinition</a>]</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.query_relations">
+<span class="sig-name descname"><span class="pre">query_relations</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">relation_type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_object_instance_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_object_instance_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties_query</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core_models.html#grizabella.core.models.RelationInstance" title="grizabella.core.models.RelationInstance"><span class="pre">RelationInstance</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.query_relations"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.query_relations" title="Link to this definition"></a></dt>
+<dd><p>Queries relation instances based on various criteria.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>relation_type_name</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Filter by relation type name.</p></li>
+<li><p><strong>source_object_instance_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Filter by source object ID (UUID string).</p></li>
+<li><p><strong>target_object_instance_id</strong> (<em>Optional</em><em>[</em><em>str</em><em>]</em>) – Filter by target object ID (UUID string).</p></li>
+<li><p><strong>properties_query</strong> (<em>Optional</em><em>[</em><em>dict</em><em>[</em><em>str</em><em>, </em><em>Any</em><em>]</em><em>]</em>) – Filter by relation properties.</p></li>
+<li><p><strong>limit</strong> (<em>Optional</em><em>[</em><em>int</em><em>]</em>) – Maximum number of results to return.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of matching relation instances.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="core_models.html#grizabella.core.models.RelationInstance" title="grizabella.core.models.RelationInstance">RelationInstance</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+<li><p><strong>ValueError</strong> – If provided UUID strings are invalid.</p></li>
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – For other underlying database or processing errors.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.search_similar_objects">
+<span class="sig-name descname"><span class="pre">search_similar_objects</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">object_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">search_properties</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core_models.html#grizabella.core.models.ObjectInstance" title="grizabella.core.models.ObjectInstance"><span class="pre">ObjectInstance</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.search_similar_objects"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.search_similar_objects" title="Link to this definition"></a></dt>
+<dd><p>Searches for objects similar to a given object using its embeddings.</p>
+<p>This method finds objects of the same type as the source object that
+are semantically similar, based on a specified or inferred embedding definition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>object_id</strong> (<em>str</em>) – The ID of the source object to find similar items for.</p></li>
+<li><p><strong>type_name</strong> (<em>str</em>) – The type name of the source object.</p></li>
+<li><p><strong>n_results</strong> (<em>int</em>) – The maximum number of similar results to return.
+Defaults to 5.</p></li>
+<li><p><strong>search_properties</strong> (<em>Optional</em><em>[</em><em>List</em><em>[</em><em>str</em><em>]</em><em>]</em>) – If provided, the first element
+is used as the specific <cite>embedding_definition_name</cite> to use for both
+the source object’s vector retrieval and the target search.
+If None or empty, the first available <cite>EmbeddingDefinition</cite> for the
+<cite>type_name</cite> will be used.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of tuples, where each
+tuple contains a similar <cite>ObjectInstance</cite> and its similarity score
+(typically distance, where lower is more similar).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[Tuple[<a class="reference internal" href="core_models.html#grizabella.core.models.ObjectInstance" title="grizabella.core.models.ObjectInstance">ObjectInstance</a>, float]]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+<li><p><strong>ValueError</strong> – If <cite>object_id</cite> is not a valid UUID string.</p></li>
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.SchemaError" title="grizabella.core.exceptions.SchemaError"><strong>SchemaError</strong></a> – If a suitable <cite>EmbeddingDefinition</cite> cannot be found.</p></li>
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.EmbeddingError" title="grizabella.core.exceptions.EmbeddingError"><strong>EmbeddingError</strong></a> – If an embedding for the source object cannot be found.</p></li>
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – For other underlying database or processing errors.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.api.client.Grizabella.upsert_object">
+<span class="sig-name descname"><span class="pre">upsert_object</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="core_models.html#grizabella.core.models.ObjectInstance" title="grizabella.core.models.ObjectInstance"><span class="pre">ObjectInstance</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="core_models.html#grizabella.core.models.ObjectInstance" title="grizabella.core.models.ObjectInstance"><span class="pre">ObjectInstance</span></a></span></span><a class="reference internal" href="_modules/grizabella/api/client.html#Grizabella.upsert_object"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.api.client.Grizabella.upsert_object" title="Link to this definition"></a></dt>
+<dd><p>Creates a new object or updates an existing one.</p>
+<p>If an object with the same ID already exists, it will be updated
+with the properties from the provided <cite>ObjectInstance</cite>. Otherwise, a
+new object will be created.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>obj</strong> (<a class="reference internal" href="core_models.html#grizabella.core.models.ObjectInstance" title="grizabella.core.models.ObjectInstance"><em>ObjectInstance</em></a>) – The object instance to create or update.
+It must include the object type name and its properties.
+The <cite>id</cite> field can be provided for updates or will be
+generated for new objects if not supplied.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The created or updated object instance, potentially
+with a newly assigned ID or updated timestamps.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="core_models.html#grizabella.core.models.ObjectInstance" title="grizabella.core.models.ObjectInstance">ObjectInstance</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><a class="reference internal" href="core_exceptions.html#grizabella.core.exceptions.GrizabellaException" title="grizabella.core.exceptions.GrizabellaException"><strong>GrizabellaException</strong></a> – If the object type does not exist or if there
+    is an error during the upsert operation.</p></li>
+<li><p><strong>NotConnectedError</strong> – If the client is not connected to the database.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Grizabella API documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="core_models.html" class="btn btn-neutral float-right" title="Core Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Grizabella Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

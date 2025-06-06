@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>grizabella.db_layers.sqlite.sqlite_adapter &mdash; Grizabella API 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=01f34227"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            Grizabella API
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api_client.html">API Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_models.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_query_models.html">Core Query Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_exceptions.html">Core Exceptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_db_manager.html">Core DB Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_query_engine.html">Core Query Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_utils.html">grizabella.core (Utilities)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../db_layers.html">grizabella.db_layers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ui_main.html">grizabella.ui (Main Components)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ui_dialogs.html">grizabella.ui.dialogs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Grizabella API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">grizabella.db_layers.sqlite.sqlite_adapter</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for grizabella.db_layers.sqlite.sqlite_adapter</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Grizabella adapter for SQLite3 database.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">logging</span> <span class="c1"># Added</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">sqlite3</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span> <span class="c1"># For logging thread ID</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">datetime</span><span class="w"> </span><span class="kn">import</span> <span class="n">datetime</span>  <span class="c1"># timezone is not used directly here</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">decimal</span><span class="w"> </span><span class="kn">import</span> <span class="n">Decimal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>  <span class="c1"># Union is not used</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">uuid</span><span class="w"> </span><span class="kn">import</span> <span class="n">UUID</span>  <span class="c1"># uuid4 is not used directly here</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">DatabaseError</span><span class="p">,</span> <span class="n">InstanceError</span><span class="p">,</span> <span class="n">SchemaError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.core.models</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">EmbeddingDefinition</span><span class="p">,</span>
+    <span class="n">ObjectInstance</span><span class="p">,</span>
+    <span class="n">ObjectTypeDefinition</span><span class="p">,</span>
+    <span class="c1"># PropertyDefinition, # Not directly used in this file&#39;s top-level logic</span>
+    <span class="n">PropertyDataType</span><span class="p">,</span>
+    <span class="c1"># MemoryInstance, # Not directly used in this file&#39;s top-level logic</span>
+    <span class="n">RelationInstance</span><span class="p">,</span>  <span class="c1"># Added import</span>
+    <span class="n">RelationTypeDefinition</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.core.query_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">RelationalFilter</span>  <span class="c1"># Added for new methods</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.db_layers.common.base_adapter</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseDBAdapter</span>
+
+
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span> <span class="c1"># Added module-level logger</span>
+
+
+<div class="viewcode-block" id="SQLiteAdapter">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SQLiteAdapter</span><span class="p">(</span><span class="n">BaseDBAdapter</span><span class="p">):</span>  <span class="c1"># pylint: disable=R0904</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Grizabella adapter for SQLite3.</span>
+<span class="sd">    Handles relational data storage and schema definition persistence.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">_META_TABLE_OBJECT_TYPES</span> <span class="o">=</span> <span class="s2">&quot;_grizabella_object_types&quot;</span>
+    <span class="n">_META_TABLE_EMBEDDING_DEFS</span> <span class="o">=</span> <span class="s2">&quot;_grizabella_embedding_definitions&quot;</span>
+    <span class="n">_META_TABLE_RELATION_TYPES</span> <span class="o">=</span> <span class="s2">&quot;_grizabella_relation_types&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SQLiteAdapter: Initializing in thread ID: </span><span class="si">{</span><span class="n">threading</span><span class="o">.</span><span class="n">get_ident</span><span class="p">()</span><span class="si">}</span><span class="s2"> for db: </span><span class="si">{</span><span class="n">db_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">Connection</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">db_path</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>  <span class="c1"># This will call _connect</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_connect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Establish a connection to the SQLite database.&quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SQLiteAdapter: _connect called in thread ID: </span><span class="si">{</span><span class="n">threading</span><span class="o">.</span><span class="n">get_ident</span><span class="p">()</span><span class="si">}</span><span class="s2"> for db: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">db_path</span><span class="p">,</span>
+                <span class="n">detect_types</span><span class="o">=</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">PARSE_DECLTYPES</span> <span class="o">|</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">PARSE_COLNAMES</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SQLiteAdapter: sqlite3.connect successful in thread ID: </span><span class="si">{</span><span class="n">threading</span><span class="o">.</span><span class="n">get_ident</span><span class="p">()</span><span class="si">}</span><span class="s2"> for db: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_path</span><span class="si">}</span><span class="s2">. Connection object: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">row_factory</span> <span class="o">=</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;PRAGMA foreign_keys = ON;&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_init_meta_tables</span><span class="p">()</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;SQLite connection error to &#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_path</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_init_meta_tables</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes tables for storing Grizabella schema definitions if they don&#39;t exist.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLite connection not established.&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                    CREATE TABLE IF NOT EXISTS </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_META_TABLE_OBJECT_TYPES</span><span class="si">}</span><span class="s2"> (</span>
+<span class="s2">                        name TEXT PRIMARY KEY,</span>
+<span class="s2">                        definition TEXT NOT NULL -- JSON string of ObjectTypeDefinition</span>
+<span class="s2">                    )</span>
+<span class="s2">                &quot;&quot;&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                    CREATE TABLE IF NOT EXISTS </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_META_TABLE_EMBEDDING_DEFS</span><span class="si">}</span><span class="s2"> (</span>
+<span class="s2">                        name TEXT PRIMARY KEY,</span>
+<span class="s2">                        definition TEXT NOT NULL -- JSON string of EmbeddingDefinition</span>
+<span class="s2">                    )</span>
+<span class="s2">                &quot;&quot;&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                    CREATE TABLE IF NOT EXISTS </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_META_TABLE_RELATION_TYPES</span><span class="si">}</span><span class="s2"> (</span>
+<span class="s2">                        name TEXT PRIMARY KEY,</span>
+<span class="s2">                        definition TEXT NOT NULL -- JSON string of RelationTypeDefinition</span>
+<span class="s2">                    )</span>
+<span class="s2">                &quot;&quot;&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;SQLite error initializing metadata tables: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+<div class="viewcode-block" id="SQLiteAdapter.close">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.close">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Close the SQLite database connection.&quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SQLiteAdapter: close() called in thread ID: </span><span class="si">{</span><span class="n">threading</span><span class="o">.</span><span class="n">get_ident</span><span class="p">()</span><span class="si">}</span><span class="s2"> for db: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_path</span><span class="si">}</span><span class="s2">. Connection state: </span><span class="si">{</span><span class="s1">&#39;Connected&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;Not Connected&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SQLiteAdapter: self.conn.close() executed for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_path</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SQLiteAdapter: sqlite3.Error during close for </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">db_path</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;SQLite error closing connection: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+    <span class="c1"># --- Schema Definition Persistence ---</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_save_definition</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">definition</span><span class="p">:</span> <span class="n">BaseModel</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Saves a Pydantic model definition as JSON into the specified metadata table.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLite connection not established.&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;INSERT OR REPLACE INTO </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> (name, definition) VALUES (?, ?)&quot;</span><span class="p">,</span>
+                    <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">definition</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">()),</span>
+                <span class="p">)</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error saving definition &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; to </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_definition</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads a Pydantic model definition from JSON stored in the specified metadata table.&quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SQLiteAdapter: _load_definition called in thread ID: </span><span class="si">{</span><span class="n">threading</span><span class="o">.</span><span class="n">get_ident</span><span class="p">()</span><span class="si">}</span><span class="s2"> for table: </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">, name: </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLite connection not established.&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;SELECT definition FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> WHERE name = ?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,),</span>
+            <span class="p">)</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">row</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">model_class</span><span class="o">.</span><span class="n">model_validate_json</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;definition&quot;</span><span class="p">])</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error loading definition &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; from </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error decoding JSON for definition &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; from </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_delete_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes a definition from the specified metadata table. Returns True if deleted.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLite connection not established.&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+                <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;DELETE FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2"> WHERE name = ?&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">name</span><span class="p">,),</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">rowcount</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error deleting definition &#39;</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; from </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_list_definitions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">model_class</span><span class="p">:</span> <span class="nb">type</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">BaseModel</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lists all definitions of a given model_class from the specified metadata table.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLite connection not established.&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">definitions</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SELECT definition FROM </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
+                <span class="n">definitions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model_class</span><span class="o">.</span><span class="n">model_validate_json</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;definition&quot;</span><span class="p">]))</span>
+            <span class="k">return</span> <span class="n">definitions</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error listing definitions from </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="k">except</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONDecodeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error decoding JSON for definitions from </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+    <span class="c1"># ObjectTypeDefinition</span>
+<div class="viewcode-block" id="SQLiteAdapter.save_object_type_definition">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.save_object_type_definition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_object_type_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">otd</span><span class="p">:</span> <span class="n">ObjectTypeDefinition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Saves an ObjectTypeDefinition to the metadata table.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_save_definition</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_META_TABLE_OBJECT_TYPES</span><span class="p">,</span> <span class="n">otd</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">otd</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.load_object_type_definition">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.load_object_type_definition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_object_type_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ObjectTypeDefinition</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads an ObjectTypeDefinition from the metadata table.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_definition</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_META_TABLE_OBJECT_TYPES</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">ObjectTypeDefinition</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.delete_object_type_definition">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.delete_object_type_definition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_object_type_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes an ObjectTypeDefinition from the metadata table.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delete_definition</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_META_TABLE_OBJECT_TYPES</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.list_object_type_definitions">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.list_object_type_definitions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list_object_type_definitions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ObjectTypeDefinition</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lists all ObjectTypeDefinitions from the metadata table.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_definitions</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_META_TABLE_OBJECT_TYPES</span><span class="p">,</span> <span class="n">ObjectTypeDefinition</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+
+
+    <span class="c1"># EmbeddingDefinition</span>
+<div class="viewcode-block" id="SQLiteAdapter.save_embedding_definition">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.save_embedding_definition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_embedding_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ed</span><span class="p">:</span> <span class="n">EmbeddingDefinition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Saves an EmbeddingDefinition to the metadata table.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_save_definition</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_META_TABLE_EMBEDDING_DEFS</span><span class="p">,</span> <span class="n">ed</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">ed</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.load_embedding_definition">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.load_embedding_definition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_embedding_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">EmbeddingDefinition</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads an EmbeddingDefinition from the metadata table.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_definition</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_META_TABLE_EMBEDDING_DEFS</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">EmbeddingDefinition</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.delete_embedding_definition">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.delete_embedding_definition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_embedding_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes an EmbeddingDefinition from the metadata table.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delete_definition</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_META_TABLE_EMBEDDING_DEFS</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.list_embedding_definitions">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.list_embedding_definitions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list_embedding_definitions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">EmbeddingDefinition</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lists all EmbeddingDefinitions from the metadata table.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_definitions</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_META_TABLE_EMBEDDING_DEFS</span><span class="p">,</span> <span class="n">EmbeddingDefinition</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+
+
+    <span class="c1"># RelationTypeDefinition</span>
+<div class="viewcode-block" id="SQLiteAdapter.save_relation_type_definition">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.save_relation_type_definition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_relation_type_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rtd</span><span class="p">:</span> <span class="n">RelationTypeDefinition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Saves a RelationTypeDefinition to the metadata table.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_save_definition</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_META_TABLE_RELATION_TYPES</span><span class="p">,</span> <span class="n">rtd</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">rtd</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.load_relation_type_definition">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.load_relation_type_definition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_relation_type_definition</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">RelationTypeDefinition</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads a RelationTypeDefinition from the metadata table.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_definition</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_META_TABLE_RELATION_TYPES</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">RelationTypeDefinition</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.delete_relation_type_definition">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.delete_relation_type_definition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_relation_type_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes a RelationTypeDefinition from the metadata table.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_delete_definition</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_META_TABLE_RELATION_TYPES</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.list_relation_type_definitions">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.list_relation_type_definitions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list_relation_type_definitions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">RelationTypeDefinition</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lists all RelationTypeDefinitions from the metadata table.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_list_definitions</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_META_TABLE_RELATION_TYPES</span><span class="p">,</span> <span class="n">RelationTypeDefinition</span><span class="p">,</span>
+        <span class="p">)</span>  <span class="c1"># type: ignore</span></div>
+
+
+    <span class="c1"># --- Schema Management (Object Types) ---</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_map_property_type_to_sqlite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prop_type</span><span class="p">:</span> <span class="n">PropertyDataType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">mapping</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">TEXT</span><span class="p">:</span> <span class="s2">&quot;TEXT&quot;</span><span class="p">,</span>
+            <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">INTEGER</span><span class="p">:</span> <span class="s2">&quot;INTEGER&quot;</span><span class="p">,</span>
+            <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">FLOAT</span><span class="p">:</span> <span class="s2">&quot;REAL&quot;</span><span class="p">,</span>
+            <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">BOOLEAN</span><span class="p">:</span> <span class="s2">&quot;INTEGER&quot;</span><span class="p">,</span>  <span class="c1"># 0 or 1</span>
+            <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">DATETIME</span><span class="p">:</span> <span class="s2">&quot;TEXT&quot;</span><span class="p">,</span>  <span class="c1"># Store as ISO format string</span>
+            <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">BLOB</span><span class="p">:</span> <span class="s2">&quot;BLOB&quot;</span><span class="p">,</span>
+            <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">JSON</span><span class="p">:</span> <span class="s2">&quot;TEXT&quot;</span><span class="p">,</span>  <span class="c1"># Store as JSON string</span>
+            <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">UUID</span><span class="p">:</span> <span class="s2">&quot;TEXT&quot;</span><span class="p">,</span>  <span class="c1"># Store as string</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">prop_type</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">mapping</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Unsupported property data type for SQLite: </span><span class="si">{</span><span class="n">prop_type</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mapping</span><span class="p">[</span><span class="n">prop_type</span><span class="p">]</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_get_safe_table_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="c1"># Basic sanitization, can be expanded. Using prefix to avoid SQL keyword clashes.</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;ot_</span><span class="si">{</span><span class="n">object_type_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+
+<div class="viewcode-block" id="SQLiteAdapter.create_object_type_table">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.create_object_type_table">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_object_type_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">otd</span><span class="p">:</span> <span class="n">ObjectTypeDefinition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a new SQLite table based on an ObjectTypeDefinition.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLite connection not established.&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="n">table_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_safe_table_name</span><span class="p">(</span><span class="n">otd</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># MemoryInstance base fields</span>
+        <span class="n">columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;id TEXT PRIMARY KEY&quot;</span><span class="p">)</span>  <span class="c1"># UUID stored as TEXT</span>
+        <span class="n">columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;weight REAL NOT NULL&quot;</span><span class="p">)</span>
+        <span class="n">columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;upsert_date TEXT NOT NULL&quot;</span><span class="p">)</span>  <span class="c1"># Store as ISO format string</span>
+
+        <span class="c1"># Properties from ObjectTypeDefinition</span>
+        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">otd</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+            <span class="n">col_def</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">prop</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot; </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_map_property_type_to_sqlite</span><span class="p">(</span><span class="n">prop</span><span class="o">.</span><span class="n">data_type</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">prop</span><span class="o">.</span><span class="n">is_primary_key</span>
+            <span class="p">):</span>  <span class="c1"># Note: &#39;id&#39; is already PK. This handles explicit PKs if design</span>
+                <span class="c1"># changes.</span>
+                <span class="c1"># For now, we assume &#39;id&#39; from MemoryInstance is the true PK.</span>
+                <span class="c1"># If a property is marked is_primary_key, it should ideally be the &#39;id&#39; field.</span>
+                <span class="c1"># If not, it implies a composite key or alternative PK,</span>
+                <span class="c1"># which needs careful handling.</span>
+                <span class="c1"># Current design: &#39;id&#39; is the PK. If another prop is PK,</span>
+                <span class="c1"># it&#39;s likely an error or needs specific logic.</span>
+                <span class="c1"># We will make it UNIQUE and NOT NULL if it&#39;s marked as PK but not &#39;id&#39;.</span>
+                <span class="k">if</span> <span class="n">prop</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;id&quot;</span><span class="p">:</span>  <span class="c1"># &#39;id&#39; is already the PK</span>
+                    <span class="n">col_def</span> <span class="o">+=</span> <span class="s2">&quot; UNIQUE NOT NULL&quot;</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># Not a primary key property</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">prop</span><span class="o">.</span><span class="n">is_nullable</span><span class="p">:</span>
+                    <span class="n">col_def</span> <span class="o">+=</span> <span class="s2">&quot; NOT NULL&quot;</span>
+                <span class="k">if</span> <span class="n">prop</span><span class="o">.</span><span class="n">is_unique</span><span class="p">:</span>
+                    <span class="n">col_def</span> <span class="o">+=</span> <span class="s2">&quot; UNIQUE&quot;</span>
+            <span class="n">columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col_def</span><span class="p">)</span>
+
+        <span class="n">create_table_sql</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;CREATE TABLE IF NOT EXISTS </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2"> (</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">columns</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
+
+        <span class="n">indices_sql</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">prop</span> <span class="ow">in</span> <span class="n">otd</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">prop</span><span class="o">.</span><span class="n">is_indexed</span><span class="p">:</span>
+                <span class="n">index_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;idx_</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">prop</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="n">indices_sql</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s1">&#39;CREATE INDEX IF NOT EXISTS &quot;</span><span class="si">{</span><span class="n">index_name</span><span class="si">}</span><span class="s1">&quot; ON &#39;</span>
+                    <span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1">&quot; (&quot;</span><span class="si">{</span><span class="n">prop</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;)&#39;</span><span class="p">,</span>
+                <span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">create_table_sql</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">index_sql</span> <span class="ow">in</span> <span class="n">indices_sql</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">index_sql</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Error creating table or indices for object type &#39;</span><span class="si">{</span><span class="n">otd</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(table: </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.drop_object_type_table">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.drop_object_type_table">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">drop_object_type_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Drops an SQLite table corresponding to an object type.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLite connection not established.&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">table_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_safe_table_name</span><span class="p">(</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;DROP TABLE IF EXISTS &quot;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Error dropping table for object type &#39;</span><span class="si">{</span><span class="n">object_type_name</span><span class="si">}</span><span class="s2">&#39; &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;(table: </span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">): </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+    <span class="c1"># --- Object Instance Operations ---</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_serialize_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">data_type</span><span class="p">:</span> <span class="n">PropertyDataType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Serializes a Python value to its SQLite-compatible representation.&quot;&quot;&quot;</span>
+        <span class="n">result</span><span class="p">:</span> <span class="n">Any</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">elif</span> <span class="n">data_type</span> <span class="o">==</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">UUID</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">data_type</span> <span class="o">==</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">DATETIME</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">datetime</span><span class="p">):</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">value</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>  <span class="c1"># Or raise error if not datetime</span>
+        <span class="k">elif</span> <span class="n">data_type</span> <span class="o">==</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">JSON</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">data_type</span> <span class="o">==</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">BOOLEAN</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">value</span> <span class="k">else</span> <span class="mi">0</span>
+        <span class="k">elif</span> <span class="n">data_type</span> <span class="o">==</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">FLOAT</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span>
+            <span class="n">value</span><span class="p">,</span> <span class="n">Decimal</span><span class="p">,</span>
+        <span class="p">):</span>  <span class="c1"># For condecimal</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">value</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_deserialize_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">data_type</span><span class="p">:</span> <span class="n">PropertyDataType</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deserializes a value from SQLite to its Python representation.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">data_type</span> <span class="o">==</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">UUID</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">UUID</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data_type</span> <span class="o">==</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">DATETIME</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data_type</span> <span class="o">==</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">JSON</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">data_type</span> <span class="o">==</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">BOOLEAN</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">value</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_row_to_object_instance</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">row</span><span class="p">:</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Row</span><span class="p">,</span> <span class="n">otd</span><span class="p">:</span> <span class="n">ObjectTypeDefinition</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ObjectInstance</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Converts a sqlite3.Row to an ObjectInstance.&quot;&quot;&quot;</span>
+        <span class="n">props</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">prop_def</span> <span class="ow">in</span> <span class="n">otd</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+            <span class="n">props</span><span class="p">[</span><span class="n">prop_def</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_deserialize_value</span><span class="p">(</span>
+                <span class="n">row</span><span class="p">[</span><span class="n">prop_def</span><span class="o">.</span><span class="n">name</span><span class="p">],</span> <span class="n">prop_def</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ObjectInstance</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">UUID</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]),</span>
+            <span class="n">weight</span><span class="o">=</span><span class="n">Decimal</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;weight&quot;</span><span class="p">])),</span>  <span class="c1"># SQLite REAL to Decimal</span>
+            <span class="n">upsert_date</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromisoformat</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;upsert_date&quot;</span><span class="p">]),</span>
+            <span class="n">object_type_name</span><span class="o">=</span><span class="n">otd</span><span class="o">.</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">properties</span><span class="o">=</span><span class="n">props</span><span class="p">,</span>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="SQLiteAdapter.add_object_instance">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.add_object_instance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_object_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">:</span> <span class="n">ObjectInstance</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds a new object instance to the appropriate SQLite table.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLite connection not established.&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">otd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_object_type_definition</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">otd</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;ObjectTypeDefinition &#39;</span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">object_type_name</span><span class="si">}</span><span class="s2">&#39; not found for &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;instance </span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="n">table_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_safe_table_name</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">object_type_name</span><span class="p">)</span>
+
+        <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="s2">&quot;upsert_date&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">otd</span><span class="o">.</span><span class="n">properties</span><span class="p">]</span>
+        <span class="n">placeholders</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;?&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">)</span>
+
+        <span class="n">values</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">weight</span><span class="p">),</span>  <span class="c1"># Store Decimal as REAL</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">upsert_date</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">prop_def</span> <span class="ow">in</span> <span class="n">otd</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+            <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_serialize_value</span><span class="p">(</span>
+                    <span class="n">instance</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop_def</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">prop_def</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+
+        <span class="n">sql</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;INSERT INTO </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2"> (</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">cols</span><span class="p">)</span><span class="si">}</span><span class="s2">) &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;VALUES (</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">placeholders</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">IntegrityError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Integrity error adding instance </span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> to &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">. Check for uniqueness constraints.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">InstanceError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error adding instance </span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> to &#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.get_object_instance">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.get_object_instance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_object_instance</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">object_type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">instance_id</span><span class="p">:</span> <span class="n">UUID</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ObjectInstance</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves an object instance by its type and ID.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLite connection not established.&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">otd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_object_type_definition</span><span class="p">(</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">otd</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ObjectTypeDefinition &#39;</span><span class="si">{</span><span class="n">object_type_name</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span>
+            <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="n">table_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_safe_table_name</span><span class="p">(</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="n">sql</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;SELECT * FROM &quot;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1">&quot; WHERE id = ?&#39;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">instance_id</span><span class="p">),))</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">row</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_row_to_object_instance</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">otd</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error getting instance </span><span class="si">{</span><span class="n">instance_id</span><span class="si">}</span><span class="s2"> from &#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.update_object_instance">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.update_object_instance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_object_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">:</span> <span class="n">ObjectInstance</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates an existing object instance in the SQLite table.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLite connection not established.&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">otd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_object_type_definition</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">otd</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;ObjectTypeDefinition &#39;</span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">object_type_name</span><span class="si">}</span><span class="s2">&#39; not found for &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;instance </span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="n">table_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_safe_table_name</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">object_type_name</span><span class="p">)</span>
+
+        <span class="n">set_clauses</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;weight = ?&quot;</span><span class="p">,</span> <span class="s2">&quot;upsert_date = ?&quot;</span><span class="p">]</span>
+        <span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">weight</span><span class="p">),</span> <span class="n">instance</span><span class="o">.</span><span class="n">upsert_date</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()]</span>
+
+        <span class="k">for</span> <span class="n">prop_def</span> <span class="ow">in</span> <span class="n">otd</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+            <span class="n">set_clauses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">prop_def</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot; = ?&#39;</span><span class="p">)</span>
+            <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_serialize_value</span><span class="p">(</span>
+                    <span class="n">instance</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop_def</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">prop_def</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+
+        <span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">id</span><span class="p">))</span>  <span class="c1"># For WHERE clause</span>
+
+        <span class="n">sql</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;UPDATE </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2"> SET </span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">set_clauses</span><span class="p">)</span><span class="si">}</span><span class="s2"> WHERE id = ?&quot;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+                <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">values</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">cursor</span><span class="o">.</span><span class="n">rowcount</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Instance </span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> not found in &#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&#39; for update.&quot;</span>
+                    <span class="k">raise</span> <span class="n">InstanceError</span><span class="p">(</span>
+                        <span class="n">msg</span><span class="p">,</span>
+                    <span class="p">)</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">IntegrityError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Integrity error updating instance </span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;in &#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">InstanceError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error updating instance </span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> in &#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.delete_object_instance">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.delete_object_instance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_object_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">instance_id</span><span class="p">:</span> <span class="n">UUID</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes an object instance from the SQLite table. Returns True if deleted.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLite connection not established.&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="c1"># OTD check not strictly necessary for delete,</span>
+        <span class="c1"># but good for consistency if table name depends on it</span>
+        <span class="n">otd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_object_type_definition</span><span class="p">(</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">otd</span><span class="p">:</span>
+            <span class="c1"># If OTD doesn&#39;t exist, table likely doesn&#39;t either, or is orphaned.</span>
+            <span class="c1"># Depending on strictness, could raise SchemaError or just try to delete.</span>
+            <span class="c1"># For now, let&#39;s assume if OTD is gone, table should be too.</span>
+            <span class="c1"># However, the request is to delete an instance, so the table might still exist.</span>
+            <span class="k">pass</span>
+
+        <span class="n">table_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_safe_table_name</span><span class="p">(</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="n">sql</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;DELETE FROM &quot;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1">&quot; WHERE id = ?&#39;</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+                <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">instance_id</span><span class="p">),))</span>
+                <span class="k">return</span> <span class="n">cursor</span><span class="o">.</span><span class="n">rowcount</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># If table doesn&#39;t exist, sqlite3 will raise an OperationalError</span>
+            <span class="k">if</span> <span class="s2">&quot;no such table&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="k">return</span> <span class="kc">False</span>  <span class="c1"># Effectively, instance is not there</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error deleting instance </span><span class="si">{</span><span class="n">instance_id</span><span class="si">}</span><span class="s2"> from &#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.query_object_instances">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.query_object_instances">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">query_object_instances</span><span class="p">(</span>  <span class="c1"># pylint: disable=R0914</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">object_type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">conditions</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">],</span>
+        <span class="n">limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">offset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Added to match find_object_instances</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ObjectInstance</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Queries object instances based on a dictionary of conditions.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLite connection not established.&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">otd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_object_type_definition</span><span class="p">(</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">otd</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ObjectTypeDefinition &#39;</span><span class="si">{</span><span class="n">object_type_name</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span>
+            <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="n">table_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_safe_table_name</span><span class="p">(</span><span class="n">object_type_name</span><span class="p">)</span>
+
+        <span class="n">where_clauses</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">query_values</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Find PropertyDefinition for each condition key to get data_type for serialization</span>
+        <span class="n">prop_defs_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">otd</span><span class="o">.</span><span class="n">properties</span><span class="p">}</span>
+        <span class="c1"># Also consider base fields like id, weight, upsert_date</span>
+        <span class="n">base_fields_types</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">UUID</span><span class="p">,</span>
+            <span class="s2">&quot;weight&quot;</span><span class="p">:</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">FLOAT</span><span class="p">,</span>  <span class="c1"># Stored as REAL</span>
+            <span class="s2">&quot;upsert_date&quot;</span><span class="p">:</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">DATETIME</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">conditions</span><span class="p">:</span>  <span class="c1"># Ensure conditions is not None</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">conditions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="c1"># Determine data_type for serialization</span>
+                <span class="n">data_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PropertyDataType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">prop_defs_map</span><span class="p">:</span>
+                    <span class="n">data_type</span> <span class="o">=</span> <span class="n">prop_defs_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">data_type</span>
+                <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">base_fields_types</span><span class="p">:</span>
+                    <span class="n">data_type</span> <span class="o">=</span> <span class="n">base_fields_types</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Condition key &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; is not a defined property or &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;base field for object type &#39;</span><span class="si">{</span><span class="n">object_type_name</span><span class="si">}</span><span class="s2">&#39;.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span>
+                        <span class="n">msg</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+                <span class="n">where_clauses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&quot; = ?&#39;</span><span class="p">)</span>
+                <span class="n">query_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_serialize_value</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">data_type</span><span class="p">),</span>  <span class="c1"># type: ignore</span>
+                <span class="p">)</span>
+
+        <span class="n">sql</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;SELECT * FROM &quot;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1">&quot;&#39;</span>
+        <span class="k">if</span> <span class="n">where_clauses</span><span class="p">:</span>
+            <span class="n">sql</span> <span class="o">+=</span> <span class="s2">&quot; WHERE &quot;</span> <span class="o">+</span> <span class="s2">&quot; AND &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">where_clauses</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">limit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sql</span> <span class="o">+=</span> <span class="s2">&quot; LIMIT ?&quot;</span>
+            <span class="n">query_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">offset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># Added offset handling</span>
+            <span class="n">sql</span> <span class="o">+=</span> <span class="s2">&quot; OFFSET ?&quot;</span>
+            <span class="n">query_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+
+        <span class="n">instances</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">query_values</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
+                <span class="n">instances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_row_to_object_instance</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">otd</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">instances</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error querying instances from &#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+    <span class="c1"># --- Placeholder/Not Implemented for methods not directly part of this task&#39;s SQLite focus ---</span>
+
+<div class="viewcode-block" id="SQLiteAdapter.create_object_type">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.create_object_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_object_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">:</span> <span class="n">ObjectTypeDefinition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># This method is part of BaseDBAdapter, but for SQLite, it&#39;s a combination of:</span>
+        <span class="c1"># 1. Storing definition (handled by save_object_type_definition)</span>
+        <span class="c1"># 2. Creating the actual SQL table (handled by create_object_type_table)</span>
+        <span class="c1"># The GrizabellaDBManager will coordinate these.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_object_type_definition</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_object_type_table</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.get_object_type">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.get_object_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_object_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ObjectTypeDefinition</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_object_type_definition</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.delete_object_type">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.delete_object_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_object_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Coordinated by GrizabellaDBManager</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">drop_object_type_table</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delete_object_type_definition</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.list_object_types">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.list_object_types">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list_object_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+        <span class="c1"># Returns names of defined object types</span>
+        <span class="n">defs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_object_type_definitions</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">defs</span><span class="p">]</span></div>
+
+
+    <span class="c1"># Embedding and Relation instance methods are typically not for SQLite in a tri-layer system</span>
+    <span class="c1"># or would be very simple if SQLite were the sole store.</span>
+    <span class="c1"># For this task, we focus on schema definition storage for them.</span>
+
+<div class="viewcode-block" id="SQLiteAdapter.upsert_embedding_instance">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.upsert_embedding_instance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">upsert_embedding_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLiteAdapter.upsert_embedding_instance is not typically used for vector storage.&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="n">msg</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.get_embedding_instance">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.get_embedding_instance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_embedding_instance</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">embedding_definition_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">object_instance_id</span><span class="p">:</span> <span class="n">UUID</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLiteAdapter.get_embedding_instance is not typically used.&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="n">msg</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.find_similar_embeddings">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.find_similar_embeddings">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_similar_embeddings</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">embedding_definition_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">vector</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">top_k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLiteAdapter.find_similar_embeddings is not applicable for SQLite.&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="n">msg</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.create_relation_type">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.create_relation_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_relation_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">:</span> <span class="n">RelationTypeDefinition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_relation_type_definition</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span></div>
+
+        <span class="c1"># Actual relation table creation might be needed if SQLite stores relations.</span>
+        <span class="c1"># For now, only definition persistence.</span>
+
+<div class="viewcode-block" id="SQLiteAdapter.get_relation_type">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.get_relation_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_relation_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">RelationTypeDefinition</span><span class="p">]:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_relation_type_definition</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.add_relation_instance">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.add_relation_instance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_relation_instance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">:</span> <span class="n">RelationInstance</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RelationInstance</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Placeholder for adding relation instance metadata to SQLite.</span>
+<span class="sd">        Currently, Grizabella primarily uses Kuzu for relation storage and querying.</span>
+<span class="sd">        This method can be expanded if SQLite needs to store relation metadata.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">instance</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.upsert_relation_instance">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.upsert_relation_instance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">upsert_relation_instance</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">:</span> <span class="n">RelationInstance</span><span class="p">,</span> <span class="n">rtd</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">RelationTypeDefinition</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span>
+        <span class="n">RelationInstance</span>
+    <span class="p">):</span>  <span class="c1"># pylint: disable=arguments-differ # Changed type hint from Any</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Placeholder for upserting relation instance metadata to SQLite.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">instance</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.get_relation_instance">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.get_relation_instance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_relation_instance</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">relation_type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">relation_id</span><span class="p">:</span> <span class="n">UUID</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">RelationInstance</span><span class="p">]:</span>  <span class="c1"># Changed type hint</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Placeholder for getting relation instance metadata from SQLite.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.find_relation_instances">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.find_relation_instances">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_relation_instances</span><span class="p">(</span>  <span class="c1"># pylint: disable=R0913, R0917</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">relation_type_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">source_object_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UUID</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">target_object_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UUID</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">query</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">RelationInstance</span><span class="p">]:</span>  <span class="c1"># Changed type hint</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Placeholder for finding relation instance metadata from SQLite.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[]</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.delete_relation_instance">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.delete_relation_instance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_relation_instance</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">relation_type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">relation_id</span><span class="p">:</span> <span class="n">UUID</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Placeholder for deleting relation instance metadata from SQLite.&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="kc">True</span></div>
+
+
+    <span class="c1"># BaseDBAdapter abstract methods that need concrete implementation</span>
+    <span class="c1"># or to be managed by GrizabellaDBManager</span>
+<div class="viewcode-block" id="SQLiteAdapter.update_object_type">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.update_object_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">update_object_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">:</span> <span class="n">ObjectTypeDefinition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># SQL ALTER TABLE is complex. A common strategy is:</span>
+        <span class="c1"># 1. Save new definition.</span>
+        <span class="c1"># 2. Create new table with new schema.</span>
+        <span class="c1"># 3. Copy data from old table to new table (transforming as needed).</span>
+        <span class="c1"># 4. Drop old table.</span>
+        <span class="c1"># 5. Rename new table to old table name.</span>
+        <span class="c1"># This is a complex operation and often handled with migration tools.</span>
+        <span class="c1"># For now, just saving the definition.</span>
+        <span class="c1"># Actual table alteration is out of scope for this initial pass.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_object_type_definition</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span>
+        <span class="c1"># print(f&quot;Warning: Object type definition &#39;{definition.name}&#39; updated in metadata. &quot;</span>
+        <span class="c1">#       &quot;Live table schema alteration is not yet implemented in SQLiteAdapter.&quot;)</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLiteAdapter.update_object_type schema migration not fully implemented.&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="n">msg</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.upsert_object_instance">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.upsert_object_instance">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">upsert_object_instance</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">instance</span><span class="p">:</span> <span class="n">ObjectInstance</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ObjectInstance</span><span class="p">:</span>  <span class="c1"># pylint: disable=R0914</span>
+        <span class="c1"># Attempt to update, if it fails (e.g. rowcount is 0), then insert.</span>
+        <span class="c1"># This is a common pattern for upsert.</span>
+        <span class="c1"># More robust upsert: INSERT ... ON CONFLICT (id) DO UPDATE SET ...</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SQLiteAdapter: upsert_object_instance called in thread ID: </span><span class="si">{</span><span class="n">threading</span><span class="o">.</span><span class="n">get_ident</span><span class="p">()</span><span class="si">}</span><span class="s2"> for instance ID: </span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">, type: </span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">object_type_name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLite connection not established.&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="n">otd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_object_type_definition</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">otd</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;ObjectTypeDefinition &#39;</span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">object_type_name</span><span class="si">}</span><span class="s2">&#39; not found for &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;instance </span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="n">table_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_safe_table_name</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">object_type_name</span><span class="p">)</span>
+
+        <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="s2">&quot;weight&quot;</span><span class="p">,</span> <span class="s2">&quot;upsert_date&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">otd</span><span class="o">.</span><span class="n">properties</span><span class="p">]</span>
+
+        <span class="n">insert_values</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">str</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">id</span><span class="p">),</span>
+            <span class="nb">float</span><span class="p">(</span><span class="n">instance</span><span class="o">.</span><span class="n">weight</span><span class="p">),</span>
+            <span class="n">instance</span><span class="o">.</span><span class="n">upsert_date</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">prop_def</span> <span class="ow">in</span> <span class="n">otd</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+            <span class="n">insert_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_serialize_value</span><span class="p">(</span>
+                    <span class="n">instance</span><span class="o">.</span><span class="n">properties</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">prop_def</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">prop_def</span><span class="o">.</span><span class="n">data_type</span><span class="p">,</span>
+                <span class="p">),</span>
+            <span class="p">)</span>
+
+        <span class="c1"># set_clauses_for_update = [&quot;weight = ?&quot;, &quot;upsert_date = ?&quot;]</span>
+        <span class="c1"># Not used with ON CONFLICT excluded</span>
+        <span class="c1"># update_values_for_conflict = [float(instance.weight), instance.upsert_date.isoformat()]</span>
+        <span class="c1"># Not used</span>
+
+        <span class="c1"># for prop_def in otd.properties: # Not used</span>
+        <span class="c1">#    set_clauses_for_update.append(f&quot;\&quot;{prop_def.name}\&quot; = ?&quot;)</span>
+        <span class="c1">#    update_values_for_conflict.append(</span>
+        <span class="c1">#       self._serialize_value(instance.properties.get(prop_def.name), prop_def.data_type)</span>
+        <span class="c1"># )</span>
+
+        <span class="c1"># SQL for ON CONFLICT DO UPDATE</span>
+        <span class="c1"># Exclude &#39;id&#39; from the SET part of ON CONFLICT</span>
+        <span class="n">update_set_string</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="p">[</span><span class="s2">&quot;weight = excluded.weight&quot;</span><span class="p">,</span> <span class="s2">&quot;upsert_date = excluded.upsert_date&quot;</span><span class="p">]</span>
+            <span class="o">+</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot; = excluded.&quot;</span><span class="si">{</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1">&quot;&#39;</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">otd</span><span class="o">.</span><span class="n">properties</span><span class="p">],</span>
+        <span class="p">)</span>
+
+        <span class="n">sql</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;INSERT INTO </span><span class="se">\&quot;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="se">\&quot;</span><span class="s2"> (</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">c</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">c</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">cols</span><span class="p">)</span><span class="si">}</span><span class="s2">) &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;VALUES (</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;?&#39;</span><span class="p">]</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">cols</span><span class="p">))</span><span class="si">}</span><span class="s2">) &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;ON CONFLICT(id) DO UPDATE SET </span><span class="si">{</span><span class="n">update_set_string</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">insert_values</span><span class="p">))</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span> <span class="c1"># Explicit commit</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SQLiteAdapter: Explicit commit called for instance ID: </span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">instance</span>  <span class="c1"># Return the input instance as it should now be in the DB</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">IntegrityError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Integrity error upserting instance </span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;in &#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">raise</span> <span class="n">InstanceError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error upserting instance </span><span class="si">{</span><span class="n">instance</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s2"> in &#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.find_object_instances">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.find_object_instances">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_object_instances</span><span class="p">(</span>  <span class="c1"># pylint: disable=R0914</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">object_type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">query</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span>
+            <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
+        <span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Renamed from &#39;conditions&#39; to match BaseDBAdapter</span>
+        <span class="n">limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">offset</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Added offset</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ObjectInstance</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Finds object instances based on a query dictionary, with limit and offset.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLite connection not established.&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">otd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_object_type_definition</span><span class="p">(</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">otd</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ObjectTypeDefinition &#39;</span><span class="si">{</span><span class="n">object_type_name</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span>
+            <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="n">table_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_safe_table_name</span><span class="p">(</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="n">where_clauses</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">query_values</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="n">prop_defs_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">otd</span><span class="o">.</span><span class="n">properties</span><span class="p">}</span>
+        <span class="n">base_fields_types</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">UUID</span><span class="p">,</span>
+            <span class="s2">&quot;weight&quot;</span><span class="p">:</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">FLOAT</span><span class="p">,</span>
+            <span class="s2">&quot;upsert_date&quot;</span><span class="p">:</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">DATETIME</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">query</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">query</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                <span class="n">data_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PropertyDataType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">prop_defs_map</span><span class="p">:</span>
+                    <span class="n">data_type</span> <span class="o">=</span> <span class="n">prop_defs_map</span><span class="p">[</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">data_type</span>
+                <span class="k">elif</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">base_fields_types</span><span class="p">:</span>
+                    <span class="n">data_type</span> <span class="o">=</span> <span class="n">base_fields_types</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Query key &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39; is not a defined property or &quot;</span>
+                        <span class="sa">f</span><span class="s2">&quot;base field for &#39;</span><span class="si">{</span><span class="n">object_type_name</span><span class="si">}</span><span class="s2">&#39;.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span>
+                        <span class="n">msg</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+                <span class="n">where_clauses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s1">&quot; = ?&#39;</span><span class="p">)</span>
+                <span class="n">query_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_serialize_value</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">data_type</span><span class="p">),</span>  <span class="c1"># type: ignore</span>
+                <span class="p">)</span>
+
+        <span class="n">sql</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;SELECT * FROM &quot;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1">&quot;&#39;</span>
+        <span class="k">if</span> <span class="n">where_clauses</span><span class="p">:</span>
+            <span class="n">sql</span> <span class="o">+=</span> <span class="s2">&quot; WHERE &quot;</span> <span class="o">+</span> <span class="s2">&quot; AND &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">where_clauses</span><span class="p">)</span>
+
+        <span class="n">limit_offset_values</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">limit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sql</span> <span class="o">+=</span> <span class="s2">&quot; LIMIT ?&quot;</span>
+            <span class="n">limit_offset_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">offset</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">sql</span> <span class="o">+=</span> <span class="s2">&quot; OFFSET ?&quot;</span>
+            <span class="n">limit_offset_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">offset</span><span class="p">)</span>
+
+        <span class="n">final_query_values</span> <span class="o">=</span> <span class="n">query_values</span> <span class="o">+</span> <span class="n">limit_offset_values</span>
+        <span class="n">instances</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Executing SQL: </span><span class="si">{</span><span class="n">sql</span><span class="si">}</span><span class="s2"> with values: </span><span class="si">{</span><span class="n">final_query_values</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">final_query_values</span><span class="p">))</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Raw rows from DB: </span><span class="si">{</span><span class="n">rows</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+                <span class="n">instances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_row_to_object_instance</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">otd</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">instances</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error finding instances from &#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.add_embedding_definition">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.add_embedding_definition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_embedding_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">definition</span><span class="p">:</span> <span class="n">EmbeddingDefinition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Saves an embedding definition (metadata only in SQLite).&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_embedding_definition</span><span class="p">(</span><span class="n">definition</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.get_embedding_definition">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.get_embedding_definition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_embedding_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">EmbeddingDefinition</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads an embedding definition (metadata only from SQLite).&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_embedding_definition</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.find_object_ids_by_properties">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.find_object_ids_by_properties">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_object_ids_by_properties</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">object_type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">filters</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">RelationalFilter</span><span class="p">],</span>
+        <span class="n">initial_ids</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="n">UUID</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">UUID</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Finds object instance IDs based on property filters, optionally refining an initial list of IDs.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLite connection not established.&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">otd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_object_type_definition</span><span class="p">(</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">otd</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ObjectTypeDefinition &#39;</span><span class="si">{</span><span class="n">object_type_name</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span>
+            <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="n">table_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_safe_table_name</span><span class="p">(</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="n">prop_defs_map</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">otd</span><span class="o">.</span><span class="n">properties</span><span class="p">}</span>
+        <span class="n">base_fields_types</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">UUID</span><span class="p">,</span>
+            <span class="s2">&quot;weight&quot;</span><span class="p">:</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">FLOAT</span><span class="p">,</span>
+            <span class="s2">&quot;upsert_date&quot;</span><span class="p">:</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">DATETIME</span><span class="p">,</span>
+        <span class="p">}</span>
+
+        <span class="n">where_clauses</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">query_values</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">filters</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">r_filter</span> <span class="ow">in</span> <span class="n">filters</span><span class="p">:</span>
+                <span class="n">prop_name</span> <span class="o">=</span> <span class="n">r_filter</span><span class="o">.</span><span class="n">property_name</span>
+                <span class="n">data_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">PropertyDataType</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="n">prop_name</span> <span class="ow">in</span> <span class="n">prop_defs_map</span><span class="p">:</span>
+                    <span class="n">data_type</span> <span class="o">=</span> <span class="n">prop_defs_map</span><span class="p">[</span><span class="n">prop_name</span><span class="p">]</span><span class="o">.</span><span class="n">data_type</span>
+                <span class="k">elif</span> <span class="n">prop_name</span> <span class="ow">in</span> <span class="n">base_fields_types</span><span class="p">:</span>
+                    <span class="n">data_type</span> <span class="o">=</span> <span class="n">base_fields_types</span><span class="p">[</span><span class="n">prop_name</span><span class="p">]</span>  <span class="c1"># type: ignore</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Filter property &#39;</span><span class="si">{</span><span class="n">prop_name</span><span class="si">}</span><span class="s2">&#39; not found for object type &#39;</span><span class="si">{</span><span class="n">object_type_name</span><span class="si">}</span><span class="s2">&#39;.&quot;</span>
+                    <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span>
+                        <span class="n">msg</span><span class="p">,</span>
+                    <span class="p">)</span>
+
+                <span class="c1"># Basic operator mapping, can be expanded</span>
+                <span class="c1"># Ensure operator is valid for the data type</span>
+                <span class="c1"># For &#39;IN&#39; operator, value should be a list/tuple</span>
+                <span class="k">if</span> <span class="n">r_filter</span><span class="o">.</span><span class="n">operator</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;IN&quot;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">r_filter</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+                        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Value for IN operator on property &#39;</span><span class="si">{</span><span class="n">prop_name</span><span class="si">}</span><span class="s2">&#39; must be a list or tuple.&quot;</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                            <span class="n">msg</span><span class="p">,</span>
+                        <span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">r_filter</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>  <span class="c1"># Empty IN list</span>
+                        <span class="n">where_clauses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;0 = 1&quot;</span><span class="p">)</span>  <span class="c1"># Always false</span>
+                        <span class="k">continue</span>
+                    <span class="n">placeholders</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;?&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">r_filter</span><span class="o">.</span><span class="n">value</span><span class="p">))</span>
+                    <span class="n">where_clauses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">prop_name</span><span class="si">}</span><span class="s1">&quot; </span><span class="si">{</span><span class="n">r_filter</span><span class="o">.</span><span class="n">operator</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="si">}</span><span class="s1"> (</span><span class="si">{</span><span class="n">placeholders</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">,</span>
+                    <span class="p">)</span>
+                    <span class="k">for</span> <span class="n">val_item</span> <span class="ow">in</span> <span class="n">r_filter</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
+                        <span class="n">query_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_serialize_value</span><span class="p">(</span><span class="n">val_item</span><span class="p">,</span> <span class="n">data_type</span><span class="p">))</span>  <span class="c1"># type: ignore</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">where_clauses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;</span><span class="si">{</span><span class="n">prop_name</span><span class="si">}</span><span class="s1">&quot; </span><span class="si">{</span><span class="n">r_filter</span><span class="o">.</span><span class="n">operator</span><span class="si">}</span><span class="s1"> ?&#39;</span><span class="p">)</span>
+                    <span class="n">query_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_serialize_value</span><span class="p">(</span><span class="n">r_filter</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="n">data_type</span><span class="p">))</span>  <span class="c1"># type: ignore</span>
+
+        <span class="k">if</span> <span class="n">initial_ids</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">initial_ids</span><span class="p">:</span>  <span class="c1"># If initial_ids is empty, no results can match</span>
+                <span class="k">return</span> <span class="p">[]</span>
+            <span class="n">id_placeholders</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;?&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">initial_ids</span><span class="p">))</span>
+            <span class="n">where_clauses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;id IN (</span><span class="si">{</span><span class="n">id_placeholders</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">obj_id</span> <span class="ow">in</span> <span class="n">initial_ids</span><span class="p">:</span>
+                <span class="n">query_values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">obj_id</span><span class="p">))</span>
+
+        <span class="n">sql</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;SELECT id FROM &quot;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1">&quot;&#39;</span>
+        <span class="k">if</span> <span class="n">where_clauses</span><span class="p">:</span>
+            <span class="n">sql</span> <span class="o">+=</span> <span class="s2">&quot; WHERE &quot;</span> <span class="o">+</span> <span class="s2">&quot; AND &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">where_clauses</span><span class="p">)</span>
+
+        <span class="n">found_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">UUID</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">query_values</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
+                <span class="n">found_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">UUID</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]))</span>
+            <span class="k">return</span> <span class="n">found_ids</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error finding object IDs from &#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.get_objects_by_ids">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.get_objects_by_ids">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_objects_by_ids</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">object_type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">UUID</span><span class="p">],</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ObjectInstance</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves multiple object instances by their type and a list of IDs.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLite connection not established.&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        <span class="n">otd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_object_type_definition</span><span class="p">(</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">otd</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ObjectTypeDefinition &#39;</span><span class="si">{</span><span class="n">object_type_name</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span>
+            <span class="k">raise</span> <span class="n">SchemaError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ids</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="n">table_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_safe_table_name</span><span class="p">(</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="n">id_placeholders</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;?&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">))</span>
+        <span class="n">sql</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;SELECT * FROM &quot;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1">&quot; WHERE id IN (</span><span class="si">{</span><span class="n">id_placeholders</span><span class="si">}</span><span class="s1">)&#39;</span>
+
+        <span class="n">str_ids</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">obj_id</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj_id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">]</span>
+
+        <span class="n">instances</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ObjectInstance</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">str_ids</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
+                <span class="n">instances</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_row_to_object_instance</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">otd</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">instances</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error getting instances by IDs from &#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+
+
+<div class="viewcode-block" id="SQLiteAdapter.get_all_object_ids_for_type">
+<a class="viewcode-back" href="../../../../db_layers.html#grizabella.db_layers.sqlite.sqlite_adapter.SQLiteAdapter.get_all_object_ids_for_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_all_object_ids_for_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">UUID</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieve all object instance IDs for a given object type.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;SQLite connection not established.&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+        
+        <span class="c1"># OTD check is good practice, though not strictly needed if table name is derived directly</span>
+        <span class="n">otd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_object_type_definition</span><span class="p">(</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">otd</span><span class="p">:</span>
+            <span class="c1"># If OTD doesn&#39;t exist, the table shouldn&#39;t either, or it&#39;s an orphaned table.</span>
+            <span class="c1"># Returning empty list is reasonable as no valid objects of this type exist.</span>
+            <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;ObjectTypeDefinition &#39;</span><span class="si">{</span><span class="n">object_type_name</span><span class="si">}</span><span class="s2">&#39; not found when trying to get all IDs. &quot;</span>
+                <span class="s2">&quot;Assuming no instances exist or table is missing.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="p">[]</span>
+
+        <span class="n">table_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_safe_table_name</span><span class="p">(</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="n">sql</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;SELECT id FROM &quot;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s1">&quot;&#39;</span>
+        
+        <span class="n">found_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">UUID</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">:</span>
+                <span class="n">found_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">UUID</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;id&quot;</span><span class="p">]))</span>
+            <span class="k">return</span> <span class="n">found_ids</span>
+        <span class="k">except</span> <span class="n">sqlite3</span><span class="o">.</span><span class="n">Error</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># If table doesn&#39;t exist, sqlite3 will raise an OperationalError</span>
+            <span class="k">if</span> <span class="s2">&quot;no such table&quot;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Table &#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&#39; for ObjectType &#39;</span><span class="si">{</span><span class="n">object_type_name</span><span class="si">}</span><span class="s2">&#39; not found. Returning empty list of IDs.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="p">[]</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;Error getting all IDs from &#39;</span><span class="si">{</span><span class="n">table_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="n">DatabaseError</span><span class="p">(</span>
+                <span class="n">msg</span><span class="p">,</span>
+            <span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Grizabella Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

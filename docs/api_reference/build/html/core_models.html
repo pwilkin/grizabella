@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Core Models &mdash; Grizabella API 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=01f34227"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Core Query Models" href="core_query_models.html" />
+    <link rel="prev" title="API Client" href="api_client.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Grizabella API
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="api_client.html">API Client</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Core Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#grizabella.core.models.EmbeddingDefinition"><code class="docutils literal notranslate"><span class="pre">EmbeddingDefinition</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.EmbeddingDefinition.name"><code class="docutils literal notranslate"><span class="pre">EmbeddingDefinition.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.EmbeddingDefinition.object_type_name"><code class="docutils literal notranslate"><span class="pre">EmbeddingDefinition.object_type_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.EmbeddingDefinition.source_property_name"><code class="docutils literal notranslate"><span class="pre">EmbeddingDefinition.source_property_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.EmbeddingDefinition.embedding_model"><code class="docutils literal notranslate"><span class="pre">EmbeddingDefinition.embedding_model</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.EmbeddingDefinition.dimensions"><code class="docutils literal notranslate"><span class="pre">EmbeddingDefinition.dimensions</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.EmbeddingDefinition.description"><code class="docutils literal notranslate"><span class="pre">EmbeddingDefinition.description</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">EmbeddingDefinition.description</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">EmbeddingDefinition.dimensions</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">EmbeddingDefinition.embedding_model</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.EmbeddingDefinition.model_config"><code class="docutils literal notranslate"><span class="pre">EmbeddingDefinition.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">EmbeddingDefinition.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">EmbeddingDefinition.object_type_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">EmbeddingDefinition.source_property_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#grizabella.core.models.EmbeddingInstance"><code class="docutils literal notranslate"><span class="pre">EmbeddingInstance</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.EmbeddingInstance.object_instance_id"><code class="docutils literal notranslate"><span class="pre">EmbeddingInstance.object_instance_id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.EmbeddingInstance.embedding_definition_name"><code class="docutils literal notranslate"><span class="pre">EmbeddingInstance.embedding_definition_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.EmbeddingInstance.vector"><code class="docutils literal notranslate"><span class="pre">EmbeddingInstance.vector</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.EmbeddingInstance.source_text_preview"><code class="docutils literal notranslate"><span class="pre">EmbeddingInstance.source_text_preview</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6"><code class="docutils literal notranslate"><span class="pre">EmbeddingInstance.embedding_definition_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.EmbeddingInstance.model_config"><code class="docutils literal notranslate"><span class="pre">EmbeddingInstance.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7"><code class="docutils literal notranslate"><span class="pre">EmbeddingInstance.object_instance_id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8"><code class="docutils literal notranslate"><span class="pre">EmbeddingInstance.source_text_preview</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9"><code class="docutils literal notranslate"><span class="pre">EmbeddingInstance.vector</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#grizabella.core.models.MemoryInstance"><code class="docutils literal notranslate"><span class="pre">MemoryInstance</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.MemoryInstance.id"><code class="docutils literal notranslate"><span class="pre">MemoryInstance.id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.MemoryInstance.weight"><code class="docutils literal notranslate"><span class="pre">MemoryInstance.weight</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.MemoryInstance.upsert_date"><code class="docutils literal notranslate"><span class="pre">MemoryInstance.upsert_date</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id10"><code class="docutils literal notranslate"><span class="pre">MemoryInstance.id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.MemoryInstance.model_config"><code class="docutils literal notranslate"><span class="pre">MemoryInstance.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11"><code class="docutils literal notranslate"><span class="pre">MemoryInstance.upsert_date</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id12"><code class="docutils literal notranslate"><span class="pre">MemoryInstance.weight</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#grizabella.core.models.ObjectInstance"><code class="docutils literal notranslate"><span class="pre">ObjectInstance</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.ObjectInstance.object_type_name"><code class="docutils literal notranslate"><span class="pre">ObjectInstance.object_type_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.ObjectInstance.properties"><code class="docutils literal notranslate"><span class="pre">ObjectInstance.properties</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.ObjectInstance.model_config"><code class="docutils literal notranslate"><span class="pre">ObjectInstance.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13"><code class="docutils literal notranslate"><span class="pre">ObjectInstance.object_type_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14"><code class="docutils literal notranslate"><span class="pre">ObjectInstance.properties</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#grizabella.core.models.ObjectTypeDefinition"><code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.ObjectTypeDefinition.name"><code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.ObjectTypeDefinition.description"><code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition.description</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.ObjectTypeDefinition.properties"><code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition.properties</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.ObjectTypeDefinition.check_primary_key_once"><code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition.check_primary_key_once()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id17"><code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition.description</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.ObjectTypeDefinition.model_config"><code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id18"><code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id19"><code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition.properties</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#grizabella.core.models.PropertyDataType"><code class="docutils literal notranslate"><span class="pre">PropertyDataType</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.PropertyDataType.TEXT"><code class="docutils literal notranslate"><span class="pre">PropertyDataType.TEXT</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.PropertyDataType.INTEGER"><code class="docutils literal notranslate"><span class="pre">PropertyDataType.INTEGER</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.PropertyDataType.FLOAT"><code class="docutils literal notranslate"><span class="pre">PropertyDataType.FLOAT</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.PropertyDataType.BOOLEAN"><code class="docutils literal notranslate"><span class="pre">PropertyDataType.BOOLEAN</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.PropertyDataType.DATETIME"><code class="docutils literal notranslate"><span class="pre">PropertyDataType.DATETIME</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.PropertyDataType.BLOB"><code class="docutils literal notranslate"><span class="pre">PropertyDataType.BLOB</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.PropertyDataType.JSON"><code class="docutils literal notranslate"><span class="pre">PropertyDataType.JSON</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.PropertyDataType.UUID"><code class="docutils literal notranslate"><span class="pre">PropertyDataType.UUID</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id20"><code class="docutils literal notranslate"><span class="pre">PropertyDataType.BLOB</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id21"><code class="docutils literal notranslate"><span class="pre">PropertyDataType.BOOLEAN</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id22"><code class="docutils literal notranslate"><span class="pre">PropertyDataType.DATETIME</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id23"><code class="docutils literal notranslate"><span class="pre">PropertyDataType.FLOAT</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id24"><code class="docutils literal notranslate"><span class="pre">PropertyDataType.INTEGER</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id25"><code class="docutils literal notranslate"><span class="pre">PropertyDataType.JSON</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id26"><code class="docutils literal notranslate"><span class="pre">PropertyDataType.TEXT</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id27"><code class="docutils literal notranslate"><span class="pre">PropertyDataType.UUID</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#grizabella.core.models.PropertyDefinition"><code class="docutils literal notranslate"><span class="pre">PropertyDefinition</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.PropertyDefinition.name"><code class="docutils literal notranslate"><span class="pre">PropertyDefinition.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.PropertyDefinition.data_type"><code class="docutils literal notranslate"><span class="pre">PropertyDefinition.data_type</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.PropertyDefinition.is_primary_key"><code class="docutils literal notranslate"><span class="pre">PropertyDefinition.is_primary_key</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.PropertyDefinition.is_nullable"><code class="docutils literal notranslate"><span class="pre">PropertyDefinition.is_nullable</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.PropertyDefinition.is_indexed"><code class="docutils literal notranslate"><span class="pre">PropertyDefinition.is_indexed</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.PropertyDefinition.is_unique"><code class="docutils literal notranslate"><span class="pre">PropertyDefinition.is_unique</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.PropertyDefinition.description"><code class="docutils literal notranslate"><span class="pre">PropertyDefinition.description</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id28"><code class="docutils literal notranslate"><span class="pre">PropertyDefinition.data_type</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id29"><code class="docutils literal notranslate"><span class="pre">PropertyDefinition.description</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id30"><code class="docutils literal notranslate"><span class="pre">PropertyDefinition.is_indexed</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id31"><code class="docutils literal notranslate"><span class="pre">PropertyDefinition.is_nullable</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id32"><code class="docutils literal notranslate"><span class="pre">PropertyDefinition.is_primary_key</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id33"><code class="docutils literal notranslate"><span class="pre">PropertyDefinition.is_unique</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.PropertyDefinition.model_config"><code class="docutils literal notranslate"><span class="pre">PropertyDefinition.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id34"><code class="docutils literal notranslate"><span class="pre">PropertyDefinition.name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#grizabella.core.models.RelationInstance"><code class="docutils literal notranslate"><span class="pre">RelationInstance</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.RelationInstance.relation_type_name"><code class="docutils literal notranslate"><span class="pre">RelationInstance.relation_type_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.RelationInstance.source_object_instance_id"><code class="docutils literal notranslate"><span class="pre">RelationInstance.source_object_instance_id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.RelationInstance.target_object_instance_id"><code class="docutils literal notranslate"><span class="pre">RelationInstance.target_object_instance_id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.RelationInstance.properties"><code class="docutils literal notranslate"><span class="pre">RelationInstance.properties</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.RelationInstance.model_config"><code class="docutils literal notranslate"><span class="pre">RelationInstance.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id37"><code class="docutils literal notranslate"><span class="pre">RelationInstance.properties</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id38"><code class="docutils literal notranslate"><span class="pre">RelationInstance.relation_type_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id39"><code class="docutils literal notranslate"><span class="pre">RelationInstance.source_object_instance_id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id40"><code class="docutils literal notranslate"><span class="pre">RelationInstance.target_object_instance_id</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#grizabella.core.models.RelationInstanceList"><code class="docutils literal notranslate"><span class="pre">RelationInstanceList</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.RelationInstanceList.model_config"><code class="docutils literal notranslate"><span class="pre">RelationInstanceList.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.RelationInstanceList.relations"><code class="docutils literal notranslate"><span class="pre">RelationInstanceList.relations</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#grizabella.core.models.RelationTypeDefinition"><code class="docutils literal notranslate"><span class="pre">RelationTypeDefinition</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.RelationTypeDefinition.name"><code class="docutils literal notranslate"><span class="pre">RelationTypeDefinition.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.RelationTypeDefinition.description"><code class="docutils literal notranslate"><span class="pre">RelationTypeDefinition.description</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.RelationTypeDefinition.source_object_type_names"><code class="docutils literal notranslate"><span class="pre">RelationTypeDefinition.source_object_type_names</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.RelationTypeDefinition.target_object_type_names"><code class="docutils literal notranslate"><span class="pre">RelationTypeDefinition.target_object_type_names</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.RelationTypeDefinition.properties"><code class="docutils literal notranslate"><span class="pre">RelationTypeDefinition.properties</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id49"><code class="docutils literal notranslate"><span class="pre">RelationTypeDefinition.description</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.models.RelationTypeDefinition.model_config"><code class="docutils literal notranslate"><span class="pre">RelationTypeDefinition.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id50"><code class="docutils literal notranslate"><span class="pre">RelationTypeDefinition.name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id51"><code class="docutils literal notranslate"><span class="pre">RelationTypeDefinition.properties</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id52"><code class="docutils literal notranslate"><span class="pre">RelationTypeDefinition.source_object_type_names</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id53"><code class="docutils literal notranslate"><span class="pre">RelationTypeDefinition.target_object_type_names</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core_query_models.html">Core Query Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_exceptions.html">Core Exceptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_db_manager.html">Core DB Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_query_engine.html">Core Query Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_utils.html">grizabella.core (Utilities)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="db_layers.html">grizabella.db_layers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ui_main.html">grizabella.ui (Main Components)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="ui_dialogs.html">grizabella.ui.dialogs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Grizabella API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Core Models</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/core_models.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-grizabella.core.models">
+<span id="core-models"></span><h1>Core Models<a class="headerlink" href="#module-grizabella.core.models" title="Link to this heading"></a></h1>
+<p>Core Pydantic models for Grizabella schema definitions and instances.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="grizabella.core.models.EmbeddingDefinition">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grizabella.core.models.</span></span><span class="sig-name descname"><span class="pre">EmbeddingDefinition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">object_type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_property_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'huggingface/colbert-ir/colbertv2.0'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dimensions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grizabella/core/models.html#EmbeddingDefinition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.core.models.EmbeddingDefinition" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Defines how an embedding should be generated and stored for an <code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition</span></code>.</p>
+<p>This model specifies the configuration for creating vector embeddings from
+the content of objects. It links an object type and one of its properties
+to an embedding model.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.EmbeddingDefinition.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#grizabella.core.models.EmbeddingDefinition.name" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A unique name for this embedding configuration (e.g.,</p>
+</dd>
+</dl>
+<p>‘content_embedding_v1’). Conventionally, snake_case is used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.EmbeddingDefinition.object_type_name">
+<span class="sig-name descname"><span class="pre">object_type_name</span></span><a class="headerlink" href="#grizabella.core.models.EmbeddingDefinition.object_type_name" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name of the <code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition</span></code> this</p>
+</dd>
+</dl>
+<p>embedding applies to.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.EmbeddingDefinition.source_property_name">
+<span class="sig-name descname"><span class="pre">source_property_name</span></span><a class="headerlink" href="#grizabella.core.models.EmbeddingDefinition.source_property_name" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name of the property within the</p>
+</dd>
+</dl>
+<p>specified <code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition</span></code> whose content will be used to
+generate the embedding.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.EmbeddingDefinition.embedding_model">
+<span class="sig-name descname"><span class="pre">embedding_model</span></span><a class="headerlink" href="#grizabella.core.models.EmbeddingDefinition.embedding_model" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An identifier for the embedding model to be</p>
+</dd>
+</dl>
+<p>used (e.g., a Hugging Face model name like
+‘huggingface/colbert-ir/colbertv2.0’).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.EmbeddingDefinition.dimensions">
+<span class="sig-name descname"><span class="pre">dimensions</span></span><a class="headerlink" href="#grizabella.core.models.EmbeddingDefinition.dimensions" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The expected dimensionality of the</p>
+</dd>
+</dl>
+<p>embedding vector. If None, the system may attempt to infer it
+from the model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[int]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.EmbeddingDefinition.description">
+<span class="sig-name descname"><span class="pre">description</span></span><a class="headerlink" href="#grizabella.core.models.EmbeddingDefinition.description" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An optional human-readable description</p>
+</dd>
+</dl>
+<p>of this embedding definition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">description</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">dimensions</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id2">
+<span class="sig-name descname"><span class="pre">embedding_model</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.EmbeddingDefinition.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#grizabella.core.models.EmbeddingDefinition.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">object_type_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id5">
+<span class="sig-name descname"><span class="pre">source_property_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id5" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="grizabella.core.models.EmbeddingInstance">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grizabella.core.models.</span></span><span class="sig-name descname"><span class="pre">EmbeddingInstance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">*,</span> <span class="pre">id:</span> <span class="pre">~uuid.UUID</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;,</span> <span class="pre">weight:</span> <span class="pre">~typing.Annotated[~decimal.Decimal,</span> <span class="pre">~annotated_types.Ge(ge=0),</span> <span class="pre">~annotated_types.Le(le=10)]</span> <span class="pre">=</span> <span class="pre">Decimal('1.0'),</span> <span class="pre">upsert_date:</span> <span class="pre">~datetime.datetime</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;,</span> <span class="pre">object_instance_id:</span> <span class="pre">~uuid.UUID,</span> <span class="pre">embedding_definition_name:</span> <span class="pre">str,</span> <span class="pre">vector:</span> <span class="pre">list[float],</span> <span class="pre">source_text_preview:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grizabella/core/models.html#EmbeddingInstance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.core.models.EmbeddingInstance" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#grizabella.core.models.MemoryInstance" title="grizabella.core.models.MemoryInstance"><code class="xref py py-class docutils literal notranslate"><span class="pre">MemoryInstance</span></code></a></p>
+<p>Represents an instance of an embedding, linked to an <code class="docutils literal notranslate"><span class="pre">ObjectInstance</span></code>.</p>
+<p>This model stores a vector embedding generated from a specific property of
+an <code class="docutils literal notranslate"><span class="pre">ObjectInstance</span></code>, according to an <code class="docutils literal notranslate"><span class="pre">EmbeddingDefinition</span></code>. It inherits
+common metadata fields from <code class="docutils literal notranslate"><span class="pre">MemoryInstance</span></code>.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.EmbeddingInstance.object_instance_id">
+<span class="sig-name descname"><span class="pre">object_instance_id</span></span><a class="headerlink" href="#grizabella.core.models.EmbeddingInstance.object_instance_id" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The ID of the <code class="docutils literal notranslate"><span class="pre">ObjectInstance</span></code> to which</p>
+</dd>
+</dl>
+<p>this embedding belongs.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>UUID</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.EmbeddingInstance.embedding_definition_name">
+<span class="sig-name descname"><span class="pre">embedding_definition_name</span></span><a class="headerlink" href="#grizabella.core.models.EmbeddingInstance.embedding_definition_name" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name of the <code class="docutils literal notranslate"><span class="pre">EmbeddingDefinition</span></code></p>
+</dd>
+</dl>
+<p>that was used to generate this embedding.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.EmbeddingInstance.vector">
+<span class="sig-name descname"><span class="pre">vector</span></span><a class="headerlink" href="#grizabella.core.models.EmbeddingInstance.vector" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The actual embedding vector, represented as a</p>
+</dd>
+</dl>
+<p>list of floating-point numbers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.EmbeddingInstance.source_text_preview">
+<span class="sig-name descname"><span class="pre">source_text_preview</span></span><a class="headerlink" href="#grizabella.core.models.EmbeddingInstance.source_text_preview" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A truncated preview of the source</p>
+</dd>
+</dl>
+<p>text that was used to generate the embedding. This can be useful
+for quick inspection or debugging.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">embedding_definition_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id6" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.EmbeddingInstance.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True,</span> <span class="pre">'validate_assignment':</span> <span class="pre">True}</span></em><a class="headerlink" href="#grizabella.core.models.EmbeddingInstance.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id7">
+<span class="sig-name descname"><span class="pre">object_instance_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></em><a class="headerlink" href="#id7" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id8">
+<span class="sig-name descname"><span class="pre">source_text_preview</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id8" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id9">
+<span class="sig-name descname"><span class="pre">vector</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id9" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="grizabella.core.models.MemoryInstance">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grizabella.core.models.</span></span><span class="sig-name descname"><span class="pre">MemoryInstance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id:</span> <span class="pre">~uuid.UUID</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight:</span> <span class="pre">~typing.Annotated[~decimal.Decimal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~annotated_types.Ge(ge=0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~annotated_types.Le(le=10)]</span> <span class="pre">=</span> <span class="pre">Decimal('1.0')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upsert_date:</span> <span class="pre">~datetime.datetime</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grizabella/core/models.html#MemoryInstance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.core.models.MemoryInstance" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Base model for all storable instances, providing common metadata.</p>
+<p>This model includes fields that are common to all persistent entities
+within Grizabella, such as a unique identifier, a weight for ranking or
+relevance, and an upsert timestamp.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.MemoryInstance.id">
+<span class="sig-name descname"><span class="pre">id</span></span><a class="headerlink" href="#grizabella.core.models.MemoryInstance.id" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A unique identifier for the instance, generated by default.</p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p>UUID</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.MemoryInstance.weight">
+<span class="sig-name descname"><span class="pre">weight</span></span><a class="headerlink" href="#grizabella.core.models.MemoryInstance.weight" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A decimal value between 0 and 10 (inclusive)</p>
+</dd>
+</dl>
+<p>representing the importance or relevance of the instance.
+Used for ranking or filtering. Defaults to 1.0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>condecimal</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.MemoryInstance.upsert_date">
+<span class="sig-name descname"><span class="pre">upsert_date</span></span><a class="headerlink" href="#grizabella.core.models.MemoryInstance.upsert_date" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The timestamp (UTC) when the instance was</p>
+</dd>
+</dl>
+<p>last created or updated. Automatically set on creation/update.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>datetime</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></em><a class="headerlink" href="#id10" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.MemoryInstance.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True,</span> <span class="pre">'validate_assignment':</span> <span class="pre">True}</span></em><a class="headerlink" href="#grizabella.core.models.MemoryInstance.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id11">
+<span class="sig-name descname"><span class="pre">upsert_date</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">datetime</span></em><a class="headerlink" href="#id11" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id12">
+<span class="sig-name descname"><span class="pre">weight</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Decimal</span></em><a class="headerlink" href="#id12" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="grizabella.core.models.ObjectInstance">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grizabella.core.models.</span></span><span class="sig-name descname"><span class="pre">ObjectInstance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">*,</span> <span class="pre">id:</span> <span class="pre">~uuid.UUID</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;,</span> <span class="pre">weight:</span> <span class="pre">~typing.Annotated[~decimal.Decimal,</span> <span class="pre">~annotated_types.Ge(ge=0),</span> <span class="pre">~annotated_types.Le(le=10)]</span> <span class="pre">=</span> <span class="pre">Decimal('1.0'),</span> <span class="pre">upsert_date:</span> <span class="pre">~datetime.datetime</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;,</span> <span class="pre">object_type_name:</span> <span class="pre">str,</span> <span class="pre">properties:</span> <span class="pre">dict[str,</span> <span class="pre">~typing.Any]</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grizabella/core/models.html#ObjectInstance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.core.models.ObjectInstance" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#grizabella.core.models.MemoryInstance" title="grizabella.core.models.MemoryInstance"><code class="xref py py-class docutils literal notranslate"><span class="pre">MemoryInstance</span></code></a></p>
+<p>Represents a concrete instance of an <code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition</span></code>.</p>
+<p>This model holds the actual data for an individual object, conforming to
+the schema defined by its <code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition</span></code>. It inherits common
+metadata fields from <code class="docutils literal notranslate"><span class="pre">MemoryInstance</span></code>.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.ObjectInstance.object_type_name">
+<span class="sig-name descname"><span class="pre">object_type_name</span></span><a class="headerlink" href="#grizabella.core.models.ObjectInstance.object_type_name" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name of the <code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition</span></code> that</p>
+</dd>
+</dl>
+<p>this instance conforms to.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.ObjectInstance.properties">
+<span class="sig-name descname"><span class="pre">properties</span></span><a class="headerlink" href="#grizabella.core.models.ObjectInstance.properties" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the actual data</p>
+</dd>
+</dl>
+<p>for the instance, mapping property names (as defined in the
+<code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition</span></code>) to their corresponding values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.ObjectInstance.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True,</span> <span class="pre">'validate_assignment':</span> <span class="pre">True}</span></em><a class="headerlink" href="#grizabella.core.models.ObjectInstance.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id13">
+<span class="sig-name descname"><span class="pre">object_type_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id13" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id14">
+<span class="sig-name descname"><span class="pre">properties</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id14" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="grizabella.core.models.ObjectTypeDefinition">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grizabella.core.models.</span></span><span class="sig-name descname"><span class="pre">ObjectTypeDefinition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#grizabella.core.models.PropertyDefinition" title="grizabella.core.models.PropertyDefinition"><span class="pre">PropertyDefinition</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grizabella/core/models.html#ObjectTypeDefinition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.core.models.ObjectTypeDefinition" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Defines the schema for a type of object (e.g., a node in a graph, a table row).</p>
+<p>An <code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition</span></code> specifies the structure for a category of data
+entities. It includes a unique name, an optional description, and a list
+of <a href="#id15"><span class="problematic" id="id16">``</span></a>PropertyDefinition``s that define its attributes.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.ObjectTypeDefinition.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#grizabella.core.models.ObjectTypeDefinition.name" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A unique name for the object type (e.g., ‘Document’,</p>
+</dd>
+</dl>
+<p>‘Person’). Conventionally, PascalCase is used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.ObjectTypeDefinition.description">
+<span class="sig-name descname"><span class="pre">description</span></span><a class="headerlink" href="#grizabella.core.models.ObjectTypeDefinition.description" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An optional human-readable description</p>
+</dd>
+</dl>
+<p>of what this object type represents.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.ObjectTypeDefinition.properties">
+<span class="sig-name descname"><span class="pre">properties</span></span><a class="headerlink" href="#grizabella.core.models.ObjectTypeDefinition.properties" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of properties that</p>
+</dd>
+</dl>
+<p>define the attributes of this object type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#grizabella.core.models.PropertyDefinition" title="grizabella.core.models.PropertyDefinition">PropertyDefinition</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="grizabella.core.models.ObjectTypeDefinition.check_primary_key_once">
+<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">check_primary_key_once</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#grizabella.core.models.PropertyDefinition" title="grizabella.core.models.PropertyDefinition"><span class="pre">PropertyDefinition</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#grizabella.core.models.PropertyDefinition" title="grizabella.core.models.PropertyDefinition"><span class="pre">PropertyDefinition</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/grizabella/core/models.html#ObjectTypeDefinition.check_primary_key_once"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.core.models.ObjectTypeDefinition.check_primary_key_once" title="Link to this definition"></a></dt>
+<dd><p>Ensures that an ObjectTypeDefinition has at most one primary key.</p>
+<p>While the <cite>id</cite> field from <cite>MemoryInstance</cite> serves as a unique identifier
+for <cite>ObjectInstance`s, an `ObjectTypeDefinition</cite> can optionally define
+one of its properties as a primary key for domain-specific identification
+or for database layers that require an explicit primary key column.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>v</strong> (<em>List</em><em>[</em><a class="reference internal" href="#grizabella.core.models.PropertyDefinition" title="grizabella.core.models.PropertyDefinition"><em>PropertyDefinition</em></a><em>]</em>) – The list of properties being validated.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The validated list of properties.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#grizabella.core.models.PropertyDefinition" title="grizabella.core.models.PropertyDefinition">PropertyDefinition</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If more than one property is marked as <cite>is_primary_key</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id17">
+<span class="sig-name descname"><span class="pre">description</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id17" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.ObjectTypeDefinition.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#grizabella.core.models.ObjectTypeDefinition.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id18">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id18" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id19">
+<span class="sig-name descname"><span class="pre">properties</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#grizabella.core.models.PropertyDefinition" title="grizabella.core.models.PropertyDefinition"><span class="pre">PropertyDefinition</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id19" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDataType">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grizabella.core.models.</span></span><span class="sig-name descname"><span class="pre">PropertyDataType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">names=&lt;not</span> <span class="pre">given&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">*values</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">qualname=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start=1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">boundary=None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grizabella/core/models.html#PropertyDataType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.core.models.PropertyDataType" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></p>
+<p>Enumeration of supported data types for object and relation properties.</p>
+<p>This enum defines the set of primitive data types that can be used when
+defining properties for <cite>ObjectTypeDefinition</cite> and <cite>RelationTypeDefinition</cite>.
+These types guide data validation and storage.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDataType.TEXT">
+<span class="sig-name descname"><span class="pre">TEXT</span></span><a class="headerlink" href="#grizabella.core.models.PropertyDataType.TEXT" title="Link to this definition"></a></dt>
+<dd><p>A string of text.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDataType.INTEGER">
+<span class="sig-name descname"><span class="pre">INTEGER</span></span><a class="headerlink" href="#grizabella.core.models.PropertyDataType.INTEGER" title="Link to this definition"></a></dt>
+<dd><p>A whole number.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDataType.FLOAT">
+<span class="sig-name descname"><span class="pre">FLOAT</span></span><a class="headerlink" href="#grizabella.core.models.PropertyDataType.FLOAT" title="Link to this definition"></a></dt>
+<dd><p>A floating-point number.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDataType.BOOLEAN">
+<span class="sig-name descname"><span class="pre">BOOLEAN</span></span><a class="headerlink" href="#grizabella.core.models.PropertyDataType.BOOLEAN" title="Link to this definition"></a></dt>
+<dd><p>A true or false value.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDataType.DATETIME">
+<span class="sig-name descname"><span class="pre">DATETIME</span></span><a class="headerlink" href="#grizabella.core.models.PropertyDataType.DATETIME" title="Link to this definition"></a></dt>
+<dd><p>A date and time value, typically stored in UTC.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDataType.BLOB">
+<span class="sig-name descname"><span class="pre">BLOB</span></span><a class="headerlink" href="#grizabella.core.models.PropertyDataType.BLOB" title="Link to this definition"></a></dt>
+<dd><p>Binary Large Object, for storing raw binary data.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDataType.JSON">
+<span class="sig-name descname"><span class="pre">JSON</span></span><a class="headerlink" href="#grizabella.core.models.PropertyDataType.JSON" title="Link to this definition"></a></dt>
+<dd><p>A JSON object or array, for semi-structured data.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDataType.UUID">
+<span class="sig-name descname"><span class="pre">UUID</span></span><a class="headerlink" href="#grizabella.core.models.PropertyDataType.UUID" title="Link to this definition"></a></dt>
+<dd><p>A universally unique identifier.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id20">
+<span class="sig-name descname"><span class="pre">BLOB</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'BLOB'</span></em><a class="headerlink" href="#id20" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id21">
+<span class="sig-name descname"><span class="pre">BOOLEAN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'BOOLEAN'</span></em><a class="headerlink" href="#id21" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id22">
+<span class="sig-name descname"><span class="pre">DATETIME</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'DATETIME'</span></em><a class="headerlink" href="#id22" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id23">
+<span class="sig-name descname"><span class="pre">FLOAT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'FLOAT'</span></em><a class="headerlink" href="#id23" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id24">
+<span class="sig-name descname"><span class="pre">INTEGER</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'INTEGER'</span></em><a class="headerlink" href="#id24" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id25">
+<span class="sig-name descname"><span class="pre">JSON</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'JSON'</span></em><a class="headerlink" href="#id25" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id26">
+<span class="sig-name descname"><span class="pre">TEXT</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'TEXT'</span></em><a class="headerlink" href="#id26" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id27">
+<span class="sig-name descname"><span class="pre">UUID</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'UUID'</span></em><a class="headerlink" href="#id27" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDefinition">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grizabella.core.models.</span></span><span class="sig-name descname"><span class="pre">PropertyDefinition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#grizabella.core.models.PropertyDataType" title="grizabella.core.models.PropertyDataType"><span class="pre">PropertyDataType</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_primary_key</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_nullable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_indexed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">is_unique</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grizabella/core/models.html#PropertyDefinition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.core.models.PropertyDefinition" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Defines a single property within an <cite>ObjectTypeDefinition</cite> or <cite>RelationTypeDefinition</cite>.</p>
+<p>This model specifies the characteristics of a property, such as its name,
+data type, and constraints (e.g., nullable, unique, indexed).</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDefinition.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#grizabella.core.models.PropertyDefinition.name" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name of the property (e.g., ‘title’, ‘age’).</p>
+</dd>
+</dl>
+<p>This name is used to access the property’s value in instances.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDefinition.data_type">
+<span class="sig-name descname"><span class="pre">data_type</span></span><a class="headerlink" href="#grizabella.core.models.PropertyDefinition.data_type" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The data type of the property.</p>
+</dd>
+<dt class="field-even">Type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#grizabella.core.models.PropertyDataType" title="grizabella.core.models.PropertyDataType">PropertyDataType</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDefinition.is_primary_key">
+<span class="sig-name descname"><span class="pre">is_primary_key</span></span><a class="headerlink" href="#grizabella.core.models.PropertyDefinition.is_primary_key" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Indicates if this property serves as a primary</p>
+</dd>
+</dl>
+<p>key for its <code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition</span></code>. Defaults to False.
+An <code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition</span></code> can have at most one primary key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDefinition.is_nullable">
+<span class="sig-name descname"><span class="pre">is_nullable</span></span><a class="headerlink" href="#grizabella.core.models.PropertyDefinition.is_nullable" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Specifies whether this property can have a null</p>
+</dd>
+</dl>
+<p>value. Defaults to True.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDefinition.is_indexed">
+<span class="sig-name descname"><span class="pre">is_indexed</span></span><a class="headerlink" href="#grizabella.core.models.PropertyDefinition.is_indexed" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Indicates if this property should be indexed by</p>
+</dd>
+</dl>
+<p>supporting database layers to speed up queries. Defaults to False.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDefinition.is_unique">
+<span class="sig-name descname"><span class="pre">is_unique</span></span><a class="headerlink" href="#grizabella.core.models.PropertyDefinition.is_unique" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Specifies whether values for this property must be</p>
+</dd>
+</dl>
+<p>unique across all instances of its <code class="docutils literal notranslate"><span class="pre">ObjectTypeDefinition</span></code>.
+Defaults to False.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDefinition.description">
+<span class="sig-name descname"><span class="pre">description</span></span><a class="headerlink" href="#grizabella.core.models.PropertyDefinition.description" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An optional human-readable description</p>
+</dd>
+</dl>
+<p>of the property.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id28">
+<span class="sig-name descname"><span class="pre">data_type</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#grizabella.core.models.PropertyDataType" title="grizabella.core.models.PropertyDataType"><span class="pre">PropertyDataType</span></a></em><a class="headerlink" href="#id28" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id29">
+<span class="sig-name descname"><span class="pre">description</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id29" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id30">
+<span class="sig-name descname"><span class="pre">is_indexed</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#id30" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id31">
+<span class="sig-name descname"><span class="pre">is_nullable</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#id31" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id32">
+<span class="sig-name descname"><span class="pre">is_primary_key</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#id32" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id33">
+<span class="sig-name descname"><span class="pre">is_unique</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#id33" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.PropertyDefinition.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#grizabella.core.models.PropertyDefinition.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id34">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id34" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="grizabella.core.models.RelationInstance">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grizabella.core.models.</span></span><span class="sig-name descname"><span class="pre">RelationInstance</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id:</span> <span class="pre">~uuid.UUID</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">weight:</span> <span class="pre">~typing.Annotated[~decimal.Decimal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~annotated_types.Ge(ge=0)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~annotated_types.Le(le=10)]</span> <span class="pre">=</span> <span class="pre">Decimal('1.0')</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upsert_date:</span> <span class="pre">~datetime.datetime</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relation_type_name:</span> <span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">source_object_instance_id:</span> <span class="pre">~uuid.UUID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_object_instance_id:</span> <span class="pre">~uuid.UUID</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">properties:</span> <span class="pre">dict[str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">~typing.Any]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grizabella/core/models.html#RelationInstance"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.core.models.RelationInstance" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#grizabella.core.models.MemoryInstance" title="grizabella.core.models.MemoryInstance"><code class="xref py py-class docutils literal notranslate"><span class="pre">MemoryInstance</span></code></a></p>
+<p>Represents a concrete instance of a <code class="docutils literal notranslate"><span class="pre">RelationTypeDefinition</span></code>, linking two <a href="#id35"><span class="problematic" id="id36">``</span></a>ObjectInstance``s.</p>
+<p>This model captures a specific relationship between two objects, conforming
+to the schema defined by its <code class="docutils literal notranslate"><span class="pre">RelationTypeDefinition</span></code>. It inherits common
+metadata fields from <code class="docutils literal notranslate"><span class="pre">MemoryInstance</span></code>.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.RelationInstance.relation_type_name">
+<span class="sig-name descname"><span class="pre">relation_type_name</span></span><a class="headerlink" href="#grizabella.core.models.RelationInstance.relation_type_name" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The name of the <code class="docutils literal notranslate"><span class="pre">RelationTypeDefinition</span></code></p>
+</dd>
+</dl>
+<p>that this instance conforms to.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.RelationInstance.source_object_instance_id">
+<span class="sig-name descname"><span class="pre">source_object_instance_id</span></span><a class="headerlink" href="#grizabella.core.models.RelationInstance.source_object_instance_id" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The ID of the <code class="docutils literal notranslate"><span class="pre">ObjectInstance</span></code> that</p>
+</dd>
+</dl>
+<p>is the source (or “from” side) of this relation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>UUID</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.RelationInstance.target_object_instance_id">
+<span class="sig-name descname"><span class="pre">target_object_instance_id</span></span><a class="headerlink" href="#grizabella.core.models.RelationInstance.target_object_instance_id" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The ID of the <code class="docutils literal notranslate"><span class="pre">ObjectInstance</span></code> that</p>
+</dd>
+</dl>
+<p>is the target (or “to” side) of this relation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>UUID</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.RelationInstance.properties">
+<span class="sig-name descname"><span class="pre">properties</span></span><a class="headerlink" href="#grizabella.core.models.RelationInstance.properties" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the actual data</p>
+</dd>
+</dl>
+<p>for the relation’s own properties (edge properties), if any are
+defined in its <code class="docutils literal notranslate"><span class="pre">RelationTypeDefinition</span></code>. Defaults to an empty dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Dict[str, Any]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.RelationInstance.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'arbitrary_types_allowed':</span> <span class="pre">True,</span> <span class="pre">'validate_assignment':</span> <span class="pre">True}</span></em><a class="headerlink" href="#grizabella.core.models.RelationInstance.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id37">
+<span class="sig-name descname"><span class="pre">properties</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id37" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id38">
+<span class="sig-name descname"><span class="pre">relation_type_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id38" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id39">
+<span class="sig-name descname"><span class="pre">source_object_instance_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></em><a class="headerlink" href="#id39" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id40">
+<span class="sig-name descname"><span class="pre">target_object_instance_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span></em><a class="headerlink" href="#id40" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="grizabella.core.models.RelationInstanceList">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grizabella.core.models.</span></span><span class="sig-name descname"><span class="pre">RelationInstanceList</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relations</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#grizabella.core.models.RelationInstance" title="grizabella.core.models.RelationInstance"><span class="pre">RelationInstance</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grizabella/core/models.html#RelationInstanceList"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.core.models.RelationInstanceList" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>A container for a list of RelationInstance objects.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.RelationInstanceList.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#grizabella.core.models.RelationInstanceList.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.RelationInstanceList.relations">
+<span class="sig-name descname"><span class="pre">relations</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#grizabella.core.models.RelationInstance" title="grizabella.core.models.RelationInstance"><span class="pre">RelationInstance</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#grizabella.core.models.RelationInstanceList.relations" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="grizabella.core.models.RelationTypeDefinition">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grizabella.core.models.</span></span><span class="sig-name descname"><span class="pre">RelationTypeDefinition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">*,</span> <span class="pre">name:</span> <span class="pre">str,</span> <span class="pre">description:</span> <span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None,</span> <span class="pre">source_object_type_names:</span> <span class="pre">list[str],</span> <span class="pre">target_object_type_names:</span> <span class="pre">list[str],</span> <span class="pre">properties:</span> <span class="pre">list[~grizabella.core.models.PropertyDefinition]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grizabella/core/models.html#RelationTypeDefinition"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.core.models.RelationTypeDefinition" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Defines the schema for a type of relation between objects (e.g., an edge in a graph).</p>
+<p>A <code class="docutils literal notranslate"><span class="pre">RelationTypeDefinition</span></code> specifies the structure for relationships
+that can exist between instances of <a href="#id41"><span class="problematic" id="id42">``</span></a>ObjectTypeDefinition``s. It includes
+a unique name, allowed source and target object types, and any properties
+specific to the relation itself (edge properties).</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.RelationTypeDefinition.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#grizabella.core.models.RelationTypeDefinition.name" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A unique name for the relation type (e.g., ‘HAS_AUTHOR’,</p>
+</dd>
+</dl>
+<p>‘REFERENCES’). Conventionally, UPPER_SNAKE_CASE is used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.RelationTypeDefinition.description">
+<span class="sig-name descname"><span class="pre">description</span></span><a class="headerlink" href="#grizabella.core.models.RelationTypeDefinition.description" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An optional human-readable description</p>
+</dd>
+</dl>
+<p>of what this relation type represents.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.RelationTypeDefinition.source_object_type_names">
+<span class="sig-name descname"><span class="pre">source_object_type_names</span></span><a class="headerlink" href="#grizabella.core.models.RelationTypeDefinition.source_object_type_names" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of names of</p>
+</dd>
+</dl>
+<p><a href="#id43"><span class="problematic" id="id44">``</span></a>ObjectTypeDefinition``s that are allowed as the source (or “from” side)
+of this relation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.RelationTypeDefinition.target_object_type_names">
+<span class="sig-name descname"><span class="pre">target_object_type_names</span></span><a class="headerlink" href="#grizabella.core.models.RelationTypeDefinition.target_object_type_names" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of names of</p>
+</dd>
+</dl>
+<p><a href="#id45"><span class="problematic" id="id46">``</span></a>ObjectTypeDefinition``s that are allowed as the target (or “to” side)
+of this relation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.RelationTypeDefinition.properties">
+<span class="sig-name descname"><span class="pre">properties</span></span><a class="headerlink" href="#grizabella.core.models.RelationTypeDefinition.properties" title="Link to this definition"></a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Noindex<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of <a href="#id47"><span class="problematic" id="id48">``</span></a>PropertyDefinition``s that</p>
+</dd>
+</dl>
+<p>belong to the relation itself (often called edge properties).
+Defaults to an empty list if the relation has no properties.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#grizabella.core.models.PropertyDefinition" title="grizabella.core.models.PropertyDefinition">PropertyDefinition</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id49">
+<span class="sig-name descname"><span class="pre">description</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id49" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.models.RelationTypeDefinition.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#grizabella.core.models.RelationTypeDefinition.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id50">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id50" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id51">
+<span class="sig-name descname"><span class="pre">properties</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#grizabella.core.models.PropertyDefinition" title="grizabella.core.models.PropertyDefinition"><span class="pre">PropertyDefinition</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id51" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id52">
+<span class="sig-name descname"><span class="pre">source_object_type_names</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id52" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id53">
+<span class="sig-name descname"><span class="pre">target_object_type_names</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id53" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="api_client.html" class="btn btn-neutral float-left" title="API Client" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="core_query_models.html" class="btn btn-neutral float-right" title="Core Query Models" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Grizabella Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

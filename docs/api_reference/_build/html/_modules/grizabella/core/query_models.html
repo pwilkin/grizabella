@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>grizabella.core.query_models &mdash; Grizabella API 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=01f34227"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Grizabella API
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_client.html">API Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_models.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_query_models.html">Core Query Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_exceptions.html">Core Exceptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_db_manager.html">Core DB Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_query_engine.html">Core Query Engine</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Grizabella API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">grizabella.core.query_models</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for grizabella.core.query_models</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Pydantic models for Grizabella Complex Query Engine.&quot;&quot;&quot;</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Literal</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">uuid</span><span class="w"> </span><span class="kn">import</span> <span class="n">UUID</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+
+<span class="c1"># Assuming ObjectInstance will be imported from grizabella.core.models</span>
+<span class="c1"># This will create a circular import if ObjectInstance also imports from query_models.</span>
+<span class="c1"># If that&#39;s the case, we might need to use forward references (e.g., &#39;ObjectInstance&#39;)</span>
+<span class="c1"># or move some models around. For now, let&#39;s try a direct import.</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.core.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ObjectInstance</span>
+
+
+<div class="viewcode-block" id="RelationalFilter">
+<a class="viewcode-back" href="../../../core_query_models.html#grizabella.core.query_models.RelationalFilter">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RelationalFilter</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Defines a filter condition based on an object&#39;s property value.</span>
+
+<span class="sd">    This model is used within `QueryComponent` and `GraphTraversalClause`</span>
+<span class="sd">    to specify conditions for filtering objects based on their properties.</span>
+<span class="sd">    It allows for various comparison operators against a given value.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        property_name (str): The name of the property on which to apply the filter.</span>
+<span class="sd">            This must match a property defined in the relevant `ObjectTypeDefinition`.</span>
+<span class="sd">        operator (Literal): The comparison operator to use. Supported operators</span>
+<span class="sd">            include &quot;==&quot;, &quot;!=&quot;, &quot;&gt;&quot;, &quot;&lt;&quot;, &quot;&gt;=&quot;, &quot;&lt;=&quot;, &quot;LIKE&quot;, &quot;IN&quot;, &quot;CONTAINS&quot;,</span>
+<span class="sd">            &quot;STARTSWITH&quot;, and &quot;ENDSWITH&quot;.</span>
+<span class="sd">        value (Any): The value to compare the property against. The type of this</span>
+<span class="sd">            value should be compatible with the data type of the specified property.</span>
+<span class="sd">            For &quot;IN&quot; operator, this should be a list of values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">property_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Name of the property to filter on.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">operator</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span>
+        <span class="s2">&quot;==&quot;</span><span class="p">,</span> <span class="s2">&quot;!=&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;&quot;</span><span class="p">,</span> <span class="s2">&quot;&gt;=&quot;</span><span class="p">,</span> <span class="s2">&quot;&lt;=&quot;</span><span class="p">,</span> <span class="s2">&quot;LIKE&quot;</span><span class="p">,</span> <span class="s2">&quot;IN&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;CONTAINS&quot;</span><span class="p">,</span> <span class="s2">&quot;STARTSWITH&quot;</span><span class="p">,</span> <span class="s2">&quot;ENDSWITH&quot;</span> <span class="c1"># Added common operators</span>
+    <span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The comparison operator.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">value</span><span class="p">:</span> <span class="n">Any</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The value to compare against.&quot;</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="EmbeddingSearchClause">
+<a class="viewcode-back" href="../../../core_query_models.html#grizabella.core.query_models.EmbeddingSearchClause">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EmbeddingSearchClause</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Defines a search based on embedding similarity.</span>
+
+<span class="sd">    This clause is used within a `QueryComponent` to find objects that are</span>
+<span class="sd">    semantically similar to a given query vector, based on pre-computed</span>
+<span class="sd">    embeddings.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        embedding_definition_name (str): The name of the `EmbeddingDefinition`</span>
+<span class="sd">            to use for this search. This definition specifies the model and</span>
+<span class="sd">            source property used to generate the embeddings being searched.</span>
+<span class="sd">        similar_to_payload (List[float]): The embedding vector to find</span>
+<span class="sd">            similarities against. This vector should have the same dimensions</span>
+<span class="sd">            as specified in the `EmbeddingDefinition`.</span>
+<span class="sd">        threshold (Optional[float]): An optional similarity score threshold.</span>
+<span class="sd">            Only results with a similarity score greater than or equal to this</span>
+<span class="sd">            threshold will be returned. If None, no threshold is applied.</span>
+<span class="sd">        limit (int): The maximum number of similar items to retrieve and</span>
+<span class="sd">            consider from this clause. Defaults to 10.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">embedding_definition_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Name of the EmbeddingDefinition to use for this search.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">similar_to_payload</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The embedding vector to find similarities against.&quot;</span>
+    <span class="p">)</span>
+    <span class="c1"># similar_to_object_id: Optional[UUID] = Field(</span>
+    <span class="c1">#     default=None,</span>
+    <span class="c1">#     description=&quot;Alternatively, specify an object ID whose embedding should be used as the query vector.&quot;</span>
+    <span class="c1"># )</span>
+    <span class="c1"># similar_to_object_type_name: Optional[str] = Field(</span>
+    <span class="c1">#     default=None,</span>
+    <span class="c1">#     description=&quot;Required if similar_to_object_id is specified.&quot;</span>
+    <span class="c1"># )</span>
+    <span class="n">threshold</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Optional similarity threshold. Only results above this score are returned.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Maximum number of similar items to consider from this clause.&quot;</span>
+    <span class="p">)</span></div>
+
+
+    <span class="c1"># @field_validator(&#39;similar_to_object_id&#39;)</span>
+    <span class="c1"># def check_similar_to_object_details(cls, v, values):</span>
+    <span class="c1">#     if v and not values.get(&#39;similar_to_object_type_name&#39;):</span>
+    <span class="c1">#         raise ValueError(</span>
+    <span class="c1">#             &quot;similar_to_object_type_name is required if similar_to_object_id is provided.&quot;</span>
+    <span class="c1">#         )</span>
+    <span class="c1">#     if values.get(&#39;similar_to_payload&#39;) and v:</span>
+    <span class="c1">#         raise ValueError(</span>
+    <span class="c1">#             &quot;Cannot specify both similar_to_payload and similar_to_object_id.&quot;</span>
+    <span class="c1">#         )</span>
+    <span class="c1">#     if not values.get(&#39;similar_to_payload&#39;) and not v:</span>
+    <span class="c1">#         raise ValueError(</span>
+    <span class="c1">#             &quot;Must specify either similar_to_payload or similar_to_object_id.&quot;</span>
+    <span class="c1">#         )</span>
+    <span class="c1">#     return v</span>
+
+
+<div class="viewcode-block" id="GraphTraversalClause">
+<a class="viewcode-back" href="../../../core_query_models.html#grizabella.core.query_models.GraphTraversalClause">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">GraphTraversalClause</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Defines a graph traversal condition from a source object set.</span>
+
+<span class="sd">    This clause is used within a `QueryComponent` to navigate relationships</span>
+<span class="sd">    in the graph database. It specifies the type of relation to follow,</span>
+<span class="sd">    the direction of traversal, and conditions on the target objects.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        relation_type_name (str): The name of the `RelationTypeDefinition`</span>
+<span class="sd">            that defines the type of relationship to traverse.</span>
+<span class="sd">        direction (Literal[&quot;outgoing&quot;, &quot;incoming&quot;]): The direction of the</span>
+<span class="sd">            traversal from the current set of source objects. &quot;outgoing&quot; means</span>
+<span class="sd">            following relations where the current objects are the source;</span>
+<span class="sd">            &quot;incoming&quot; means following relations where they are the target.</span>
+<span class="sd">            Defaults to &quot;outgoing&quot;.</span>
+<span class="sd">        target_object_type_name (str): The expected `ObjectTypeDefinition` name</span>
+<span class="sd">            of the target node(s) at the end of the traversal.</span>
+<span class="sd">        target_object_id (Optional[UUID]): An optional specific ID of a target</span>
+<span class="sd">            object. If provided, the traversal will only consider paths leading</span>
+<span class="sd">            to this specific object.</span>
+<span class="sd">        target_object_properties (Optional[List[RelationalFilter]]): Optional</span>
+<span class="sd">            list of `RelationalFilter`s to apply to the properties of the</span>
+<span class="sd">            target object(s) found by the traversal.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">relation_type_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Name of the RelationTypeDefinition to traverse.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">direction</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;outgoing&quot;</span><span class="p">,</span> <span class="s2">&quot;incoming&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="s2">&quot;outgoing&quot;</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Direction of the traversal from the source object.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">target_object_type_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Expected ObjectTypeDefinition name of the target node(s).&quot;</span>
+    <span class="p">)</span>
+    <span class="n">target_object_id</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">UUID</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Optional specific ID of the target object.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">target_object_properties</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">RelationalFilter</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Optional filters to apply to the properties of the target object(s).&quot;</span>
+    <span class="p">)</span></div>
+
+    <span class="c1"># Future enhancements:</span>
+    <span class="c1"># min_hops: int = Field(default=1, description=&quot;Minimum number of hops for the traversal.&quot;)</span>
+    <span class="c1"># max_hops: int = Field(default=1, description=&quot;Maximum number of hops for the traversal.&quot;)</span>
+    <span class="c1"># relation_properties: Optional[List[RelationalFilter]] = Field(</span>
+    <span class="c1">#     default=None,</span>
+    <span class="c1">#     description=&quot;Optional filters to apply to the properties of the relation itself.&quot;</span>
+    <span class="c1"># )</span>
+
+
+<div class="viewcode-block" id="QueryComponent">
+<a class="viewcode-back" href="../../../core_query_models.html#grizabella.core.query_models.QueryComponent">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QueryComponent</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Defines a single logical block of query conditions targeting a primary object type.</span>
+
+<span class="sd">    A `QueryComponent` groups various types of search and filter conditions</span>
+<span class="sd">    that apply to a specific `ObjectTypeDefinition`. All conditions</span>
+<span class="sd">    (relational filters, embedding searches, graph traversals) specified</span>
+<span class="sd">    within a single component are implicitly ANDed together. The results</span>
+<span class="sd">    from these conditions are intersected to produce a set of matching</span>
+<span class="sd">    `ObjectInstance`s of the `object_type_name`.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        object_type_name (str): The primary `ObjectTypeDefinition` name that</span>
+<span class="sd">            this component targets. The query starts by considering objects</span>
+<span class="sd">            of this type.</span>
+<span class="sd">        relational_filters (Optional[List[RelationalFilter]]): A list of</span>
+<span class="sd">            `RelationalFilter`s to apply to the properties of objects of</span>
+<span class="sd">            `object_type_name`. Typically processed by a relational database layer.</span>
+<span class="sd">        embedding_searches (Optional[List[EmbeddingSearchClause]]): A list of</span>
+<span class="sd">            `EmbeddingSearchClause`s to perform semantic similarity searches.</span>
+<span class="sd">            Typically processed by a vector database layer.</span>
+<span class="sd">        graph_traversals (Optional[List[GraphTraversalClause]]): A list of</span>
+<span class="sd">            `GraphTraversalClause`s to navigate relationships from or to</span>
+<span class="sd">            objects of `object_type_name`. Typically processed by a graph</span>
+<span class="sd">            database layer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">object_type_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;The primary ObjectTypeDefinition name this component targets.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">relational_filters</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">RelationalFilter</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;List of relational filters to apply (SQLite).&quot;</span>
+    <span class="p">)</span>
+    <span class="n">embedding_searches</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">EmbeddingSearchClause</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;List of embedding similarity searches to apply (LanceDB).&quot;</span>
+    <span class="p">)</span>
+    <span class="n">graph_traversals</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">GraphTraversalClause</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;List of graph traversals to apply (Kuzu).&quot;</span>
+    <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ComplexQuery">
+<a class="viewcode-back" href="../../../core_query_models.html#grizabella.core.query_models.ComplexQuery">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">ComplexQuery</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents a complex query that can span multiple database layers and object types.</span>
+
+<span class="sd">    A `ComplexQuery` is composed of one or more `QueryComponent`s.</span>
+<span class="sd">    Currently, the results from these components are combined using a logical</span>
+<span class="sd">    AND operation, meaning an `ObjectInstance` must satisfy the conditions</span>
+<span class="sd">    of all components (if it&#39;s the target type of multiple components, or</span>
+<span class="sd">    related to objects satisfying other components) to be included in the</span>
+<span class="sd">    final result set.</span>
+
+<span class="sd">    Future enhancements may include OR logic between components, explicit</span>
+<span class="sd">    return property selection, and overall result limits/offsets.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        description (Optional[str]): An optional user-defined description or</span>
+<span class="sd">            name for this complex query, for easier identification or logging.</span>
+<span class="sd">        components (List[QueryComponent]): A list of `QueryComponent`s that</span>
+<span class="sd">            make up the query. The results from these components are currently</span>
+<span class="sd">            intersected (ANDed).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">description</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Optional user-defined description for the query.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">components</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">QueryComponent</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;List of query components. Results from components are currently ANDed.&quot;</span>
+    <span class="p">)</span></div>
+
+    <span class="c1"># Future:</span>
+    <span class="c1"># logical_operator: Literal[&quot;AND&quot;, &quot;OR&quot;] = Field(</span>
+    <span class="c1">#     default=&quot;AND&quot;,</span>
+    <span class="c1">#     description=&quot;How to combine the results of multiple components.&quot;</span>
+    <span class="c1"># )</span>
+    <span class="c1"># return_properties: Optional[List[str]] = Field(</span>
+    <span class="c1">#     default=None,</span>
+    <span class="c1">#     description=&quot;Specify which properties of the final objects to return. If None, all are returned.&quot;</span>
+    <span class="c1"># )</span>
+    <span class="c1"># limit: Optional[int] = Field(default=None, description=&quot;Overall limit for the final result set.&quot;)</span>
+    <span class="c1"># offset: Optional[int] = Field(default=0, description=&quot;Overall offset for the final result set.&quot;)</span>
+
+
+<div class="viewcode-block" id="QueryResult">
+<a class="viewcode-back" href="../../../core_query_models.html#grizabella.core.query_models.QueryResult">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">QueryResult</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Represents the result of a complex query execution.</span>
+
+<span class="sd">    This model encapsulates the `ObjectInstance`s that match the criteria</span>
+<span class="sd">    of a `ComplexQuery`, along with any errors that may have occurred during</span>
+<span class="sd">    the query planning or execution process.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        object_instances (List[ObjectInstance]): A list of `ObjectInstance`s</span>
+<span class="sd">            that satisfy all conditions of the `ComplexQuery`.</span>
+<span class="sd">        errors (Optional[List[str]]): A list of error messages encountered</span>
+<span class="sd">            during the execution of the query. If the query was successful,</span>
+<span class="sd">            this will be None or an empty list.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">object_instances</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ObjectInstance</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;List of ObjectInstances that match the complex query.&quot;</span>
+    <span class="p">)</span>
+    <span class="n">errors</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;List of errors encountered during query execution, if any.&quot;</span>
+    <span class="p">)</span></div>
+
+    <span class="c1"># Future:</span>
+    <span class="c1"># execution_time_ms: Optional[float] = None</span>
+    <span class="c1"># result_count: Optional[int] = None # Could be len(object_instances) but explicit might be useful</span>
+    <span class="c1"># metadata: Optional[Dict[str, Any]] = None # For additional execution details</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Grizabella Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>grizabella.ui.dialogs.embedding_definition_dialog &mdash; Grizabella API 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../../_static/documentation_options.js?v=01f34227"></script>
+        <script src="../../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../../index.html" class="icon icon-home">
+            Grizabella API
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api_client.html">API Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_models.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_query_models.html">Core Query Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_exceptions.html">Core Exceptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_db_manager.html">Core DB Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_query_engine.html">Core Query Engine</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../core_utils.html">grizabella.core (Utilities)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../db_layers.html">grizabella.db_layers</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ui_main.html">grizabella.ui (Main Components)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../ui_dialogs.html">grizabella.ui.dialogs</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">Grizabella API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">grizabella.ui.dialogs.embedding_definition_dialog</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for grizabella.ui.dialogs.embedding_definition_dialog</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">TYPE_CHECKING</span> <span class="c1"># Added Any, TYPE_CHECKING</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">PySide6.QtCore</span><span class="w"> </span><span class="kn">import</span> <span class="n">Signal</span><span class="p">,</span> <span class="n">Slot</span> <span class="c1"># QThread removed</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">PySide6.QtWidgets</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span><span class="n">QApplication</span><span class="p">,</span> <span class="n">QComboBox</span><span class="p">,</span> <span class="n">QDialog</span><span class="p">,</span> <span class="n">QDialogButtonBox</span><span class="p">,</span> <span class="c1"># QApplication added</span>
+                               <span class="n">QLabel</span><span class="p">,</span> <span class="n">QLineEdit</span><span class="p">,</span> <span class="n">QMessageBox</span><span class="p">,</span> <span class="n">QSpinBox</span><span class="p">,</span>
+                               <span class="n">QTextEdit</span><span class="p">,</span> <span class="n">QVBoxLayout</span><span class="p">)</span>
+
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.api.client</span><span class="w"> </span><span class="kn">import</span> <span class="n">Grizabella</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.core.models</span><span class="w"> </span><span class="kn">import</span> <span class="n">EmbeddingDefinition</span><span class="p">,</span> <span class="n">ObjectTypeDefinition</span><span class="p">,</span> <span class="n">PropertyDataType</span><span class="p">,</span> <span class="n">PropertyDefinition</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.core.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">DatabaseError</span><span class="p">,</span> <span class="n">SchemaError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.ui.threads.api_client_thread</span><span class="w"> </span><span class="kn">import</span> <span class="n">ApiClientThread</span> <span class="c1"># Import new thread</span>
+<span class="c1"># from grizabella.ui.main_window import MainWindow # For connecting signals &lt;- REMOVED FOR CIRCULAR IMPORT</span>
+
+<span class="k">if</span> <span class="n">TYPE_CHECKING</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.ui.main_window</span><span class="w"> </span><span class="kn">import</span> <span class="n">MainWindow</span>
+
+
+<div class="viewcode-block" id="EmbeddingDefinitionDialog">
+<a class="viewcode-back" href="../../../../ui_dialogs.html#grizabella.ui.dialogs.EmbeddingDefinitionDialog">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">EmbeddingDefinitionDialog</span><span class="p">(</span><span class="n">QDialog</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Dialog for creating and editing Embedding Definitions.&quot;&quot;&quot;</span>
+    <span class="n">busy_signal</span> <span class="o">=</span> <span class="n">Signal</span><span class="p">(</span><span class="nb">bool</span><span class="p">)</span> <span class="c1"># To indicate busy state</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">client</span><span class="p">:</span> <span class="n">Grizabella</span><span class="p">,</span> <span class="n">embedding_definition</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">EmbeddingDefinition</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">parent</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client_ref</span> <span class="o">=</span> <span class="n">client</span> <span class="c1"># Store ref, but API calls go via MainWindow</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embedding_definition</span> <span class="o">=</span> <span class="n">embedding_definition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_edit_mode</span> <span class="o">=</span> <span class="n">embedding_definition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_types_cache</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ObjectTypeDefinition</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_fetch_ot_thread</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ApiClientThread</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># FetchObjectTypePropertiesThread is removed as properties are assumed to be part of ObjectTypeDefinition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_create_ed_thread</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ApiClientThread</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">setWindowTitle</span><span class="p">(</span>
+            <span class="s2">&quot;Edit Embedding Definition&quot;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_edit_mode</span> <span class="k">else</span> <span class="s2">&quot;New Embedding Definition&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setMinimumWidth</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
+
+        <span class="n">layout</span> <span class="o">=</span> <span class="n">QVBoxLayout</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+        <span class="c1"># Name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Definition Name:&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_edit</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">()</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name_label</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name_edit</span><span class="p">)</span>
+
+        <span class="c1"># Object Type Name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_type_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Object Type:&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span> <span class="o">=</span> <span class="n">QComboBox</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">setPlaceholderText</span><span class="p">(</span><span class="s2">&quot;Select Object Type...&quot;</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">object_type_label</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="p">)</span>
+
+        <span class="c1"># Source Property Name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_property_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Source Property:&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span> <span class="o">=</span> <span class="n">QComboBox</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span><span class="o">.</span><span class="n">setPlaceholderText</span><span class="p">(</span><span class="s2">&quot;Select Source Property...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># Disabled until object type is selected</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_property_label</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span><span class="p">)</span>
+
+        <span class="c1"># Embedding Model</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Embedding Model:&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_edit</span> <span class="o">=</span> <span class="n">QLineEdit</span><span class="p">(</span><span class="s2">&quot;colbert-ir/colbertv2.0&quot;</span><span class="p">)</span> <span class="c1"># Removed &quot;huggingface/&quot; prefix</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_label</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_edit</span><span class="p">)</span>
+
+        <span class="c1"># Dimensions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimensions_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Dimensions (Optional):&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimensions_spinbox</span> <span class="o">=</span> <span class="n">QSpinBox</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimensions_spinbox</span><span class="o">.</span><span class="n">setRange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">100000</span><span class="p">)</span> <span class="c1"># 0 means not set / infer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimensions_spinbox</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions_label</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dimensions_spinbox</span><span class="p">)</span>
+
+        <span class="c1"># Description</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description_label</span> <span class="o">=</span> <span class="n">QLabel</span><span class="p">(</span><span class="s2">&quot;Description:&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description_edit</span> <span class="o">=</span> <span class="n">QTextEdit</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description_edit</span><span class="o">.</span><span class="n">setFixedHeight</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">description_label</span><span class="p">)</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">description_edit</span><span class="p">)</span>
+
+        <span class="c1"># Dialog Buttons</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">button_box</span> <span class="o">=</span> <span class="n">QDialogButtonBox</span><span class="p">(</span><span class="n">QDialogButtonBox</span><span class="o">.</span><span class="n">StandardButton</span><span class="o">.</span><span class="n">Ok</span> <span class="o">|</span> <span class="n">QDialogButtonBox</span><span class="o">.</span><span class="n">StandardButton</span><span class="o">.</span><span class="n">Cancel</span><span class="p">)</span> <span class="c1"># Corrected enum</span>
+        <span class="n">layout</span><span class="o">.</span><span class="n">addWidget</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">button_box</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">button_box</span><span class="o">.</span><span class="n">accepted</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">accept</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">button_box</span><span class="o">.</span><span class="n">rejected</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reject</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">currentIndexChanged</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_object_type_changed</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_load_object_types</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_edit_mode</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_definition</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_populate_fields</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_load_object_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fetches object types and populates the combo box.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="s2">&quot;Loading object types...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">busy_signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_fetch_ot_thread</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_fetch_ot_thread</span><span class="o">.</span><span class="n">isRunning</span><span class="p">():</span>
+            <span class="c1"># self._show_error_message(&quot;Already fetching object types.&quot;) # Or just ignore</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">busy_signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Client connection check will be handled by MainWindow</span>
+        <span class="c1"># if not self.client_ref or not self.client_ref._is_connected:</span>
+        <span class="c1">#     self._show_error_message(&quot;Client not available or not connected.&quot;)</span>
+        <span class="c1">#     self.object_type_combo.clear()</span>
+        <span class="c1">#     self.object_type_combo.addItem(&quot;Error: Client not available.&quot;)</span>
+        <span class="c1">#     self.object_type_combo.setEnabled(False)</span>
+        <span class="c1">#     self.busy_signal.emit(False)</span>
+        <span class="c1">#     return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_fetch_ot_thread</span> <span class="o">=</span> <span class="n">ApiClientThread</span><span class="p">(</span>
+            <span class="n">operation_name</span><span class="o">=</span><span class="s2">&quot;list_object_types&quot;</span><span class="p">,</span>
+            <span class="n">parent</span><span class="o">=</span><span class="bp">self</span>
+        <span class="p">)</span>
+        <span class="n">main_win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_main_window</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">main_win</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_fetch_ot_thread</span><span class="o">.</span><span class="n">apiRequestReady</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">main_win</span><span class="o">.</span><span class="n">handleApiRequest</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_show_error_message</span><span class="p">(</span><span class="s2">&quot;Internal error: Cannot connect to API handler for object types.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_fetch_ot_thread</span><span class="o">.</span><span class="n">deleteLater</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_fetch_ot_thread</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">busy_signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># Re-enable on error</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_fetch_ot_thread</span><span class="o">.</span><span class="n">result_ready</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_object_types_loaded</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_fetch_ot_thread</span><span class="o">.</span><span class="n">error_occurred</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_show_error_message</span><span class="p">)</span> <span class="c1"># Generic error handler</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_fetch_ot_thread</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cleanup_fetch_ot_thread</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_fetch_ot_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_cleanup_fetch_ot_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">busy_signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span> <span class="c1"># Re-enable after attempt</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_fetch_ot_thread</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_fetch_ot_thread</span><span class="o">.</span><span class="n">deleteLater</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_fetch_ot_thread</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@Slot</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span> <span class="c1"># Changed from list</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_on_object_types_loaded</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_show_error_message</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected data type for object types: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="s2">&quot;Error loading types.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">object_types</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">ObjectTypeDefinition</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_types_cache</span> <span class="o">=</span> <span class="n">object_types</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">object_types</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="s2">&quot;No object types found.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="s2">&quot;Select Object Type...&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">ot_def</span> <span class="ow">in</span> <span class="n">object_types</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">ot_def</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">userData</span><span class="o">=</span><span class="n">ot_def</span><span class="p">)</span>
+        <span class="c1"># self.object_type_combo.setEnabled(True) # Handled by cleanup</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_edit_mode</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_definition</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">findText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_definition</span><span class="o">.</span><span class="n">object_type_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span> <span class="c1"># This will trigger _on_object_type_changed</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_on_object_type_changed</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_on_object_type_changed</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">selected_ot_def</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">itemData</span><span class="p">(</span><span class="n">index</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">selected_ot_def</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">selected_ot_def</span><span class="p">,</span> <span class="n">ObjectTypeDefinition</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span><span class="o">.</span><span class="n">setPlaceholderText</span><span class="p">(</span><span class="s2">&quot;Select Source Property...&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># Properties are now assumed to be part of the ObjectTypeDefinition from list_object_types</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_populate_source_properties</span><span class="p">(</span><span class="n">selected_ot_def</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_populate_source_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ot_def</span><span class="p">:</span> <span class="n">ObjectTypeDefinition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ot_def</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="s2">&quot;No properties found for this type.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="s2">&quot;Select Source Property...&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">prop_def</span> <span class="ow">in</span> <span class="n">ot_def</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+            <span class="c1"># Typically, embeddings are created from text-like fields</span>
+            <span class="c1"># Add filtering if necessary, e.g., if prop_def.data_type == PropertyDataType.TEXT:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span><span class="o">.</span><span class="n">addItem</span><span class="p">(</span><span class="n">prop_def</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">userData</span><span class="o">=</span><span class="n">prop_def</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_edit_mode</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_definition</span> <span class="ow">and</span> \
+           <span class="bp">self</span><span class="o">.</span><span class="n">embedding_definition</span><span class="o">.</span><span class="n">object_type_name</span> <span class="o">==</span> <span class="n">ot_def</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span><span class="o">.</span><span class="n">findText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_definition</span><span class="o">.</span><span class="n">source_property_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">idx</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span><span class="o">.</span><span class="n">setCurrentIndex</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># Ensure placeholder</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_populate_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Populates fields if in edit mode.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_definition</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_edit</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_definition</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="c1"># Object type and source property are handled by their respective load/change signals</span>
+        <span class="n">model_name_to_display</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_definition</span><span class="o">.</span><span class="n">embedding_model</span>
+        <span class="k">if</span> <span class="n">model_name_to_display</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;huggingface/&quot;</span><span class="p">):</span>
+            <span class="n">model_name_to_display</span> <span class="o">=</span> <span class="n">model_name_to_display</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;huggingface/&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_edit</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="n">model_name_to_display</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dimensions_spinbox</span><span class="o">.</span><span class="n">setValue</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_definition</span><span class="o">.</span><span class="n">dimensions</span> <span class="ow">or</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">description_edit</span><span class="o">.</span><span class="n">setText</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">embedding_definition</span><span class="o">.</span><span class="n">description</span> <span class="ow">or</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="EmbeddingDefinitionDialog.get_embedding_definition_data">
+<a class="viewcode-back" href="../../../../ui_dialogs.html#grizabella.ui.dialogs.EmbeddingDefinitionDialog.get_embedding_definition_data">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_embedding_definition_data</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">EmbeddingDefinition</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Constructs an EmbeddingDefinition model from dialog fields.&quot;&quot;&quot;</span>
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name_edit</span><span class="o">.</span><span class="n">text</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_show_error_message</span><span class="p">(</span><span class="s2">&quot;Definition Name cannot be empty.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">object_type_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">object_type_index</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># 0 is placeholder</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_show_error_message</span><span class="p">(</span><span class="s2">&quot;Object Type must be selected.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">object_type_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_type_combo</span><span class="o">.</span><span class="n">currentText</span><span class="p">()</span>
+
+        <span class="n">source_property_index</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span><span class="o">.</span><span class="n">currentIndex</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">source_property_index</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span> <span class="c1"># 0 is placeholder</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_show_error_message</span><span class="p">(</span><span class="s2">&quot;Source Property must be selected.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="n">source_property_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_property_combo</span><span class="o">.</span><span class="n">currentText</span><span class="p">()</span>
+
+        <span class="n">embedding_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model_edit</span><span class="o">.</span><span class="n">text</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">embedding_model</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_show_error_message</span><span class="p">(</span><span class="s2">&quot;Embedding Model cannot be empty.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">dimensions_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dimensions_spinbox</span><span class="o">.</span><span class="n">value</span><span class="p">()</span>
+        <span class="n">dimensions</span> <span class="o">=</span> <span class="n">dimensions_val</span> <span class="k">if</span> <span class="n">dimensions_val</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="n">description</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">description_edit</span><span class="o">.</span><span class="n">toPlainText</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">EmbeddingDefinition</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+            <span class="n">object_type_name</span><span class="o">=</span><span class="n">object_type_name</span><span class="p">,</span>
+            <span class="n">source_property_name</span><span class="o">=</span><span class="n">source_property_name</span><span class="p">,</span>
+            <span class="n">embedding_model</span><span class="o">=</span><span class="n">embedding_model</span><span class="p">,</span>
+            <span class="n">dimensions</span><span class="o">=</span><span class="n">dimensions</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="n">description</span><span class="p">,</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="EmbeddingDefinitionDialog.accept">
+<a class="viewcode-back" href="../../../../ui_dialogs.html#grizabella.ui.dialogs.EmbeddingDefinitionDialog.accept">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">accept</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handles the OK button click.&quot;&quot;&quot;</span>
+        <span class="n">ed_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_embedding_definition_data</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ed_data</span><span class="p">:</span>
+            <span class="k">return</span> <span class="c1"># Error message already shown</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_edit_mode</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_definition</span><span class="p">:</span>
+            <span class="c1"># Placeholder for update logic</span>
+            <span class="c1"># self.update_thread = UpdateEmbeddingDefinitionThread(self.client, ed_data)</span>
+            <span class="c1"># self.update_thread.finished.connect(self._on_save_finished)</span>
+            <span class="c1"># self.update_thread.error.connect(self._on_save_error)</span>
+            <span class="c1"># self.update_thread.start()</span>
+            <span class="n">QMessageBox</span><span class="o">.</span><span class="n">information</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Not Implemented&quot;</span><span class="p">,</span> <span class="s2">&quot;Editing is not yet implemented.&quot;</span><span class="p">)</span>
+            <span class="c1"># For now, just accept if data is valid for testing</span>
+            <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span> <span class="c1"># Create mode</span>
+            <span class="c1"># Client connection check will be handled by MainWindow</span>
+            <span class="c1"># if not self.client_ref or not self.client_ref._is_connected:</span>
+            <span class="c1">#     self._show_error_message(&quot;Client not available or not connected for create.&quot;)</span>
+            <span class="c1">#     return</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_create_ed_thread</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_create_ed_thread</span><span class="o">.</span><span class="n">isRunning</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_show_error_message</span><span class="p">(</span><span class="s2">&quot;Create operation already in progress.&quot;</span><span class="p">)</span>
+                <span class="k">return</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_create_ed_thread</span> <span class="o">=</span> <span class="n">ApiClientThread</span><span class="p">(</span>
+                <span class="s2">&quot;create_embedding_definition&quot;</span><span class="p">,</span> <span class="c1"># operation_name passed positionally</span>
+                <span class="n">ed_data</span><span class="p">,</span>                       <span class="c1"># ed_data for *args</span>
+                <span class="n">parent</span><span class="o">=</span><span class="bp">self</span>                    <span class="c1"># parent as keyword argument</span>
+            <span class="p">)</span>
+            <span class="n">main_win</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_find_main_window</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">main_win</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_active_create_ed_thread</span><span class="o">.</span><span class="n">apiRequestReady</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="n">main_win</span><span class="o">.</span><span class="n">handleApiRequest</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_on_save_error</span><span class="p">(</span><span class="s2">&quot;Internal error: Cannot connect to API handler.&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_active_create_ed_thread</span><span class="o">.</span><span class="n">deleteLater</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_active_create_ed_thread</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">return</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_create_ed_thread</span><span class="o">.</span><span class="n">result_ready</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_save_finished</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_create_ed_thread</span><span class="o">.</span><span class="n">error_occurred</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_on_save_error</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_create_ed_thread</span><span class="o">.</span><span class="n">finished</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cleanup_create_ed_thread</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_create_ed_thread</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># Disable dialog while saving</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">busy_signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+
+    <span class="nd">@Slot</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span> <span class="c1"># Changed from EmbeddingDefinition</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_on_save_finished</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">result</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># self.setEnabled(True) # Handled by cleanup</span>
+        <span class="c1"># self.busy_signal.emit(False) # Handled by cleanup</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">EmbeddingDefinition</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_on_save_error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unexpected result type from save operation: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">result</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        
+        <span class="n">created_def</span><span class="p">:</span> <span class="n">EmbeddingDefinition</span> <span class="o">=</span> <span class="n">result</span>
+        <span class="n">QMessageBox</span><span class="o">.</span><span class="n">information</span><span class="p">(</span>
+            <span class="bp">self</span><span class="p">,</span>
+            <span class="s2">&quot;Success&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;Embedding Definition &#39;</span><span class="si">{</span><span class="n">created_def</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&#39; saved successfully.&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">embedding_definition</span> <span class="o">=</span> <span class="n">created_def</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">accept</span><span class="p">()</span>
+
+    <span class="nd">@Slot</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_on_save_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">error_message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># self.setEnabled(True) # Handled by cleanup</span>
+        <span class="c1"># self.busy_signal.emit(False) # Handled by cleanup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_show_error_message</span><span class="p">(</span><span class="n">error_message</span><span class="p">)</span>
+
+    <span class="nd">@Slot</span><span class="p">()</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_cleanup_create_ed_thread</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># Renamed</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setEnabled</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">busy_signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_active_create_ed_thread</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_create_ed_thread</span><span class="o">.</span><span class="n">deleteLater</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_create_ed_thread</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_find_main_window</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s1">&#39;MainWindow&#39;</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Helper to find the MainWindow instance.&quot;&quot;&quot;</span>
+        <span class="c1"># Import MainWindow locally to break circular dependency</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.ui.main_window</span><span class="w"> </span><span class="kn">import</span> <span class="n">MainWindow</span>
+
+        <span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span>
+        <span class="k">while</span> <span class="n">parent</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">MainWindow</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">parent</span>
+            <span class="n">parent</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">parent</span><span class="p">()</span>
+        
+        <span class="n">app_instance</span> <span class="o">=</span> <span class="n">QApplication</span><span class="o">.</span><span class="n">instance</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">app_instance</span><span class="p">,</span> <span class="n">QApplication</span><span class="p">):</span>
+            <span class="n">active_window</span> <span class="o">=</span> <span class="n">app_instance</span><span class="o">.</span><span class="n">activeWindow</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">active_window</span><span class="p">,</span> <span class="n">MainWindow</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">active_window</span>
+        <span class="c1"># self._logger.warning(&quot;Could not find MainWindow instance.&quot;) # Logger not defined here</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;EmbeddingDefinitionDialog: Could not find MainWindow instance.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_show_error_message</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">busy_signal</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span> <span class="c1"># Ensure busy is off on error</span>
+        <span class="n">QMessageBox</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s2">&quot;Error&quot;</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
+
+<div class="viewcode-block" id="EmbeddingDefinitionDialog.closeEvent">
+<a class="viewcode-back" href="../../../../ui_dialogs.html#grizabella.ui.dialogs.EmbeddingDefinitionDialog.closeEvent">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">closeEvent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span> <span class="c1"># Added type hint</span>
+        <span class="n">threads_to_manage</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_fetch_ot_thread</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_active_create_ed_thread</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">thread_instance</span> <span class="ow">in</span> <span class="n">threads_to_manage</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">thread_instance</span> <span class="ow">and</span> <span class="n">thread_instance</span><span class="o">.</span><span class="n">isRunning</span><span class="p">():</span>
+                <span class="n">thread_instance</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">thread_instance</span><span class="o">.</span><span class="n">wait</span><span class="p">(</span><span class="mi">500</span><span class="p">):</span>
+                    <span class="n">thread_instance</span><span class="o">.</span><span class="n">terminate</span><span class="p">()</span>
+                    <span class="n">thread_instance</span><span class="o">.</span><span class="n">wait</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_fetch_ot_thread</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_active_create_ed_thread</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">closeEvent</span><span class="p">(</span><span class="n">event</span><span class="p">)</span></div>
+</div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="c1"># Example Usage (requires a running Grizabella server or mock client)</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">QApplication</span><span class="p">([])</span>
+
+    <span class="c1"># --- Mock GrizabellaClient for testing ---</span>
+    <span class="k">class</span><span class="w"> </span><span class="nc">MockProperty</span><span class="p">(</span><span class="n">PropertyDefinition</span><span class="p">):</span> <span class="c1"># Keep this simple for mock</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="n">data_type</span><span class="p">:</span> <span class="n">PropertyDataType</span> <span class="o">=</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">TEXT</span> <span class="c1"># Corrected type</span>
+        <span class="n">is_primary_key</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">is_nullable</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">is_indexed</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">is_unique</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">description</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+
+    <span class="k">class</span><span class="w"> </span><span class="nc">MockObjectType</span><span class="p">(</span><span class="n">ObjectTypeDefinition</span><span class="p">):</span> <span class="c1"># Keep this simple for mock</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span>
+        <span class="n">description</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">properties</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">PropertyDefinition</span><span class="p">]</span> <span class="c1"># Corrected type</span>
+
+
+    <span class="k">class</span><span class="w"> </span><span class="nc">MockGrizabellaClient</span><span class="p">:</span> <span class="c1"># Renamed to avoid conflict if real Grizabella is imported</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">list_object_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">MockObjectType</span><span class="p">]:</span> <span class="c1"># Use MockObjectType for return</span>
+            <span class="c1"># Ensure properties are of type PropertyDefinition for MockObjectType</span>
+            <span class="n">doc_props</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">PropertyDefinition</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;content&quot;</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="n">PropertyDataType</span><span class="o">.</span><span class="n">TEXT</span><span class="p">),</span>
+                <span class="n">PropertyDefinition</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;title&quot;</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="n">PropertyDataType</span><span class="o">.</span><span class="n">TEXT</span><span class="p">),</span>
+            <span class="p">]</span>
+            <span class="n">person_props</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">PropertyDefinition</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;bio&quot;</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="n">PropertyDataType</span><span class="o">.</span><span class="n">TEXT</span><span class="p">),</span>
+                <span class="n">PropertyDefinition</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;full_name&quot;</span><span class="p">,</span> <span class="n">data_type</span><span class="o">=</span><span class="n">PropertyDataType</span><span class="o">.</span><span class="n">TEXT</span><span class="p">),</span>
+            <span class="p">]</span>
+            <span class="k">return</span> <span class="p">[</span>
+                <span class="n">MockObjectType</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Document&quot;</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">doc_props</span><span class="p">),</span>
+                <span class="n">MockObjectType</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Person&quot;</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="n">person_props</span><span class="p">),</span>
+                <span class="n">MockObjectType</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;Product&quot;</span><span class="p">,</span> <span class="n">properties</span><span class="o">=</span><span class="p">[]),</span> <span class="c1"># Type with no properties</span>
+            <span class="p">]</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">get_object_type_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">MockObjectType</span><span class="p">]:</span> <span class="c1"># Use MockObjectType</span>
+            <span class="n">ots</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list_object_types</span><span class="p">()</span> <span class="c1"># This now returns List[MockObjectType]</span>
+            <span class="k">for</span> <span class="n">ot</span> <span class="ow">in</span> <span class="n">ots</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">ot</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">name</span><span class="p">:</span>
+                    <span class="k">return</span> <span class="n">ot</span> <span class="c1"># ot is MockObjectType</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">create_embedding_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ed</span><span class="p">:</span> <span class="n">EmbeddingDefinition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EmbeddingDefinition</span><span class="p">:</span>
+            <span class="c1"># Simulate successful creation</span>
+            <span class="k">return</span> <span class="n">ed</span>
+    <span class="c1"># --- End Mock GrizabellaClient ---</span>
+
+    <span class="n">mock_client_instance</span> <span class="o">=</span> <span class="n">MockGrizabellaClient</span><span class="p">()</span> <span class="c1"># Renamed instance</span>
+    <span class="n">dialog</span> <span class="o">=</span> <span class="n">EmbeddingDefinitionDialog</span><span class="p">(</span><span class="n">client</span><span class="o">=</span><span class="n">mock_client_instance</span><span class="p">)</span> <span class="c1"># type: ignore</span>
+
+    <span class="k">if</span> <span class="n">dialog</span><span class="o">.</span><span class="n">exec</span><span class="p">():</span>
+        <span class="n">new_ed</span> <span class="o">=</span> <span class="n">dialog</span><span class="o">.</span><span class="n">get_embedding_definition_data</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">new_ed</span><span class="p">:</span>
+            <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">pass</span>
+
+    <span class="n">app</span><span class="o">.</span><span class="n">exec</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Grizabella Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

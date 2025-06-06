@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Core Query Models &mdash; Grizabella API 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=01f34227"></script>
+        <script src="_static/doctools.js?v=9a2dae69"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Core Exceptions" href="core_exceptions.html" />
+    <link rel="prev" title="Core Models" href="core_models.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Grizabella API
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="api_client.html">API Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_models.html">Core Models</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Core Query Models</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#grizabella.core.query_models.ComplexQuery"><code class="docutils literal notranslate"><span class="pre">ComplexQuery</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.ComplexQuery.description"><code class="docutils literal notranslate"><span class="pre">ComplexQuery.description</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.ComplexQuery.components"><code class="docutils literal notranslate"><span class="pre">ComplexQuery.components</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">ComplexQuery.components</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">ComplexQuery.description</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.ComplexQuery.model_config"><code class="docutils literal notranslate"><span class="pre">ComplexQuery.model_config</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#grizabella.core.query_models.EmbeddingSearchClause"><code class="docutils literal notranslate"><span class="pre">EmbeddingSearchClause</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.EmbeddingSearchClause.embedding_definition_name"><code class="docutils literal notranslate"><span class="pre">EmbeddingSearchClause.embedding_definition_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.EmbeddingSearchClause.similar_to_payload"><code class="docutils literal notranslate"><span class="pre">EmbeddingSearchClause.similar_to_payload</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.EmbeddingSearchClause.threshold"><code class="docutils literal notranslate"><span class="pre">EmbeddingSearchClause.threshold</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.EmbeddingSearchClause.limit"><code class="docutils literal notranslate"><span class="pre">EmbeddingSearchClause.limit</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">EmbeddingSearchClause.embedding_definition_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">EmbeddingSearchClause.limit</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.EmbeddingSearchClause.model_config"><code class="docutils literal notranslate"><span class="pre">EmbeddingSearchClause.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6"><code class="docutils literal notranslate"><span class="pre">EmbeddingSearchClause.similar_to_payload</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7"><code class="docutils literal notranslate"><span class="pre">EmbeddingSearchClause.threshold</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#grizabella.core.query_models.GraphTraversalClause"><code class="docutils literal notranslate"><span class="pre">GraphTraversalClause</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.GraphTraversalClause.relation_type_name"><code class="docutils literal notranslate"><span class="pre">GraphTraversalClause.relation_type_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.GraphTraversalClause.direction"><code class="docutils literal notranslate"><span class="pre">GraphTraversalClause.direction</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.GraphTraversalClause.target_object_type_name"><code class="docutils literal notranslate"><span class="pre">GraphTraversalClause.target_object_type_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.GraphTraversalClause.target_object_id"><code class="docutils literal notranslate"><span class="pre">GraphTraversalClause.target_object_id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.GraphTraversalClause.target_object_properties"><code class="docutils literal notranslate"><span class="pre">GraphTraversalClause.target_object_properties</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id10"><code class="docutils literal notranslate"><span class="pre">GraphTraversalClause.direction</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.GraphTraversalClause.model_config"><code class="docutils literal notranslate"><span class="pre">GraphTraversalClause.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id11"><code class="docutils literal notranslate"><span class="pre">GraphTraversalClause.relation_type_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id12"><code class="docutils literal notranslate"><span class="pre">GraphTraversalClause.target_object_id</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13"><code class="docutils literal notranslate"><span class="pre">GraphTraversalClause.target_object_properties</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14"><code class="docutils literal notranslate"><span class="pre">GraphTraversalClause.target_object_type_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#grizabella.core.query_models.QueryComponent"><code class="docutils literal notranslate"><span class="pre">QueryComponent</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.QueryComponent.object_type_name"><code class="docutils literal notranslate"><span class="pre">QueryComponent.object_type_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.QueryComponent.relational_filters"><code class="docutils literal notranslate"><span class="pre">QueryComponent.relational_filters</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.QueryComponent.embedding_searches"><code class="docutils literal notranslate"><span class="pre">QueryComponent.embedding_searches</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.QueryComponent.graph_traversals"><code class="docutils literal notranslate"><span class="pre">QueryComponent.graph_traversals</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id17"><code class="docutils literal notranslate"><span class="pre">QueryComponent.embedding_searches</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id18"><code class="docutils literal notranslate"><span class="pre">QueryComponent.graph_traversals</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.QueryComponent.model_config"><code class="docutils literal notranslate"><span class="pre">QueryComponent.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id19"><code class="docutils literal notranslate"><span class="pre">QueryComponent.object_type_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id20"><code class="docutils literal notranslate"><span class="pre">QueryComponent.relational_filters</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#grizabella.core.query_models.QueryResult"><code class="docutils literal notranslate"><span class="pre">QueryResult</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.QueryResult.object_instances"><code class="docutils literal notranslate"><span class="pre">QueryResult.object_instances</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.QueryResult.errors"><code class="docutils literal notranslate"><span class="pre">QueryResult.errors</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id21"><code class="docutils literal notranslate"><span class="pre">QueryResult.errors</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.QueryResult.model_config"><code class="docutils literal notranslate"><span class="pre">QueryResult.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id22"><code class="docutils literal notranslate"><span class="pre">QueryResult.object_instances</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#grizabella.core.query_models.RelationalFilter"><code class="docutils literal notranslate"><span class="pre">RelationalFilter</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.RelationalFilter.property_name"><code class="docutils literal notranslate"><span class="pre">RelationalFilter.property_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.RelationalFilter.operator"><code class="docutils literal notranslate"><span class="pre">RelationalFilter.operator</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.RelationalFilter.value"><code class="docutils literal notranslate"><span class="pre">RelationalFilter.value</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#grizabella.core.query_models.RelationalFilter.model_config"><code class="docutils literal notranslate"><span class="pre">RelationalFilter.model_config</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id23"><code class="docutils literal notranslate"><span class="pre">RelationalFilter.operator</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id24"><code class="docutils literal notranslate"><span class="pre">RelationalFilter.property_name</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id25"><code class="docutils literal notranslate"><span class="pre">RelationalFilter.value</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="core_exceptions.html">Core Exceptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_db_manager.html">Core DB Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="core_query_engine.html">Core Query Engine</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Grizabella API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Core Query Models</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/core_query_models.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-grizabella.core.query_models">
+<span id="core-query-models"></span><h1>Core Query Models<a class="headerlink" href="#module-grizabella.core.query_models" title="Link to this heading"></a></h1>
+<p>Pydantic models for Grizabella Complex Query Engine.</p>
+<dl class="py class">
+<dt class="sig sig-object py" id="grizabella.core.query_models.ComplexQuery">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grizabella.core.query_models.</span></span><span class="sig-name descname"><span class="pre">ComplexQuery</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">description</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">components</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#grizabella.core.query_models.QueryComponent" title="grizabella.core.query_models.QueryComponent"><span class="pre">QueryComponent</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grizabella/core/query_models.html#ComplexQuery"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.core.query_models.ComplexQuery" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Represents a complex query that can span multiple database layers and object types.</p>
+<p>A <cite>ComplexQuery</cite> is composed of one or more <cite>QueryComponent`s.
+Currently, the results from these components are combined using a logical
+AND operation, meaning an `ObjectInstance</cite> must satisfy the conditions
+of all components (if it’s the target type of multiple components, or
+related to objects satisfying other components) to be included in the
+final result set.</p>
+<p>Future enhancements may include OR logic between components, explicit
+return property selection, and overall result limits/offsets.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.ComplexQuery.description">
+<span class="sig-name descname"><span class="pre">description</span></span><a class="headerlink" href="#grizabella.core.query_models.ComplexQuery.description" title="Link to this definition"></a></dt>
+<dd><p>An optional user-defined description or
+name for this complex query, for easier identification or logging.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.ComplexQuery.components">
+<span class="sig-name descname"><span class="pre">components</span></span><a class="headerlink" href="#grizabella.core.query_models.ComplexQuery.components" title="Link to this definition"></a></dt>
+<dd><p>A list of <a href="#id1"><span class="problematic" id="id2">`</span></a>QueryComponent`s that
+make up the query. The results from these components are currently
+intersected (ANDed).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="#grizabella.core.query_models.QueryComponent" title="grizabella.core.query_models.QueryComponent">QueryComponent</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">components</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#grizabella.core.query_models.QueryComponent" title="grizabella.core.query_models.QueryComponent"><span class="pre">QueryComponent</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id3">
+<span class="sig-name descname"><span class="pre">description</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.ComplexQuery.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#grizabella.core.query_models.ComplexQuery.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="grizabella.core.query_models.EmbeddingSearchClause">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grizabella.core.query_models.</span></span><span class="sig-name descname"><span class="pre">EmbeddingSearchClause</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_definition_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">similar_to_payload</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">threshold</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">limit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grizabella/core/query_models.html#EmbeddingSearchClause"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.core.query_models.EmbeddingSearchClause" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Defines a search based on embedding similarity.</p>
+<p>This clause is used within a <cite>QueryComponent</cite> to find objects that are
+semantically similar to a given query vector, based on pre-computed
+embeddings.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.EmbeddingSearchClause.embedding_definition_name">
+<span class="sig-name descname"><span class="pre">embedding_definition_name</span></span><a class="headerlink" href="#grizabella.core.query_models.EmbeddingSearchClause.embedding_definition_name" title="Link to this definition"></a></dt>
+<dd><p>The name of the <cite>EmbeddingDefinition</cite>
+to use for this search. This definition specifies the model and
+source property used to generate the embeddings being searched.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.EmbeddingSearchClause.similar_to_payload">
+<span class="sig-name descname"><span class="pre">similar_to_payload</span></span><a class="headerlink" href="#grizabella.core.query_models.EmbeddingSearchClause.similar_to_payload" title="Link to this definition"></a></dt>
+<dd><p>The embedding vector to find
+similarities against. This vector should have the same dimensions
+as specified in the <cite>EmbeddingDefinition</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.EmbeddingSearchClause.threshold">
+<span class="sig-name descname"><span class="pre">threshold</span></span><a class="headerlink" href="#grizabella.core.query_models.EmbeddingSearchClause.threshold" title="Link to this definition"></a></dt>
+<dd><p>An optional similarity score threshold.
+Only results with a similarity score greater than or equal to this
+threshold will be returned. If None, no threshold is applied.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.EmbeddingSearchClause.limit">
+<span class="sig-name descname"><span class="pre">limit</span></span><a class="headerlink" href="#grizabella.core.query_models.EmbeddingSearchClause.limit" title="Link to this definition"></a></dt>
+<dd><p>The maximum number of similar items to retrieve and
+consider from this clause. Defaults to 10.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id4">
+<span class="sig-name descname"><span class="pre">embedding_definition_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id5">
+<span class="sig-name descname"><span class="pre">limit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#id5" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.EmbeddingSearchClause.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#grizabella.core.query_models.EmbeddingSearchClause.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">similar_to_payload</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id6" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id7">
+<span class="sig-name descname"><span class="pre">threshold</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id7" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="grizabella.core.query_models.GraphTraversalClause">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grizabella.core.query_models.</span></span><span class="sig-name descname"><span class="pre">GraphTraversalClause</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relation_type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'outgoing'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'incoming'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'outgoing'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_object_type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_object_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">UUID</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_object_properties</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#grizabella.core.query_models.RelationalFilter" title="grizabella.core.query_models.RelationalFilter"><span class="pre">RelationalFilter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grizabella/core/query_models.html#GraphTraversalClause"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.core.query_models.GraphTraversalClause" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Defines a graph traversal condition from a source object set.</p>
+<p>This clause is used within a <cite>QueryComponent</cite> to navigate relationships
+in the graph database. It specifies the type of relation to follow,
+the direction of traversal, and conditions on the target objects.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.GraphTraversalClause.relation_type_name">
+<span class="sig-name descname"><span class="pre">relation_type_name</span></span><a class="headerlink" href="#grizabella.core.query_models.GraphTraversalClause.relation_type_name" title="Link to this definition"></a></dt>
+<dd><p>The name of the <cite>RelationTypeDefinition</cite>
+that defines the type of relationship to traverse.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.GraphTraversalClause.direction">
+<span class="sig-name descname"><span class="pre">direction</span></span><a class="headerlink" href="#grizabella.core.query_models.GraphTraversalClause.direction" title="Link to this definition"></a></dt>
+<dd><p>The direction of the
+traversal from the current set of source objects. “outgoing” means
+following relations where the current objects are the source;
+“incoming” means following relations where they are the target.
+Defaults to “outgoing”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Literal[“outgoing”, “incoming”]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.GraphTraversalClause.target_object_type_name">
+<span class="sig-name descname"><span class="pre">target_object_type_name</span></span><a class="headerlink" href="#grizabella.core.query_models.GraphTraversalClause.target_object_type_name" title="Link to this definition"></a></dt>
+<dd><p>The expected <cite>ObjectTypeDefinition</cite> name
+of the target node(s) at the end of the traversal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.GraphTraversalClause.target_object_id">
+<span class="sig-name descname"><span class="pre">target_object_id</span></span><a class="headerlink" href="#grizabella.core.query_models.GraphTraversalClause.target_object_id" title="Link to this definition"></a></dt>
+<dd><p>An optional specific ID of a target
+object. If provided, the traversal will only consider paths leading
+to this specific object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[UUID]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.GraphTraversalClause.target_object_properties">
+<span class="sig-name descname"><span class="pre">target_object_properties</span></span><a class="headerlink" href="#grizabella.core.query_models.GraphTraversalClause.target_object_properties" title="Link to this definition"></a></dt>
+<dd><p>Optional
+list of <a href="#id8"><span class="problematic" id="id9">`</span></a>RelationalFilter`s to apply to the properties of the
+target object(s) found by the traversal.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[List[<a class="reference internal" href="#grizabella.core.query_models.RelationalFilter" title="grizabella.core.query_models.RelationalFilter">RelationalFilter</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">direction</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'outgoing'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'incoming'</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id10" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.GraphTraversalClause.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#grizabella.core.query_models.GraphTraversalClause.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id11">
+<span class="sig-name descname"><span class="pre">relation_type_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id11" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id12">
+<span class="sig-name descname"><span class="pre">target_object_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">UUID</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id12" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id13">
+<span class="sig-name descname"><span class="pre">target_object_properties</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#grizabella.core.query_models.RelationalFilter" title="grizabella.core.query_models.RelationalFilter"><span class="pre">RelationalFilter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id13" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id14">
+<span class="sig-name descname"><span class="pre">target_object_type_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id14" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="grizabella.core.query_models.QueryComponent">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grizabella.core.query_models.</span></span><span class="sig-name descname"><span class="pre">QueryComponent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">object_type_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">relational_filters</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#grizabella.core.query_models.RelationalFilter" title="grizabella.core.query_models.RelationalFilter"><span class="pre">RelationalFilter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">embedding_searches</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#grizabella.core.query_models.EmbeddingSearchClause" title="grizabella.core.query_models.EmbeddingSearchClause"><span class="pre">EmbeddingSearchClause</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">graph_traversals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#grizabella.core.query_models.GraphTraversalClause" title="grizabella.core.query_models.GraphTraversalClause"><span class="pre">GraphTraversalClause</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grizabella/core/query_models.html#QueryComponent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.core.query_models.QueryComponent" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Defines a single logical block of query conditions targeting a primary object type.</p>
+<p>A <cite>QueryComponent</cite> groups various types of search and filter conditions
+that apply to a specific <cite>ObjectTypeDefinition</cite>. All conditions
+(relational filters, embedding searches, graph traversals) specified
+within a single component are implicitly ANDed together. The results
+from these conditions are intersected to produce a set of matching
+<cite>ObjectInstance`s of the `object_type_name</cite>.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.QueryComponent.object_type_name">
+<span class="sig-name descname"><span class="pre">object_type_name</span></span><a class="headerlink" href="#grizabella.core.query_models.QueryComponent.object_type_name" title="Link to this definition"></a></dt>
+<dd><p>The primary <cite>ObjectTypeDefinition</cite> name that
+this component targets. The query starts by considering objects
+of this type.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.QueryComponent.relational_filters">
+<span class="sig-name descname"><span class="pre">relational_filters</span></span><a class="headerlink" href="#grizabella.core.query_models.QueryComponent.relational_filters" title="Link to this definition"></a></dt>
+<dd><p>A list of
+<cite>RelationalFilter`s to apply to the properties of objects of
+`object_type_name</cite>. Typically processed by a relational database layer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[List[<a class="reference internal" href="#grizabella.core.query_models.RelationalFilter" title="grizabella.core.query_models.RelationalFilter">RelationalFilter</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.QueryComponent.embedding_searches">
+<span class="sig-name descname"><span class="pre">embedding_searches</span></span><a class="headerlink" href="#grizabella.core.query_models.QueryComponent.embedding_searches" title="Link to this definition"></a></dt>
+<dd><p>A list of
+<a href="#id15"><span class="problematic" id="id16">`</span></a>EmbeddingSearchClause`s to perform semantic similarity searches.
+Typically processed by a vector database layer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[List[<a class="reference internal" href="#grizabella.core.query_models.EmbeddingSearchClause" title="grizabella.core.query_models.EmbeddingSearchClause">EmbeddingSearchClause</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.QueryComponent.graph_traversals">
+<span class="sig-name descname"><span class="pre">graph_traversals</span></span><a class="headerlink" href="#grizabella.core.query_models.QueryComponent.graph_traversals" title="Link to this definition"></a></dt>
+<dd><p>A list of
+<cite>GraphTraversalClause`s to navigate relationships from or to
+objects of `object_type_name</cite>. Typically processed by a graph
+database layer.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[List[<a class="reference internal" href="#grizabella.core.query_models.GraphTraversalClause" title="grizabella.core.query_models.GraphTraversalClause">GraphTraversalClause</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id17">
+<span class="sig-name descname"><span class="pre">embedding_searches</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#grizabella.core.query_models.EmbeddingSearchClause" title="grizabella.core.query_models.EmbeddingSearchClause"><span class="pre">EmbeddingSearchClause</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id17" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id18">
+<span class="sig-name descname"><span class="pre">graph_traversals</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#grizabella.core.query_models.GraphTraversalClause" title="grizabella.core.query_models.GraphTraversalClause"><span class="pre">GraphTraversalClause</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id18" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.QueryComponent.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#grizabella.core.query_models.QueryComponent.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id19">
+<span class="sig-name descname"><span class="pre">object_type_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id19" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id20">
+<span class="sig-name descname"><span class="pre">relational_filters</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#grizabella.core.query_models.RelationalFilter" title="grizabella.core.query_models.RelationalFilter"><span class="pre">RelationalFilter</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id20" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="grizabella.core.query_models.QueryResult">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grizabella.core.query_models.</span></span><span class="sig-name descname"><span class="pre">QueryResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">object_instances:</span> <span class="pre">~typing.List[~grizabella.core.models.ObjectInstance]</span> <span class="pre">=</span> <span class="pre">&lt;factory&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">errors:</span> <span class="pre">~typing.List[str]</span> <span class="pre">|</span> <span class="pre">None</span> <span class="pre">=</span> <span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grizabella/core/query_models.html#QueryResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.core.query_models.QueryResult" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Represents the result of a complex query execution.</p>
+<p>This model encapsulates the <cite>ObjectInstance`s that match the criteria
+of a `ComplexQuery</cite>, along with any errors that may have occurred during
+the query planning or execution process.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.QueryResult.object_instances">
+<span class="sig-name descname"><span class="pre">object_instances</span></span><a class="headerlink" href="#grizabella.core.query_models.QueryResult.object_instances" title="Link to this definition"></a></dt>
+<dd><p>A list of <cite>ObjectInstance`s
+that satisfy all conditions of the `ComplexQuery</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[<a class="reference internal" href="core_models.html#grizabella.core.models.ObjectInstance" title="grizabella.core.models.ObjectInstance">ObjectInstance</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.QueryResult.errors">
+<span class="sig-name descname"><span class="pre">errors</span></span><a class="headerlink" href="#grizabella.core.query_models.QueryResult.errors" title="Link to this definition"></a></dt>
+<dd><p>A list of error messages encountered
+during the execution of the query. If the query was successful,
+this will be None or an empty list.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[List[str]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id21">
+<span class="sig-name descname"><span class="pre">errors</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#id21" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.QueryResult.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#grizabella.core.query_models.QueryResult.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id22">
+<span class="sig-name descname"><span class="pre">object_instances</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="core_models.html#grizabella.core.models.ObjectInstance" title="grizabella.core.models.ObjectInstance"><span class="pre">ObjectInstance</span></a><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id22" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="grizabella.core.query_models.RelationalFilter">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">grizabella.core.query_models.</span></span><span class="sig-name descname"><span class="pre">RelationalFilter</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">property_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">operator</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'=='</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'!='</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'&gt;'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'&lt;'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'&gt;='</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'&lt;='</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'LIKE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'IN'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'CONTAINS'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'STARTSWITH'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'ENDSWITH'</span></span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/grizabella/core/query_models.html#RelationalFilter"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#grizabella.core.query_models.RelationalFilter" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<p>Defines a filter condition based on an object’s property value.</p>
+<p>This model is used within <cite>QueryComponent</cite> and <cite>GraphTraversalClause</cite>
+to specify conditions for filtering objects based on their properties.
+It allows for various comparison operators against a given value.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.RelationalFilter.property_name">
+<span class="sig-name descname"><span class="pre">property_name</span></span><a class="headerlink" href="#grizabella.core.query_models.RelationalFilter.property_name" title="Link to this definition"></a></dt>
+<dd><p>The name of the property on which to apply the filter.
+This must match a property defined in the relevant <cite>ObjectTypeDefinition</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.RelationalFilter.operator">
+<span class="sig-name descname"><span class="pre">operator</span></span><a class="headerlink" href="#grizabella.core.query_models.RelationalFilter.operator" title="Link to this definition"></a></dt>
+<dd><p>The comparison operator to use. Supported operators
+include “==”, “!=”, “&gt;”, “&lt;”, “&gt;=”, “&lt;=”, “LIKE”, “IN”, “CONTAINS”,
+“STARTSWITH”, and “ENDSWITH”.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Literal</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.RelationalFilter.value">
+<span class="sig-name descname"><span class="pre">value</span></span><a class="headerlink" href="#grizabella.core.query_models.RelationalFilter.value" title="Link to this definition"></a></dt>
+<dd><p>The value to compare the property against. The type of this
+value should be compatible with the data type of the specified property.
+For “IN” operator, this should be a list of values.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Any</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="grizabella.core.query_models.RelationalFilter.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#grizabella.core.query_models.RelationalFilter.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id23">
+<span class="sig-name descname"><span class="pre">operator</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'=='</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'!='</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'&gt;'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'&lt;'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'&gt;='</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'&lt;='</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'LIKE'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'IN'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'CONTAINS'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'STARTSWITH'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'ENDSWITH'</span></span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#id23" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id24">
+<span class="sig-name descname"><span class="pre">property_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id24" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="id25">
+<span class="sig-name descname"><span class="pre">value</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Any</span></em><a class="headerlink" href="#id25" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="core_models.html" class="btn btn-neutral float-left" title="Core Models" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="core_exceptions.html" class="btn btn-neutral float-right" title="Core Exceptions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Grizabella Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

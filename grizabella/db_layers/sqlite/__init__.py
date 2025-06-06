@@ -1,0 +1,1 @@
+# Grizabella SQLite adapter module

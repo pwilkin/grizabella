@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>grizabella.api.client &mdash; Grizabella API 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="../../../_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+        <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="../../../_static/documentation_options.js?v=01f34227"></script>
+        <script src="../../../_static/doctools.js?v=9a2dae69"></script>
+        <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Grizabella API
+          </a>
+              <div class="version">
+                0.1.0
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../api_client.html">API Client</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_models.html">Core Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_query_models.html">Core Query Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_exceptions.html">Core Exceptions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_db_manager.html">Core DB Manager</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../core_query_engine.html">Core Query Engine</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Grizabella API</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">grizabella.api.client</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for grizabella.api.client</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span><span class="w"> </span><span class="nn">uuid</span> <span class="c1"># Added import</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.core.db_manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">GrizabellaDBManager</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.core.models</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ObjectTypeDefinition</span><span class="p">,</span>
+    <span class="n">ObjectInstance</span><span class="p">,</span>
+    <span class="n">RelationTypeDefinition</span><span class="p">,</span>
+    <span class="n">RelationInstance</span><span class="p">,</span>
+    <span class="n">EmbeddingDefinition</span><span class="p">,</span> <span class="c1"># Added import</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">grizabella.core.query_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">ComplexQuery</span><span class="p">,</span> <span class="n">QueryResult</span>
+<span class="c1"># Assuming custom exceptions are defined here, though not strictly needed for delegation</span>
+<span class="c1"># from grizabella.core.exceptions import GrizabellaException</span>
+
+
+<div class="viewcode-block" id="Grizabella">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">Grizabella</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Public API for interacting with the Grizabella data store.</span>
+
+<span class="sd">    This class provides a high-level interface to manage and query data</span>
+<span class="sd">    within a Grizabella database instance. It handles connection management,</span>
+<span class="sd">    schema operations (object and relation types), data manipulation (objects</span>
+<span class="sd">    and relations), embedding definitions, and complex queries.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        _db_manager (GrizabellaDBManager): An instance of the database manager</span>
+<span class="sd">            responsible for lower-level database interactions.</span>
+<span class="sd">        _is_connected (bool): Tracks the connection state to the database.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">db_name_or_path</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span><span class="p">,</span>
+        <span class="n">create_if_not_exists</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the Grizabella API client.</span>
+
+<span class="sd">        Sets up the connection to the specified Grizabella database. If the</span>
+<span class="sd">        database does not exist and `create_if_not_exists` is True, it will</span>
+<span class="sd">        be created.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            db_name_or_path (Union[str, Path]): The name of the database or</span>
+<span class="sd">                the file system path to the database directory.</span>
+<span class="sd">                Defaults to &quot;default&quot;.</span>
+<span class="sd">            create_if_not_exists (bool): If True, the database will be</span>
+<span class="sd">                created if it does not already exist. Defaults to True.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span> <span class="o">=</span> <span class="n">GrizabellaDBManager</span><span class="p">(</span>
+            <span class="n">db_name_or_path</span><span class="o">=</span><span class="n">db_name_or_path</span><span class="p">,</span>
+            <span class="n">create_if_not_exists</span><span class="o">=</span><span class="n">create_if_not_exists</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_is_connected</span> <span class="o">=</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="Grizabella.connect">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.connect">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Connects to the underlying Grizabella database.</span>
+
+<span class="sd">        Establishes a connection to the database if not already connected.</span>
+<span class="sd">        This method is typically called automatically when using the client</span>
+<span class="sd">        as a context manager or before performing database operations if</span>
+<span class="sd">        the connection was previously closed.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            GrizabellaException: If there is an error connecting to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_connected</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_is_connected</span> <span class="o">=</span> <span class="kc">True</span></div>
+
+
+<div class="viewcode-block" id="Grizabella.close">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.close">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Closes the connection to the underlying Grizabella database.</span>
+
+<span class="sd">        Releases any resources held by the database connection. It&#39;s important</span>
+<span class="sd">        to close the connection when it&#39;s no longer needed, especially if not</span>
+<span class="sd">        using the client as a context manager.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            GrizabellaException: If there is an error closing the database connection.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_connected</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_is_connected</span> <span class="o">=</span> <span class="kc">False</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Grizabella&quot;</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Context manager entry point. Connects to the database.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Grizabella: The Grizabella API client instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__exit__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">exc_type</span><span class="p">,</span> <span class="n">exc_val</span><span class="p">,</span> <span class="n">exc_tb</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Context manager exit point. Closes the database connection.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            exc_type: The type of the exception, if any.</span>
+<span class="sd">            exc_val: The exception instance, if any.</span>
+<span class="sd">            exc_tb: The traceback object, if any.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="c1"># --- Schema Management ---</span>
+<div class="viewcode-block" id="Grizabella.create_object_type">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.create_object_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_object_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_type_def</span><span class="p">:</span> <span class="n">ObjectTypeDefinition</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a new object type in the database.</span>
+
+<span class="sd">        Object types define the schema for a category of objects, similar to</span>
+<span class="sd">        tables in a relational database or node labels in a graph database.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            object_type_def (ObjectTypeDefinition): The definition of the</span>
+<span class="sd">                object type to create, including its name and properties.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            GrizabellaException: If the object type already exists or if there</span>
+<span class="sd">                is an error during creation.</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">add_object_type_definition</span><span class="p">(</span><span class="n">object_type_def</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Grizabella.get_object_type_definition">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.get_object_type_definition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_object_type_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ObjectTypeDefinition</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves the definition of an object type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            type_name (str): The name of the object type to retrieve.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Optional[ObjectTypeDefinition]: The definition of the object type</span>
+<span class="sd">            if found, otherwise None.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">get_object_type_definition</span><span class="p">(</span><span class="n">type_name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Grizabella.list_object_types">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.list_object_types">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list_object_types</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ObjectTypeDefinition</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lists all defined object types in the database.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[ObjectTypeDefinition]: A list of all object type definitions.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_connected</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="c1"># Ensure connection</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">list_object_type_definitions</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Grizabella.delete_object_type">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.delete_object_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_object_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes an object type from the database.</span>
+
+<span class="sd">        Warning: This operation may also delete all associated object instances</span>
+<span class="sd">        and relations, depending on the underlying database implementation and</span>
+<span class="sd">        cascade rules.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            type_name (str): The name of the object type to delete.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            GrizabellaException: If the object type does not exist or if there</span>
+<span class="sd">                is an error during deletion.</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">remove_object_type_definition</span><span class="p">(</span><span class="n">type_name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Grizabella.create_relation_type">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.create_relation_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_relation_type</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">relation_type_def</span><span class="p">:</span> <span class="n">RelationTypeDefinition</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a new relation type in the database.</span>
+
+<span class="sd">        Relation types define the schema for relationships between objects,</span>
+<span class="sd">        including the source and target object types and any properties of</span>
+<span class="sd">        the relation itself.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            relation_type_def (RelationTypeDefinition): The definition of the</span>
+<span class="sd">                relation type to create.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            GrizabellaException: If the relation type already exists or if</span>
+<span class="sd">                there is an error during creation.</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">add_relation_type_definition</span><span class="p">(</span><span class="n">relation_type_def</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Grizabella.get_relation_type">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.get_relation_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_relation_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">RelationTypeDefinition</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves the definition of a relation type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            type_name (str): The name of the relation type to retrieve.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Optional[RelationTypeDefinition]: The definition of the relation</span>
+<span class="sd">            type if found, otherwise None.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">get_relation_type_definition</span><span class="p">(</span><span class="n">type_name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Grizabella.delete_relation_type">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.delete_relation_type">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_relation_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes a relation type from the database.</span>
+
+<span class="sd">        Warning: This operation may also delete all associated relation instances,</span>
+<span class="sd">        depending on the underlying database implementation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            type_name (str): The name of the relation type to delete.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            GrizabellaException: If the relation type does not exist or if</span>
+<span class="sd">                there is an error during deletion.</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">remove_relation_type_definition</span><span class="p">(</span><span class="n">type_name</span><span class="p">)</span></div>
+
+
+    <span class="c1"># --- Data Management (Objects) ---</span>
+<div class="viewcode-block" id="Grizabella.upsert_object">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.upsert_object">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">upsert_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">:</span> <span class="n">ObjectInstance</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ObjectInstance</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a new object or updates an existing one.</span>
+
+<span class="sd">        If an object with the same ID already exists, it will be updated</span>
+<span class="sd">        with the properties from the provided `ObjectInstance`. Otherwise, a</span>
+<span class="sd">        new object will be created.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            obj (ObjectInstance): The object instance to create or update.</span>
+<span class="sd">                It must include the object type name and its properties.</span>
+<span class="sd">                The `id` field can be provided for updates or will be</span>
+<span class="sd">                generated for new objects if not supplied.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            ObjectInstance: The created or updated object instance, potentially</span>
+<span class="sd">            with a newly assigned ID or updated timestamps.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            GrizabellaException: If the object type does not exist or if there</span>
+<span class="sd">                is an error during the upsert operation.</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">upsert_object_instance</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Grizabella.get_object_by_id">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.get_object_by_id">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_object_by_id</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">object_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ObjectInstance</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves an object by its ID and type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            object_id (str): The unique identifier of the object.</span>
+<span class="sd">            type_name (str): The name of the object type.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Optional[ObjectInstance]: The object instance if found,</span>
+<span class="sd">            otherwise None.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            GrizabellaException: If the object type does not exist or if there</span>
+<span class="sd">                is an error during retrieval.</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">get_object_instance</span><span class="p">(</span><span class="n">object_type_name</span><span class="o">=</span><span class="n">type_name</span><span class="p">,</span> <span class="n">instance_id</span><span class="o">=</span><span class="n">object_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Grizabella.delete_object">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.delete_object">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_object</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">object_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes an object by its ID and type.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            object_id (str): The unique identifier of the object to delete.</span>
+<span class="sd">            type_name (str): The name of the object type.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if the object was successfully deleted, False otherwise</span>
+<span class="sd">            (e.g., if the object was not found).</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            GrizabellaException: If the object type does not exist or if there</span>
+<span class="sd">                is an error during deletion.</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">delete_object_instance</span><span class="p">(</span><span class="n">object_type_name</span><span class="o">=</span><span class="n">type_name</span><span class="p">,</span> <span class="n">instance_id</span><span class="o">=</span><span class="n">object_id</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Grizabella.find_objects">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.find_objects">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">find_objects</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">filter_criteria</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">ObjectInstance</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Finds objects of a given type, optionally matching filter criteria.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            type_name (str): The name of the object type to search for.</span>
+<span class="sd">            filter_criteria (Optional[Dict[str, Any]]): A dictionary where</span>
+<span class="sd">                keys are property names and values are the values to filter by.</span>
+<span class="sd">                Only objects matching all criteria will be returned.</span>
+<span class="sd">                Defaults to None (no filtering).</span>
+<span class="sd">            limit (Optional[int]): The maximum number of objects to return.</span>
+<span class="sd">                Defaults to None (no limit).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[ObjectInstance]: A list of object instances matching the</span>
+<span class="sd">            criteria.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            GrizabellaException: If the object type does not exist or if there</span>
+<span class="sd">                is an error during the search.</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">query_object_instances</span><span class="p">(</span><span class="n">type_name</span><span class="p">,</span> <span class="n">conditions</span><span class="o">=</span><span class="n">filter_criteria</span> <span class="ow">or</span> <span class="p">{},</span> <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">)</span></div>
+
+
+    <span class="c1"># --- Data Management (Relations) ---</span>
+<div class="viewcode-block" id="Grizabella.add_relation">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.add_relation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">add_relation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">relation</span><span class="p">:</span> <span class="n">RelationInstance</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RelationInstance</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Adds a new relation instance between two objects.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            relation (RelationInstance): The relation instance to add. It must</span>
+<span class="sd">                specify the relation type name, source object ID, target</span>
+<span class="sd">                object ID, and any properties of the relation.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            RelationInstance: The added relation instance, potentially with a</span>
+<span class="sd">            newly assigned ID or updated timestamps.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            GrizabellaException: If the relation type or involved objects do</span>
+<span class="sd">                not exist, or if there is an error during creation.</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">add_relation_instance</span><span class="p">(</span><span class="n">relation</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Grizabella.get_relation">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.get_relation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_relation</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">from_object_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">to_object_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">relation_type_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">RelationInstance</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves a specific relation instance between two objects.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            This method&#39;s current implementation in the client API differs</span>
+<span class="sd">            from the underlying `GrizabellaDBManager` which expects a</span>
+<span class="sd">            `relation_id`. This method currently raises `NotImplementedError`</span>
+<span class="sd">            and requires rework to correctly map to the DBManager&#39;s capabilities</span>
+<span class="sd">            or a change in the client API signature.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            from_object_id (str): The ID of the source object of the relation.</span>
+<span class="sd">            to_object_id (str): The ID of the target object of the relation.</span>
+<span class="sd">            relation_type_name (str): The name of the relation type.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Optional[RelationInstance]: The relation instance if found,</span>
+<span class="sd">            otherwise None.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: This method is not yet fully implemented to</span>
+<span class="sd">                align with the DBManager&#39;s `get_relation_instance` method.</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># This method in GrizabellaDBManager is get_relation_instance(relation_type_name, relation_id)</span>
+        <span class="c1"># This client method&#39;s signature is significantly different and cannot be directly mapped</span>
+        <span class="c1"># without more information on how to derive relation_id or change the client API.</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;get_relation client method needs rework to match DBManager&#39;s &quot;</span>
+            <span class="s2">&quot;get_relation_instance(relation_type_name, relation_id) signature.&quot;</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Grizabella.delete_relation">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.delete_relation">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_relation</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">from_object_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">to_object_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">relation_type_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes a specific relation instance between two objects.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            Similar to `get_relation`, this method&#39;s signature differs from</span>
+<span class="sd">            the underlying `GrizabellaDBManager` which expects a `relation_id`</span>
+<span class="sd">            for deletion. This method currently raises `NotImplementedError`.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            from_object_id (str): The ID of the source object of the relation.</span>
+<span class="sd">            to_object_id (str): The ID of the target object of the relation.</span>
+<span class="sd">            relation_type_name (str): The name of the relation type.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if the relation was successfully deleted, False otherwise.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: This method is not yet fully implemented to</span>
+<span class="sd">                align with the DBManager&#39;s `delete_relation_instance` method.</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># Similar to get_relation, this needs a relation_id for GrizabellaDBManager.delete_relation_instance</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;delete_relation client method needs rework to match DBManager&#39;s &quot;</span>
+            <span class="s2">&quot;delete_relation_instance(relation_type_name, relation_id) signature.&quot;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Grizabella.get_outgoing_relations">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.get_outgoing_relations">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_outgoing_relations</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">object_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">relation_type_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">RelationInstance</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves all outgoing relations from a given object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            object_id (str): The ID of the source object.</span>
+<span class="sd">            type_name (str): The type name of the source object. (Note: This</span>
+<span class="sd">                parameter is not directly used by the underlying DBManager&#39;s</span>
+<span class="sd">                `find_relation_instances` for this specific query but is kept</span>
+<span class="sd">                for API consistency or future use).</span>
+<span class="sd">            relation_type_name (Optional[str]): If provided, filters relations</span>
+<span class="sd">                by this specific relation type name. Defaults to None (no filter).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[RelationInstance]: A list of outgoing relation instances.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            GrizabellaException: If there is an error during retrieval.</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">            ValueError: If `object_id` is not a valid UUID string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_connected</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="c1"># Ensure connection</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">source_uuid</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">object_id</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># It&#39;s generally better to let exceptions propagate or handle them more specifically.</span>
+            <span class="c1"># For now, re-raising to make it clear to the caller.</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid UUID string for source_object_id: </span><span class="si">{</span><span class="n">object_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+            
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">find_relation_instances</span><span class="p">(</span>
+            <span class="n">relation_type_name</span><span class="o">=</span><span class="n">relation_type_name</span><span class="p">,</span>
+            <span class="n">source_object_id</span><span class="o">=</span><span class="n">source_uuid</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Grizabella.get_incoming_relations">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.get_incoming_relations">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_incoming_relations</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">object_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">relation_type_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">RelationInstance</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves all incoming relations to a given object.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            object_id (str): The ID of the target object.</span>
+<span class="sd">            type_name (str): The type name of the target object. (Note: This</span>
+<span class="sd">                parameter is not directly used by the underlying DBManager&#39;s</span>
+<span class="sd">                `find_relation_instances` for this specific query but is kept</span>
+<span class="sd">                for API consistency or future use).</span>
+<span class="sd">            relation_type_name (Optional[str]): If provided, filters relations</span>
+<span class="sd">                by this specific relation type name. Defaults to None (no filter).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[RelationInstance]: A list of incoming relation instances.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            GrizabellaException: If there is an error during retrieval.</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">            ValueError: If `object_id` is not a valid UUID string.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_connected</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="c1"># Ensure connection</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">target_uuid</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">UUID</span><span class="p">(</span><span class="n">object_id</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid UUID string for target_object_id: </span><span class="si">{</span><span class="n">object_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">find_relation_instances</span><span class="p">(</span>
+            <span class="n">relation_type_name</span><span class="o">=</span><span class="n">relation_type_name</span><span class="p">,</span>
+            <span class="n">target_object_id</span><span class="o">=</span><span class="n">target_uuid</span>
+        <span class="p">)</span></div>
+
+
+    <span class="c1"># --- Embedding Definition Management ---</span>
+<div class="viewcode-block" id="Grizabella.create_embedding_definition">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.create_embedding_definition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_embedding_definition</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">embedding_def</span><span class="p">:</span> <span class="n">EmbeddingDefinition</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EmbeddingDefinition</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a new embedding definition.</span>
+
+<span class="sd">        Embedding definitions specify how embeddings should be generated and</span>
+<span class="sd">        stored for objects of a particular type or for specific properties.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            embedding_def (EmbeddingDefinition): The definition of the</span>
+<span class="sd">                embedding to create, including its name, model details,</span>
+<span class="sd">                and associated object type or properties.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            EmbeddingDefinition: The created embedding definition.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            GrizabellaException: If an embedding definition with the same name</span>
+<span class="sd">                already exists or if there is an error during creation.</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_connected</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">add_embedding_definition</span><span class="p">(</span><span class="n">embedding_def</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">embedding_def</span></div>
+
+
+<div class="viewcode-block" id="Grizabella.get_embedding_definition">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.get_embedding_definition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">get_embedding_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="n">EmbeddingDefinition</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Retrieves an embedding definition by its name.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): The name of the embedding definition to retrieve.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            Optional[EmbeddingDefinition]: The embedding definition if found,</span>
+<span class="sd">            otherwise None.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_connected</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">get_embedding_definition</span><span class="p">(</span><span class="n">name</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="Grizabella.list_embedding_definitions">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.list_embedding_definitions">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">list_embedding_definitions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">EmbeddingDefinition</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Lists all embedding definitions in the database.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[EmbeddingDefinition]: A list of all embedding definitions.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_connected</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">list_embedding_definitions</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Grizabella.delete_embedding_definition">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.delete_embedding_definition">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">delete_embedding_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Deletes an embedding definition.</span>
+
+<span class="sd">        Warning: This may also delete associated embedding vectors from the</span>
+<span class="sd">        vector store, depending on the implementation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            name (str): The name of the embedding definition to delete.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            bool: True if the definition was successfully deleted, False</span>
+<span class="sd">            otherwise (e.g., if not found).</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            GrizabellaException: If there is an error during deletion.</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_connected</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">remove_embedding_definition</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">persist</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+    <span class="c1"># --- Querying (Example: Embedding Search) ---</span>
+<div class="viewcode-block" id="Grizabella.search_similar_objects">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.search_similar_objects">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">search_similar_objects</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">object_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">n_results</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+        <span class="n">search_properties</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="n">ObjectInstance</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Searches for objects similar to a given object, typically using embeddings.</span>
+
+<span class="sd">        Note:</span>
+<span class="sd">            This client method&#39;s signature and implementation currently differ</span>
+<span class="sd">            significantly from the underlying DBManager&#39;s</span>
+<span class="sd">            `find_similar_objects_by_embedding`. It requires a specific</span>
+<span class="sd">            embedding definition name and a query vector or text. This method</span>
+<span class="sd">            currently raises `NotImplementedError` and needs substantial rework</span>
+<span class="sd">            to correctly map the client API parameters (like `object_id`,</span>
+<span class="sd">            `type_name`, `search_properties`) to the DBManager&#39;s requirements.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            object_id (str): The ID of the object to find similar items for,</span>
+<span class="sd">                or potentially text to embed for the query. (Needs clarification).</span>
+<span class="sd">            type_name (str): The type name of the object, which might imply</span>
+<span class="sd">                an embedding definition. (Needs clarification).</span>
+<span class="sd">            n_results (int): The number of similar results to return.</span>
+<span class="sd">                Defaults to 5.</span>
+<span class="sd">            search_properties (Optional[List[str]]): Potentially a list of</span>
+<span class="sd">                properties to consider for similarity, or to identify the</span>
+<span class="sd">                embedding definition. (Needs clarification).</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            List[Tuple[ObjectInstance, float]]: A list of tuples, where each</span>
+<span class="sd">            tuple contains a similar `ObjectInstance` and its similarity score.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotImplementedError: This method is not yet fully implemented to</span>
+<span class="sd">                align with the DBManager&#39;s embedding search capabilities.</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_connected</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+        
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+            <span class="s2">&quot;search_similar_objects client method needs significant rework to map &quot;</span>
+            <span class="s2">&quot;its parameters (object_id, type_name, search_properties) to the &quot;</span>
+            <span class="s2">&quot;DBManager&#39;s find_similar_objects_by_embedding requirements &quot;</span>
+            <span class="s2">&quot;(embedding_definition_name, query_vector/text, etc.).&quot;</span>
+        <span class="p">)</span></div>
+
+
+
+    <span class="c1"># --- Complex Querying ---</span>
+<div class="viewcode-block" id="Grizabella.execute_complex_query">
+<a class="viewcode-back" href="../../../api_client.html#grizabella.api.client.Grizabella.execute_complex_query">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">execute_complex_query</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">:</span> <span class="n">ComplexQuery</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">QueryResult</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Executes a complex query spanning multiple database layers.</span>
+
+<span class="sd">        Complex queries allow for sophisticated search patterns, including</span>
+<span class="sd">        graph traversals, relational filters, and embedding-based searches,</span>
+<span class="sd">        combined into a single query operation.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            query (ComplexQuery): A `ComplexQuery` object defining the</span>
+<span class="sd">                components of the search, such as graph traversals,</span>
+<span class="sd">                relational filters, and embedding searches.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            QueryResult: A `QueryResult` object containing a list of matching</span>
+<span class="sd">            `ObjectInstance`s and a list of any errors encountered during</span>
+<span class="sd">            query processing.</span>
+
+<span class="sd">        Raises:</span>
+<span class="sd">            NotConnectedError: If the client is not connected to the database.</span>
+<span class="sd">            GrizabellaException: If there is an error during query planning</span>
+<span class="sd">                or execution.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_connected</span><span class="p">:</span>
+            <span class="c1"># Consider raising a specific exception like NotConnectedError</span>
+            <span class="c1"># For now, returning an error in QueryResult to match previous behavior.</span>
+            <span class="c1"># A better approach might be:</span>
+            <span class="c1"># from grizabella.core.exceptions import NotConnectedError</span>
+            <span class="c1"># raise NotConnectedError(&quot;Database not connected.&quot;)</span>
+            <span class="k">return</span> <span class="n">QueryResult</span><span class="p">(</span><span class="n">object_instances</span><span class="o">=</span><span class="p">[],</span> <span class="n">errors</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Database not connected.&quot;</span><span class="p">])</span>
+        
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="p">,</span> <span class="s1">&#39;process_complex_query&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">process_complex_query</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># This indicates a missing implementation in the DBManager,</span>
+            <span class="c1"># which is a development-time issue.</span>
+            <span class="c1"># Raising NotImplementedError is more appropriate here.</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;GrizabellaDBManager.process_complex_query not yet implemented.&quot;</span>
+            <span class="p">)</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Grizabella Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,58 @@
+[tool.poetry]
+name = "grizabella"
+version = "0.1.0-beta.1"
+description = "A tri-layer memory framework for LLM solutions."
+authors = ["Grizabella Project Contributors <contributors@example.com>"]
+readme = "README.md"
+license = "MIT"
+homepage = "https://github.com/example/grizabella"
+repository = "https://github.com/example/grizabella"
+documentation = "https://example.github.io/grizabella"
+keywords = ["python", "llm", "memory", "vector-database", "graph-database", "sqlite", "lancedb", "kuzu", "pyside6", "sentence-transformers", "fastmcp", "ai", "multi-modal"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Database",
+]
+packages = [{include = "grizabella"}]
+
+[tool.poetry.dependencies]
+python = ">=3.10, <3.14" # Specify a compatible Python version
+pydantic = "^2.11.5" # Add pydantic
+lancedb = ">=0.22.1, <0.23.0"
+sentence-transformers = "^3.0.0"
+kuzu = "^0.10.0"
+pandas = "^2.0.0" # Added for Kuzu adapter query result handling
+fastmcp = "^0.2.0"
+PySide6 = "^6.7.0"
+optimum = "^1.25.3"
+qt_material = "^2.14"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2.0"
+pylint = "^3.3.7" # Or your desired version
+# Add other dev dependencies here if needed
+mkdocs = "^1.6.0"
+mkdocs-material = "^9.5.0"
+sphinx = "^7.3.0"
+sphinx-rtd-theme = "^2.0.0"
+
+[tool.poetry.scripts]
+grizabella-ui = "grizabella.ui.app:main"
+grizabella-mcp = "grizabella.mcp.server:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+line-length = 240
+
