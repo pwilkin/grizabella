@@ -5,9 +5,9 @@ description = "A tri-layer memory framework for LLM solutions."
 authors = ["Grizabella Project Contributors <contributors@example.com>"]
 readme = "README.md"
 license = "MIT"
-homepage = "https://github.com/example/grizabella"
-repository = "https://github.com/example/grizabella"
-documentation = "https://example.github.io/grizabella"
+homepage = "https://github.com/pwilkin/grizabella"
+repository = "https://github.com/pwilkin/grizabella"
+documentation = "https://pwilkin.github.io/grizabella"
 keywords = ["python", "llm", "memory", "vector-database", "graph-database", "sqlite", "lancedb", "kuzu", "pyside6", "sentence-transformers", "fastmcp", "ai", "multi-modal"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -56,4 +56,3 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.ruff]
 line-length = 240
-
