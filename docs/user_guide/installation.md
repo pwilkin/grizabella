@@ -21,7 +21,7 @@ If you want to use the latest development version or contribute to Grizabella, y
 1. **Clone the repository:**
 
     ```bash
-    git clone https://github.com/example/grizabella.git
+    git clone https://github.com/pwilkin/grizabella.git
     cd grizabella
     ```
 

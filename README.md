@@ -34,7 +34,7 @@ pip install grizabella
 For development:
 
 ```bash
-git clone https://github.com/example/grizabella.git
+git clone https://github.com/pwilkin/grizabella.git
 cd grizabella
 poetry install
 ```
