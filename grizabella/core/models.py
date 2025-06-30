@@ -200,6 +200,12 @@ class ObjectTypeDefinition(BaseModel):
         # If no explicit PK, 'id' from MemoryInstance will serve this role for ObjectInstance
         return v
 
+    # Workaround for FastMCP schema registration
+    model_config = ConfigDict(extra='allow')
+
+    # Workaround for FastMCP schema registration
+    model_config = ConfigDict(extra='allow')
+
 class EmbeddingDefinition(BaseModel):
     """Defines how an embedding should be generated and stored for an ``ObjectTypeDefinition``.
 
