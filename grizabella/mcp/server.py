@@ -61,6 +61,15 @@ def get_grizabella_db_path(db_path_arg: Optional[str] = None) -> Union[str, Path
 # --- MCP Application ---
 app = FastMCP("Grizabella")
 
+# Register all schema definitions
+app.add_schema_definitions({
+    "ObjectTypeDefinition": ObjectTypeDefinition.model_json_schema(),
+    "RelationTypeDefinition": RelationTypeDefinition.model_json_schema(),
+    "EmbeddingDefinition": EmbeddingDefinition.model_json_schema(),
+    "ObjectInstance": ObjectInstance.model_json_schema(),
+    "RelationInstance": RelationInstance.model_json_schema()
+})
+
 # --- Grizabella Client Singleton ---
 # This will be initialized in the main() function before the app runs.
 grizabella_client_instance: Optional[Grizabella] = None
