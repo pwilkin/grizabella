@@ -1,17 +1,14 @@
 """Internal helper classes for GrizabellaDBManager."""
 
 import logging
-import threading # For logging thread ID
+import threading  # For logging thread ID
 from datetime import datetime, timezone
-from typing import Any, Optional, TYPE_CHECKING
+from typing import Any, Optional
 from uuid import UUID
 
-# from grizabella.db_layers.kuzu.kuzu_adapter import KuzuAdapter # Moved to TYPE_CHECKING
+from grizabella.db_layers.kuzu.kuzu_adapter import KuzuAdapter
 from grizabella.db_layers.lancedb.lancedb_adapter import LanceDBAdapter
 from grizabella.db_layers.sqlite.sqlite_adapter import SQLiteAdapter
-
-if TYPE_CHECKING:
-    from grizabella.db_layers.kuzu.kuzu_adapter import KuzuAdapter
 
 from .exceptions import (
     ConfigurationError,
@@ -41,7 +38,7 @@ class _ConnectionHelper:  # pylint: disable=R0902
         kuzu_path_str: str,
         manager_logger: logging.Logger,
     ) -> None:
-        import threading # For logging thread ID
+        import threading  # For logging thread ID
         self._logger = manager_logger # Ensure logger is set first
         self._logger.info(f"_ConnectionHelper: Initializing in thread ID: {threading.get_ident()}")
         self.sqlite_db_file_path: str = sqlite_db_file_path_str
@@ -223,7 +220,7 @@ class _SchemaManager:
                 self._ensure_kuzu_schema_for_otd(otd) # New helper
             except Exception as e:
                 self._logger.error(f"_SchemaManager: Error ensuring Kuzu schema for loaded OTD '{otd.name}': {e}", exc_info=True)
-        
+
         for rtd in self._relation_type_definitions.values():
             try:
                 self._ensure_kuzu_schema_for_rtd(rtd) # New helper
@@ -409,7 +406,7 @@ class _SchemaManager:
                     ed.embedding_model,
                 )
                 # Try to get dimensions using ndims() first, common for LanceDB embedding functions
-                if hasattr(embedding_model_obj, 'ndims') and callable(embedding_model_obj.ndims):
+                if hasattr(embedding_model_obj, "ndims") and callable(embedding_model_obj.ndims):
                     try:
                         inferred_dims = embedding_model_obj.ndims()
                         if inferred_dims and isinstance(inferred_dims, int) and inferred_dims > 0:
@@ -434,19 +431,19 @@ class _SchemaManager:
                             ed.embedding_model,
                             e_ndims,
                         )
-                
+
                 if ed.dimensions is None: # If ndims() didn't work or wasn't available, try encoding a dummy string
                     self._logger.info(
                         "_SchemaManager: ED '%s' (model '%s') - ndims() did not yield dimension. Trying dummy string encoding.",
                         ed.name,
-                        ed.embedding_model
+                        ed.embedding_model,
                     )
                     try:
                         # Use compute_source_embeddings for TransformersEmbeddingFunction
                         dummy_embeddings = embedding_model_obj.compute_source_embeddings(["test"])
                         if isinstance(dummy_embeddings, list) and len(dummy_embeddings) > 0:
                             first_embedding = dummy_embeddings[0]
-                            if hasattr(first_embedding, 'shape') and len(first_embedding.shape) > 0: # numpy array
+                            if hasattr(first_embedding, "shape") and len(first_embedding.shape) > 0: # numpy array
                                 inferred_dims = first_embedding.shape[-1]
                             elif isinstance(first_embedding, list): # list of floats
                                 inferred_dims = len(first_embedding)
@@ -506,7 +503,7 @@ class _SchemaManager:
                     exc_info=True,
                 )
                 raise SchemaError(
-                    f"Failed to infer dimensions for ED '{ed.name}' due to EmbeddingError: {e_inf}"
+                    f"Failed to infer dimensions for ED '{ed.name}' due to EmbeddingError: {e_inf}",
                 ) from e_inf
             except Exception as e_gen: # pylint: disable=broad-except
                 self._logger.error(
@@ -516,7 +513,7 @@ class _SchemaManager:
                     exc_info=True,
                 )
                 raise SchemaError(
-                    f"Unexpected error during dimension inference for ED '{ed.name}': {e_gen}"
+                    f"Unexpected error during dimension inference for ED '{ed.name}': {e_gen}",
                 ) from e_gen
 
 
@@ -678,7 +675,7 @@ class _SchemaManager:
                     raise SchemaError(msg) from e_create_node
             else:
                 self._logger.debug(f"_SchemaManager: Kuzu node table for OTD '{ot_name}' already exists.")
-        
+
         # Now ensure the relation table itself exists
         try:
             # KuzuAdapter.create_rel_table should be idempotent or handle "already exists"
@@ -889,20 +886,20 @@ class _InstanceManager:
                         if not raw_embeddings_list:
                              self._logger.error(
                                 "Model '%s' for OI '%s' returned empty list for text: %s",
-                                ed_instance.embedding_model, instance.id, text_to_embed[:50]
+                                ed_instance.embedding_model, instance.id, text_to_embed[:50],
                             )
                              raise EmbeddingError(f"Model {ed_instance.embedding_model} returned empty list for text.")
-                        
+
                         raw_vector = raw_embeddings_list[0]
-                        
-                        if hasattr(raw_vector, 'tolist'): # Handles numpy array
+
+                        if hasattr(raw_vector, "tolist"): # Handles numpy array
                             vector = raw_vector.tolist()
                         elif isinstance(raw_vector, list):
                             vector = raw_vector
                         else:
                             self._logger.error(
                                 "Unexpected vector type from model '%s' for OI '%s': %s",
-                                ed_instance.embedding_model, instance.id, type(raw_vector)
+                                ed_instance.embedding_model, instance.id, type(raw_vector),
                             )
                             raise EmbeddingError(f"Unexpected vector type from model {ed_instance.embedding_model}")
 
@@ -1162,20 +1159,20 @@ class _InstanceManager:
                 if not raw_query_embeddings:
                     self._logger.error(
                         "Model '%s' for query text '%s' returned empty list.",
-                        ed_def.embedding_model, query_text[:50]
+                        ed_def.embedding_model, query_text[:50],
                     )
                     raise EmbeddingError(f"Model {ed_def.embedding_model} returned empty list for query text.")
 
                 raw_query_vector = raw_query_embeddings[0]
 
-                if hasattr(raw_query_vector, 'tolist'): # Handles numpy array
+                if hasattr(raw_query_vector, "tolist"): # Handles numpy array
                     final_query_vector = raw_query_vector.tolist()
                 elif isinstance(raw_query_vector, list):
                     final_query_vector = raw_query_vector
                 else:
                     self._logger.error(
                         "Unexpected query vector type from model '%s' for query text: %s",
-                        ed_def.embedding_model, type(raw_query_vector)
+                        ed_def.embedding_model, type(raw_query_vector),
                     )
                     raise EmbeddingError(f"Unexpected query vector type from model {ed_def.embedding_model}")
                 self._logger.debug(
@@ -1250,8 +1247,7 @@ class _InstanceManager:
 
     # --- Relation Instance Management ---
     def add_relation_instance(self, instance: RelationInstance) -> RelationInstance:
-        """
-        Upserts a relation instance.
+        """Upserts a relation instance.
 
         This method first validates the relation type and its source/target object types.
         It then ensures that the source and target object instances exist in Kuzu,
@@ -1269,12 +1265,13 @@ class _InstanceManager:
             SchemaError: If the relation type or related object types are not defined.
             InstanceError: If source or target objects cannot be found or ensured in Kuzu.
             DatabaseError: For other underlying database or processing errors.
+
         """
         self._logger.debug(
             f"_InstanceManager.add_relation_instance called with instance: {instance.id=}, "
             f"{instance.relation_type_name=}, {instance.source_object_instance_id=}, "
             f"{instance.target_object_instance_id=}, {instance.weight=}, "
-            f"{instance.upsert_date=}, properties: {instance.properties}"
+            f"{instance.upsert_date=}, properties: {instance.properties}",
         )
 
         rtd = self._schema_manager.get_relation_type_definition(
@@ -1321,7 +1318,7 @@ class _InstanceManager:
         # --- START: Ensure source and target objects exist in Kuzu ---
         self._logger.debug(f"Ensuring source object {instance.source_object_instance_id} (type {source_otd.name}) exists in Kuzu.")
         source_object_from_sqlite = self.get_object_instance(
-            source_otd.name, instance.source_object_instance_id
+            source_otd.name, instance.source_object_instance_id,
         )
         if source_object_from_sqlite:
             try:
@@ -1336,7 +1333,7 @@ class _InstanceManager:
 
         self._logger.debug(f"Ensuring target object {instance.target_object_instance_id} (type {target_otd.name}) exists in Kuzu.")
         target_object_from_sqlite = self.get_object_instance(
-            target_otd.name, instance.target_object_instance_id
+            target_otd.name, instance.target_object_instance_id,
         )
         if target_object_from_sqlite:
             try:

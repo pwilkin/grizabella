@@ -1,10 +1,10 @@
 """Dialog for creating and editing ObjectTypeDefinitions."""
 
-from typing import Optional, Any, TYPE_CHECKING # Added TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional  # Added TYPE_CHECKING
 
-from PySide6.QtCore import Qt, Signal, Slot # QThread removed
+from PySide6.QtCore import Qt, Signal, Slot  # QThread removed
 from PySide6.QtWidgets import (
-    QApplication, # Added
+    QApplication,  # Added
     QCheckBox,
     QComboBox,
     QDialog,
@@ -23,14 +23,13 @@ from PySide6.QtWidgets import (
 )
 
 from grizabella.api.client import Grizabella
-from grizabella.core.exceptions import SchemaError, DatabaseError
-
 from grizabella.core.models import (
     ObjectTypeDefinition,
     PropertyDataType,
     PropertyDefinition,
 )
-from grizabella.ui.threads.api_client_thread import ApiClientThread # Import new thread
+from grizabella.ui.threads.api_client_thread import ApiClientThread  # Import new thread
+
 # from grizabella.ui.main_window import MainWindow # For connecting signals <- REMOVED FOR CIRCULAR IMPORT
 
 if TYPE_CHECKING:
@@ -361,7 +360,7 @@ class ObjectTypeDialog(QDialog):
             self._active_api_thread = ApiClientThread(
                 "create_object_type", # Hardcoded for now as edit is not implemented
                 otd_model,            # otd_model for *args
-                parent=self
+                parent=self,
             )
             main_win = self._find_main_window()
             if main_win:
@@ -387,10 +386,8 @@ class ObjectTypeDialog(QDialog):
         # The 'create_object_type' API returns None. The success is implicit.
         # The 'result' here will be the otd_model we sent if ApiClientThread passes it through.
         # For now, let's assume result is the original otd_model or similar.
-        if isinstance(result, ObjectTypeDefinition):
+        if isinstance(result, ObjectTypeDefinition) or hasattr(result, "name"):
             created_otd_name = result.name
-        elif hasattr(result, 'name'): # Fallback if it's not strictly OTD but has name
-             created_otd_name = result.name
         else: # If API returns None or something else unexpected
             created_otd_name = self.name_edit.text().strip() # Use name from form as fallback
 
@@ -417,8 +414,8 @@ class ObjectTypeDialog(QDialog):
         if self._active_api_thread:
             self._active_api_thread.deleteLater()
             self._active_api_thread = None
-            
-    def _find_main_window(self) -> Optional['MainWindow']:
+
+    def _find_main_window(self) -> Optional["MainWindow"]:
         """Helper to find the MainWindow instance."""
         # Import MainWindow locally to break circular dependency
         from grizabella.ui.main_window import MainWindow
@@ -428,7 +425,7 @@ class ObjectTypeDialog(QDialog):
             if isinstance(parent, MainWindow):
                 return parent
             parent = parent.parent()
-        
+
         app_instance = QApplication.instance()
         if isinstance(app_instance, QApplication):
             active_window = app_instance.activeWindow()

@@ -1,9 +1,9 @@
 """Core Pydantic models for Grizabella schema definitions and instances."""
 from datetime import datetime, timezone
+from decimal import Decimal
 from enum import Enum  # Standard library import first
 from typing import Any, Optional
 from uuid import UUID, uuid4
-from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -201,10 +201,10 @@ class ObjectTypeDefinition(BaseModel):
         return v
 
     # Workaround for FastMCP schema registration
-    model_config = ConfigDict(extra='allow')
+    model_config = ConfigDict(extra="allow")
 
     # Workaround for FastMCP schema registration
-    model_config = ConfigDict(extra='allow')
+    model_config = ConfigDict(extra="allow")
 
 class EmbeddingDefinition(BaseModel):
     """Defines how an embedding should be generated and stored for an ``ObjectTypeDefinition``.
@@ -441,4 +441,5 @@ class RelationInstance(MemoryInstance):
 
 class RelationInstanceList(BaseModel):
     """A container for a list of RelationInstance objects."""
+
     relations: list[RelationInstance]

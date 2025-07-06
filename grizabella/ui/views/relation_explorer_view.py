@@ -1,18 +1,16 @@
 """View for exploring and managing Relation Instances in Grizabella."""
 import uuid
-from typing import Any, Optional, TYPE_CHECKING # Added TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional  # Added TYPE_CHECKING
 
-from PySide6.QtCore import QTimer, Slot, Signal # Added Signal
-from PySide6.QtWidgets import (QAbstractItemView, QApplication, QComboBox, QHBoxLayout, # Added QApplication
-                               QLabel, QLineEdit, QMessageBox, QPushButton,
-                               QTableView, QVBoxLayout, QWidget)
-
+from PySide6.QtCore import QTimer, Signal, Slot  # Added Signal
+from PySide6.QtWidgets import QAbstractItemView, QApplication, QComboBox, QHBoxLayout, QLabel, QLineEdit, QMessageBox, QPushButton, QTableView, QVBoxLayout, QWidget  # Added QApplication
 
 from grizabella.api.client import Grizabella
 from grizabella.core.models import RelationInstance, RelationTypeDefinition
 from grizabella.ui.dialogs.relation_instance_dialog import RelationInstanceDialog
 from grizabella.ui.models.relation_instance_table_model import RelationInstanceTableModel
-from grizabella.ui.threads.api_client_thread import ApiClientThread # Corrected import path
+from grizabella.ui.threads.api_client_thread import ApiClientThread  # Corrected import path
+
 # from grizabella.ui.main_window import MainWindow # For connecting signals <- REMOVED FOR CIRCULAR IMPORT
 
 if TYPE_CHECKING:
@@ -21,6 +19,7 @@ if TYPE_CHECKING:
 
 class RelationExplorerView(QWidget):
     """View for exploring and managing RelationInstances."""
+
     busy_signal = Signal(bool)
 
     def __init__(self, grizabella_client: Optional[Grizabella],
@@ -111,7 +110,7 @@ class RelationExplorerView(QWidget):
             # self.relation_type_combo.setEnabled(True) # Handled in _on_api_thread_finished or _handle_api_error
             self.busy_signal.emit(False)
             return
-        
+
         if self._active_api_thread and self._active_api_thread.isRunning():
             QMessageBox.information(self, "Busy", "An operation is already in progress. Please wait.")
             # self.relation_type_combo.setEnabled(True) # Handled by finished signal
@@ -120,9 +119,9 @@ class RelationExplorerView(QWidget):
 
         self._active_api_thread = ApiClientThread(
             operation_name="list_relation_types",
-            parent=self
+            parent=self,
         )
-        
+
         main_win = self._find_main_window()
         if main_win:
             self._active_api_thread.apiRequestReady.connect(main_win.handleApiRequest)
@@ -132,7 +131,7 @@ class RelationExplorerView(QWidget):
             self._active_api_thread = None
             self.busy_signal.emit(False)
             return
-            
+
         self._active_api_thread.result_ready.connect(self._handle_relation_types_loaded)
         self._active_api_thread.error_occurred.connect(self._handle_api_error)
         self._active_api_thread.finished.connect(self._on_api_thread_finished)
@@ -215,7 +214,7 @@ class RelationExplorerView(QWidget):
         self._active_api_thread = ApiClientThread(
             "query_relations", # operation_name passed positionally
             parent=self,       # parent as keyword argument
-            **query_params     # Spread query_params as keyword arguments
+            **query_params,     # Spread query_params as keyword arguments
         )
 
         main_win = self._find_main_window()
@@ -342,7 +341,7 @@ class RelationExplorerView(QWidget):
                 # Pass arguments as keyword arguments for the API call
                 relation_type_name=instance_to_delete.relation_type_name,
                 relation_id=instance_to_delete.id,
-                parent=self
+                parent=self,
             )
 
             main_win = self._find_main_window()
@@ -354,7 +353,7 @@ class RelationExplorerView(QWidget):
                 self._active_api_thread = None
                 self.busy_signal.emit(False)
                 return
-                
+
             self._active_api_thread.result_ready.connect(self._handle_delete_success)
             self._active_api_thread.error_occurred.connect(self._handle_api_error)
             self._active_api_thread.finished.connect(self._on_api_thread_finished)
@@ -396,7 +395,7 @@ class RelationExplorerView(QWidget):
             self._active_api_thread.deleteLater()
             self._active_api_thread = None
 
-    def _find_main_window(self) -> Optional['MainWindow']:
+    def _find_main_window(self) -> Optional["MainWindow"]:
         """Helper to find the MainWindow instance."""
         # Import MainWindow locally to break circular dependency
         from grizabella.ui.main_window import MainWindow
@@ -406,7 +405,7 @@ class RelationExplorerView(QWidget):
             if isinstance(parent, MainWindow):
                 return parent
             parent = parent.parent()
-        
+
         app_instance = QApplication.instance()
         if isinstance(app_instance, QApplication):
             active_window = app_instance.activeWindow()
@@ -435,11 +434,7 @@ class RelationExplorerView(QWidget):
         # Check if the client instance is actually different or has changed state (e.g. connected/disconnected)
         # For simplicity, we'll refresh if the client object itself changes or becomes (un)available.
         client_changed = False
-        if self.grizabella_client is None and client is not None:
-            client_changed = True
-        elif self.grizabella_client is not None and client is None:
-            client_changed = True
-        elif self.grizabella_client is not client: # Different instances
+        if (self.grizabella_client is None and client is not None) or (self.grizabella_client is not None and client is None) or self.grizabella_client is not client:
             client_changed = True
         # More sophisticated check: if self.grizabella_client and client and self.grizabella_client._is_connected != client._is_connected:
 

@@ -104,7 +104,7 @@ class EmbeddingSearchClause(BaseModel):
     is_l2_distance: bool = Field(
         default=False,
         description="If True, indicates that the threshold is for L2 distance (smaller is better) "
-                    "and the QueryEngine should not convert distance to cosine similarity."
+                    "and the QueryEngine should not convert distance to cosine similarity.",
     )
 
     # @field_validator('similar_to_object_id')
@@ -235,31 +235,34 @@ class QueryComponent(BaseModel):
 
 class LogicalOperator(str, Enum):
     """Defines the logical operators for combining query clauses."""
+
     AND = "AND"
     OR = "OR"
 
 
 class LogicalGroup(BaseModel):
     """Represents a group of query clauses combined by a single logical operator."""
+
     operator: LogicalOperator = Field(
         ...,
-        description="The logical operator (AND, OR) to apply to the clauses in this group."
+        description="The logical operator (AND, OR) to apply to the clauses in this group.",
     )
-    clauses: List['QueryClause'] = Field(
+    clauses: List["QueryClause"] = Field(
         ...,
-        description="A list of clauses to be combined. Clauses can be other LogicalGroups, NotClauses, or QueryComponents."
+        description="A list of clauses to be combined. Clauses can be other LogicalGroups, NotClauses, or QueryComponents.",
     )
 
 
 class NotClause(BaseModel):
     """Represents a logical NOT operation on a single query clause."""
-    clause: 'QueryClause' = Field(
+
+    clause: "QueryClause" = Field(
         ...,
-        description="The clause to be negated. Can be a LogicalGroup, another NotClause, or a QueryComponent."
+        description="The clause to be negated. Can be a LogicalGroup, another NotClause, or a QueryComponent.",
     )
 
 # A Union to represent any valid node in our query tree
-QueryClause = Union[LogicalGroup, NotClause, 'QueryComponent']
+QueryClause = Union[LogicalGroup, NotClause, "QueryComponent"]
 
 # Update the forward references in LogicalGroup and NotClause
 LogicalGroup.model_rebuild()
@@ -273,7 +276,7 @@ class ComplexQuery(BaseModel):
         default=None,
         description="Optional user-defined description for the query.",
     )
-    
+
     # The new field for the logical query structure
     query_root: Optional[QueryClause] = Field(
         default=None,
@@ -281,21 +284,21 @@ class ComplexQuery(BaseModel):
     )
 
     # The original field, kept for backward compatibility
-    components: Optional[List['QueryComponent']] = Field(
+    components: Optional[List["QueryComponent"]] = Field(
         default=None,
         description="[DEPRECATED] List of query components. Use 'query_root' for new queries.",
     )
 
-    @model_validator(mode='before')
+    @model_validator(mode="before")
     @classmethod
     def check_exclusive_fields(cls, values):
         """Ensure that either 'components' or 'query_root' is provided, but not both."""
-        components = values.get('components')
-        query_root = values.get('query_root')
+        components = values.get("components")
+        query_root = values.get("query_root")
 
         if components is not None and query_root is not None:
             raise ValueError("Cannot specify both 'components' and 'query_root'.")
-        
+
         if components is None and query_root is None:
             raise ValueError("Must specify either 'components' or 'query_root'.")
 
@@ -336,4 +339,5 @@ class QueryResult(BaseModel):
 
 class EmbeddingVector(BaseModel):
     """A container for a list of floats representing an embedding vector."""
+
     vector: list[float]

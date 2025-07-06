@@ -1,19 +1,31 @@
 """View for managing RelationTypeDefinitions."""
-import logging # Added
-from typing import TYPE_CHECKING, Optional, Any
+import logging  # Added
+from typing import TYPE_CHECKING, Any, Optional
 
-from PySide6.QtCore import Qt, Signal, Slot # Removed QThread
-from PySide6.QtWidgets import (QAbstractItemView, QApplication, QHBoxLayout, # Added QApplication
-                               QHeaderView, QLabel, QListWidget, QListWidgetItem,
-                               QMessageBox, QPushButton, QSplitter, QTableWidget,
-                               QTableWidgetItem, QTextBrowser, QVBoxLayout, QWidget)
-
+from PySide6.QtCore import Qt, Signal, Slot  # Removed QThread
+from PySide6.QtWidgets import (  # Added QApplication
+    QAbstractItemView,
+    QApplication,
+    QHBoxLayout,
+    QHeaderView,
+    QLabel,
+    QListWidget,
+    QListWidgetItem,
+    QMessageBox,
+    QPushButton,
+    QSplitter,
+    QTableWidget,
+    QTableWidgetItem,
+    QTextBrowser,
+    QVBoxLayout,
+    QWidget,
+)
 
 from grizabella.api.client import Grizabella
 from grizabella.core.models import PropertyDataType, PropertyDefinition, RelationTypeDefinition
-from grizabella.core.exceptions import DatabaseError, SchemaError
 from grizabella.ui.dialogs.relation_type_dialog import RelationTypeDialog
-from grizabella.ui.threads.api_client_thread import ApiClientThread # Import new thread
+from grizabella.ui.threads.api_client_thread import ApiClientThread  # Import new thread
+
 # from grizabella.ui.main_window import MainWindow # For connecting signals <- REMOVED FOR CIRCULAR IMPORT
 
 
@@ -23,6 +35,7 @@ if TYPE_CHECKING:
 
 class RelationTypeView(QWidget):
     """Widget for displaying and managing RelationTypeDefinitions."""
+
     busy_signal = Signal(bool)
 
     def __init__(self, grizabella_client: Optional[Grizabella] = None, parent=None) -> None:
@@ -150,11 +163,11 @@ class RelationTypeView(QWidget):
             self.list_widget.setEnabled(False)
             self._clear_details()
             # No active threads should exist if client is not set or disconnected
-            if self._active_list_rt_thread: 
-                self._active_list_rt_thread.deleteLater() 
+            if self._active_list_rt_thread:
+                self._active_list_rt_thread.deleteLater()
                 self._active_list_rt_thread = None
-            if self._active_delete_rt_thread: 
-                self._active_delete_rt_thread.deleteLater() 
+            if self._active_delete_rt_thread:
+                self._active_delete_rt_thread.deleteLater()
                 self._active_delete_rt_thread = None
 
 
@@ -188,7 +201,7 @@ class RelationTypeView(QWidget):
 
         self._active_list_rt_thread = ApiClientThread(
             operation_name="list_relation_types",
-            parent=self
+            parent=self,
         )
         main_win = self._find_main_window()
         if main_win:
@@ -202,7 +215,7 @@ class RelationTypeView(QWidget):
 
         self._active_list_rt_thread.result_ready.connect(self._handle_relation_types_loaded)
         self._active_list_rt_thread.error_occurred.connect(
-            lambda err_msg: self._handle_api_error("list_relation_types", err_msg)
+            lambda err_msg: self._handle_api_error("list_relation_types", err_msg),
         )
         self._active_list_rt_thread.finished.connect(self._on_list_rt_finished)
         self._active_list_rt_thread.start()
@@ -323,7 +336,7 @@ class RelationTypeView(QWidget):
             return
 
         rtd_to_edit: Optional[RelationTypeDefinition] = current_item.data(Qt.ItemDataRole.UserRole)
-        if not rtd_to_edit: 
+        if not rtd_to_edit:
             return
 
         # For now, just show a message. Full edit dialog would be similar to new but pre-filled.
@@ -369,7 +382,7 @@ class RelationTypeView(QWidget):
             self._active_delete_rt_thread = ApiClientThread(
                 "delete_relation_type", # operation_name passed positionally
                 rtd_to_delete.name,     # type_name for *args
-                parent=self
+                parent=self,
             )
             main_win = self._find_main_window()
             if main_win:
@@ -382,7 +395,7 @@ class RelationTypeView(QWidget):
 
             self._active_delete_rt_thread.result_ready.connect(self._handle_delete_success)
             self._active_delete_rt_thread.error_occurred.connect(
-                lambda err_msg: self._handle_api_error("delete_relation_type", err_msg)
+                lambda err_msg: self._handle_api_error("delete_relation_type", err_msg),
             )
             self._active_delete_rt_thread.finished.connect(self._on_delete_rt_finished)
             self._active_delete_rt_thread.start()
@@ -408,7 +421,7 @@ class RelationTypeView(QWidget):
             self._clear_details()
         elif operation_name == "delete_relation_type":
             title = "Delete Failed"
-        
+
         QMessageBox.critical(self, title, error_message)
         # Ensure UI is re-enabled by the finished signal of the thread
         self.busy_signal.emit(False) # Ensure busy is off
@@ -424,7 +437,7 @@ class RelationTypeView(QWidget):
             self._active_delete_rt_thread = None
         self._rtd_name_for_delete_success = None
 
-    def _find_main_window(self) -> Optional['MainWindow']:
+    def _find_main_window(self) -> Optional["MainWindow"]:
         """Helper to find the MainWindow instance."""
         # Import MainWindow locally to break circular dependency
         from grizabella.ui.main_window import MainWindow
@@ -434,7 +447,7 @@ class RelationTypeView(QWidget):
             if isinstance(parent, MainWindow):
                 return parent
             parent = parent.parent()
-        
+
         app_instance = QApplication.instance()
         if isinstance(app_instance, QApplication):
             active_window = app_instance.activeWindow()
@@ -447,7 +460,7 @@ class RelationTypeView(QWidget):
         self._logger.debug(f"RelationTypeView closeEvent triggered for {self}.")
         threads_to_manage = [
             ("_active_list_rt_thread", self._active_list_rt_thread),
-            ("_active_delete_rt_thread", self._active_delete_rt_thread)
+            ("_active_delete_rt_thread", self._active_delete_rt_thread),
         ]
         for name, thread_instance in threads_to_manage:
             if thread_instance and thread_instance.isRunning():
@@ -461,7 +474,7 @@ class RelationTypeView(QWidget):
                     self._logger.info(f"RelationTypeView: Worker thread '{name}' ({thread_instance}) finished.")
             elif thread_instance: # Exists but not running
                 thread_instance.deleteLater()
-        
+
         self._active_list_rt_thread = None
         self._active_delete_rt_thread = None
         super().closeEvent(event)

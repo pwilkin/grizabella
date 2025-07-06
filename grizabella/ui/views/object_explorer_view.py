@@ -1,12 +1,12 @@
 """QWidget for exploring Object Instances in Grizabella."""
 # Standard library imports
+import logging  # Added
 import sys
 import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
 from pathlib import Path
-from typing import Any, Optional, Union, TYPE_CHECKING # Added TYPE_CHECKING
-import logging # Added
+from typing import TYPE_CHECKING, Any, Optional, Union  # Added TYPE_CHECKING
 
 from PySide6.QtCore import QThread, Signal, Slot
 from PySide6.QtWidgets import (
@@ -31,12 +31,12 @@ from grizabella.core.models import (
     PropertyDefinition,
     RelationInstance,
 )
-from grizabella.core.exceptions import DatabaseError, SchemaError # Added DatabaseError, SchemaError
 from grizabella.ui.dialogs.object_instance_dialog import ObjectInstanceDialog
 
 # First-party imports
 from grizabella.ui.models.object_instance_table_model import ObjectInstanceTableModel
-from grizabella.ui.threads.api_client_thread import ApiClientThread # Import new thread
+from grizabella.ui.threads.api_client_thread import ApiClientThread  # Import new thread
+
 # from grizabella.ui.main_window import MainWindow # For connecting signals <- REMOVED FOR CIRCULAR IMPORT
 
 if TYPE_CHECKING:
@@ -116,12 +116,12 @@ class ObjectExplorerView(QWidget):
             QHeaderView.ResizeMode.Interactive,
         )
         self.instances_table_view.setSortingEnabled(True)
-        
+
         # Initialize the model here and set it to the view
         # Pass an empty list of property definitions initially
         self.object_instance_model = ObjectInstanceTableModel(property_definitions=[], parent=self)
         self.instances_table_view.setModel(self.object_instance_model)
-        
+
         layout.addWidget(self.instances_table_view)
 
         buttons_layout = QHBoxLayout()
@@ -217,7 +217,7 @@ class ObjectExplorerView(QWidget):
 
         self._active_list_types_thread = ApiClientThread(
             operation_name="list_object_types",
-            parent=self
+            parent=self,
         )
         main_win = self._find_main_window()
         if main_win:
@@ -271,7 +271,7 @@ class ObjectExplorerView(QWidget):
             self._logger.error("ObjectInstanceTableModel is None in _load_object_instances. This should not happen.")
             self.object_instance_model = ObjectInstanceTableModel(property_defs_for_table, parent=self)
             self.instances_table_view.setModel(self.object_instance_model)
-        
+
         if self._active_list_instances_thread and self._active_list_instances_thread.isRunning():
             self._logger.warning("Load object instances already in progress.")
             self.busy_signal.emit(False)
@@ -288,7 +288,7 @@ class ObjectExplorerView(QWidget):
             operation_name="find_objects",
             type_name=object_type_name,
             filter_criteria={},
-            parent=self
+            parent=self,
         )
         main_win = self._find_main_window()
         if main_win:
@@ -350,7 +350,7 @@ class ObjectExplorerView(QWidget):
         if not isinstance(result, list):
             self._on_object_instances_load_error(f"Unexpected data type for object instances: {type(result)}")
             return
-        
+
         instances: list[ObjectInstance] = result
         if self.object_instance_model:
             self.object_instance_model.set_instances(instances)
@@ -404,7 +404,7 @@ class ObjectExplorerView(QWidget):
             f"selection_model exists: {selection_model is not None}, "
             f"selectedRows_count: {selected_rows_count}, "
             f"hasSelection(): {has_current_selection}, "
-            f"has_instance_selected (derived): {has_instance_selected}"
+            f"has_instance_selected (derived): {has_instance_selected}",
         )
 
         self.new_object_button.setEnabled(has_type_selected)
@@ -433,8 +433,8 @@ class ObjectExplorerView(QWidget):
         # Connect to a lambda that calls _load_object_instances directly
         dialog.instance_upserted_signal.connect(
             lambda _obj_id: self._load_object_instances(
-                self.current_object_type.name if self.current_object_type else ""
-            ) if self.current_object_type else None
+                self.current_object_type.name if self.current_object_type else "",
+            ) if self.current_object_type else None,
         )
         dialog.exec()
 
@@ -472,8 +472,8 @@ class ObjectExplorerView(QWidget):
         )
         dialog.instance_upserted_signal.connect(
             lambda _obj_id: self._load_object_instances(
-                self.current_object_type.name if self.current_object_type else ""
-            ) if self.current_object_type else None
+                self.current_object_type.name if self.current_object_type else "",
+            ) if self.current_object_type else None,
         )
         dialog.exec()
 
@@ -529,7 +529,7 @@ class ObjectExplorerView(QWidget):
                 operation_name="delete_object",
                 object_id=str(instance_to_delete.id),
                 type_name=self.current_object_type.name,
-                parent=self
+                parent=self,
             )
             main_win = self._find_main_window()
             if main_win:
@@ -561,7 +561,7 @@ class ObjectExplorerView(QWidget):
              self._on_object_delete_error(f"Failed to delete object '{object_id}' (not found or error during deletion).")
         else:
             self._on_object_delete_error(f"Unexpected result from delete operation for object '{object_id}': {result}")
-        
+
         self._object_id_for_delete_success = None # Clear stored ids
         self._object_type_name_for_delete_success = None
 
@@ -595,7 +595,7 @@ class ObjectExplorerView(QWidget):
             self.object_instance_model.clear_data()
         self._update_action_buttons_state()
 
-    def _find_main_window(self) -> Optional['MainWindow']:
+    def _find_main_window(self) -> Optional["MainWindow"]:
         """Helper to find the MainWindow instance."""
         # Import MainWindow locally to break circular dependency
         from grizabella.ui.main_window import MainWindow
@@ -605,7 +605,7 @@ class ObjectExplorerView(QWidget):
             if isinstance(parent, MainWindow):
                 return parent
             parent = parent.parent()
-        
+
         app_instance = QApplication.instance()
         if isinstance(app_instance, QApplication):
             active_window = app_instance.activeWindow()
@@ -619,7 +619,7 @@ class ObjectExplorerView(QWidget):
         threads_to_manage = [
             ("_active_list_types_thread", self._active_list_types_thread),
             ("_active_list_instances_thread", self._active_list_instances_thread),
-            ("_active_delete_object_thread", self._active_delete_object_thread)
+            ("_active_delete_object_thread", self._active_delete_object_thread),
         ]
         for name, thread_instance in threads_to_manage:
             if thread_instance and thread_instance.isRunning():

@@ -74,10 +74,8 @@ async def test_mcp_get_object_type_not_found(mcp_session: ClientSession):
     )
     assert result is not None
     assert not result.isError
-    assert result.content and len(result.content) == 1
-    assert isinstance(result.content[0], TextContent)
-    text_content = result.content[0].text
-    assert text_content == "null"
+    assert result.structuredContent is not None
+    assert result.structuredContent.get('result') is None
 
 
 @pytest.mark.anyio
@@ -103,9 +101,21 @@ async def test_mcp_upsert_object_success(mcp_session: ClientSession):
     try:
         # Setup: Ensure OTD exists, creating if necessary
         get_otd_res = await mcp_session.call_tool("get_object_type", {"type_name": obj_type_name})
-        assert get_otd_res.content and isinstance(get_otd_res.content[0], TextContent)
-        if get_otd_res.content[0].text == "null":
-             await mcp_session.call_tool("create_object_type", {"object_type_def": user_otd.model_dump()})
+        assert not get_otd_res.isError
+        assert get_otd_res.structuredContent is not None
+        
+        # If the OTD doesn't exist, create it
+        if get_otd_res.structuredContent.get('result') is None:
+            create_res = await mcp_session.call_tool(
+                "create_object_type",
+                {"object_type_def": user_otd.model_dump()}
+            )
+            assert not create_res.isError
+            # Refetch after creation
+            get_otd_res = await mcp_session.call_tool("get_object_type", {"type_name": obj_type_name})
+            assert not get_otd_res.isError
+            assert get_otd_res.structuredContent is not None
+            assert get_otd_res.structuredContent.get('result') is not None
 
         # Ensure object does not exist before upsert
         await mcp_session.call_tool("delete_object", {"object_id": str(test_id), "type_name": obj_type_name})
@@ -201,8 +211,8 @@ async def test_mcp_relation_type_crud(mcp_session: ClientSession):
         # Verify deletion
         get_after_delete_res = await mcp_session.call_tool("get_relation_type", {"type_name": relation_type_name})
         assert not get_after_delete_res.isError
-        assert get_after_delete_res.content and isinstance(get_after_delete_res.content[0], TextContent)
-        assert get_after_delete_res.content[0].text == "null"
+        assert get_after_delete_res.structuredContent is not None
+        assert get_after_delete_res.structuredContent.get('result') is None
 
     finally:
         # Teardown
@@ -351,11 +361,11 @@ async def test_mcp_find_objects(mcp_session: ClientSession):
         }
         
         find_res = await mcp_session.call_tool("find_objects", arguments=find_args)
-        
+
         assert not find_res.isError
-        assert find_res.content and isinstance(find_res.content[0], TextContent)
+        assert find_res.structuredContent is not None
         
-        results_data = [json.loads(c.text) for c in find_res.content if isinstance(c, TextContent)]
+        results_data = find_res.structuredContent.get('result', [])
         print("Filtered results data:", results_data)
         assert len(results_data) == 2
         

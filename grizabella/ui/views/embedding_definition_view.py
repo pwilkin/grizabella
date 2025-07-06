@@ -1,17 +1,17 @@
 """QWidget for managing Embedding Definitions in Grizabella."""
 # Standard library imports
-import logging # Add logging
-from typing import Optional, Any, TYPE_CHECKING # Added TYPE_CHECKING
+import logging  # Add logging
+from typing import TYPE_CHECKING, Any, Optional  # Added TYPE_CHECKING
 
-from PySide6.QtCore import Qt, QThread, Signal
+from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import QGroupBox, QHBoxLayout, QListWidget, QListWidgetItem, QMessageBox, QPushButton, QSplitter, QTextEdit, QVBoxLayout, QWidget
 
 # First-party imports
 from grizabella.api.client import Grizabella
 from grizabella.core.models import EmbeddingDefinition
-from grizabella.core.exceptions import DatabaseError, SchemaError # Added DatabaseError, SchemaError
 from grizabella.ui.dialogs.embedding_definition_dialog import EmbeddingDefinitionDialog
-from grizabella.ui.threads.api_client_thread import ApiClientThread # Import the new thread
+from grizabella.ui.threads.api_client_thread import ApiClientThread  # Import the new thread
+
 # from grizabella.ui.main_window import MainWindow # For connecting signals <- REMOVED FOR CIRCULAR IMPORT
 
 if TYPE_CHECKING:
@@ -141,9 +141,9 @@ class EmbeddingDefinitionView(QWidget):
 
         self.active_list_thread = ApiClientThread(
             operation_name="list_embedding_definitions",
-            parent=self # Parent for Qt object tree management
+            parent=self, # Parent for Qt object tree management
         )
-        
+
         # Connect to MainWindow's API request handler
         # This assumes MainWindow is accessible, e.g., as a grandparent or via app instance
         main_win = self._find_main_window()
@@ -182,7 +182,7 @@ class EmbeddingDefinitionView(QWidget):
             self._show_error_message("Error: Invalid data received for embedding definitions.")
             self.current_definitions = []
             return
-            
+
         definitions: list[EmbeddingDefinition] = result
         self.current_definitions = definitions
         if not definitions:
@@ -305,7 +305,7 @@ class EmbeddingDefinitionView(QWidget):
             self.active_delete_thread = ApiClientThread(
                 "delete_embedding_definition", # operation_name passed positionally
                 ed_to_delete.name, # Pass name as arg for *args
-                parent=self
+                parent=self,
             )
 
             main_win = self._find_main_window()
@@ -347,7 +347,7 @@ class EmbeddingDefinitionView(QWidget):
         elif isinstance(result, bool) and not result:
             deleted_name = self._definition_name_for_delete if self._definition_name_for_delete else "Selected"
             self._show_error_message(
-                 f"Failed to delete embedding definition '{deleted_name}' (not found or error during deletion)."
+                 f"Failed to delete embedding definition '{deleted_name}' (not found or error during deletion).",
             )
         else:
             self._show_error_message(f"Unexpected result from delete operation: {result}")
@@ -357,7 +357,7 @@ class EmbeddingDefinitionView(QWidget):
         self.busy_signal.emit(False) # Ensure busy indicator is turned off on error
         QMessageBox.warning(self, "Error", message)
 
-    def _find_main_window(self) -> Optional['MainWindow']:
+    def _find_main_window(self) -> Optional["MainWindow"]:
         """Helper to find the MainWindow instance."""
         # Import MainWindow locally to break circular dependency
         from grizabella.ui.main_window import MainWindow
@@ -368,7 +368,7 @@ class EmbeddingDefinitionView(QWidget):
             if isinstance(parent, MainWindow):
                 return parent
             parent = parent.parent()
-        
+
         # Fallback: Try to get it from QApplication if it's the top-level active window
         app_instance = QApplication.instance()
         if isinstance(app_instance, QApplication): # Ensure it's a QApplication
@@ -383,7 +383,7 @@ class EmbeddingDefinitionView(QWidget):
         self._logger.debug(f"EmbeddingDefinitionView closeEvent triggered for {self}.")
         threads_to_manage = [
             ("active_list_thread", self.active_list_thread),
-            ("active_delete_thread", self.active_delete_thread)
+            ("active_delete_thread", self.active_delete_thread),
         ]
         for name, thread_instance in threads_to_manage:
             if thread_instance and thread_instance.isRunning():
@@ -403,7 +403,7 @@ class EmbeddingDefinitionView(QWidget):
                 thread_instance.deleteLater() # Ensure it's cleaned up if not running but exists
             else:
                 self._logger.debug(f"EmbeddingDefinitionView: Worker thread '{name}' was None.")
-        
+
         self.active_list_thread = None # Clear references
         self.active_delete_thread = None
         super().closeEvent(event)

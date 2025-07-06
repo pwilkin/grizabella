@@ -5,8 +5,8 @@ against the Grizabella backend, and displaying the results.
 """
 
 import json
-import logging # Add logging
-from typing import Any, Optional, TYPE_CHECKING # Added TYPE_CHECKING
+import logging  # Add logging
+from typing import TYPE_CHECKING, Any, Optional  # Added TYPE_CHECKING
 
 from PySide6.QtCore import Signal, Slot
 from PySide6.QtGui import QStandardItem, QStandardItemModel
@@ -42,8 +42,8 @@ from grizabella.core.models import (
 from grizabella.core.models import (
     PropertyDefinition as CorePropertyDefinition,
 )
-
 from grizabella.ui.threads.api_client_thread import ApiClientThread
+
 # from grizabella.ui.main_window import MainWindow # For connecting signals <- REMOVED FOR CIRCULAR IMPORT
 
 if TYPE_CHECKING:
@@ -246,13 +246,13 @@ class QueryView(QWidget):
         if not self.client or not self.client._is_connected: # Check connection
             self._handle_api_load_error("list_object_types", "Client not available or not connected for fetching object types.")
             return
-        
+
         if hasattr(self, "_active_fetch_obj_types_thread") and self._active_fetch_obj_types_thread and self._active_fetch_obj_types_thread.isRunning():
             QMessageBox.information(self, "Busy", "Already fetching object types.")
             return
 
         self._active_fetch_obj_types_thread = ApiClientThread(
-            operation_name="list_object_types", parent=self
+            operation_name="list_object_types", parent=self,
         )
         main_win = self._find_main_window()
         if main_win:
@@ -262,7 +262,7 @@ class QueryView(QWidget):
             self._active_fetch_obj_types_thread.deleteLater()
             self._active_fetch_obj_types_thread = None
             return
-            
+
         self._active_fetch_obj_types_thread.result_ready.connect(self._populate_object_types)
         self._active_fetch_obj_types_thread.error_occurred.connect(lambda err: self._handle_api_load_error("list_object_types", err))
         self._active_fetch_obj_types_thread.finished.connect(lambda: self._on_generic_thread_finished("_active_fetch_obj_types_thread"))
@@ -291,7 +291,7 @@ class QueryView(QWidget):
             return
 
         self._active_fetch_embed_defs_thread = ApiClientThread(
-            operation_name="list_embedding_definitions", parent=self
+            operation_name="list_embedding_definitions", parent=self,
         )
         main_win = self._find_main_window()
         if main_win:
@@ -475,7 +475,7 @@ class QueryView(QWidget):
                 api_method_name, # operation_name passed positionally
                 *api_args,       # Spread positional arguments
                 parent=self,     # Keyword argument for ApiClientThread
-                **api_kwargs     # Spread keyword arguments for the API call
+                **api_kwargs,     # Spread keyword arguments for the API call
             )
             main_win = self._find_main_window()
             if main_win:
@@ -612,7 +612,7 @@ class QueryView(QWidget):
         self.execute_button.setEnabled(True)
 
 
-    def _find_main_window(self) -> Optional['MainWindow']:
+    def _find_main_window(self) -> Optional["MainWindow"]:
         """Helper to find the MainWindow instance."""
         # Import MainWindow locally to break circular dependency
         from grizabella.ui.main_window import MainWindow
@@ -622,7 +622,7 @@ class QueryView(QWidget):
             if isinstance(parent, MainWindow):
                 return parent
             parent = parent.parent()
-        
+
         app_instance = QApplication.instance()
         if isinstance(app_instance, QApplication):
             active_window = app_instance.activeWindow()
@@ -651,7 +651,7 @@ class QueryView(QWidget):
                     self._logger.info(f"QueryView: Worker thread '{name}' ({thread_instance}) finished.")
             elif thread_instance: # Exists but not running
                 thread_instance.deleteLater()
-        
+
         # Clear references
         self._active_fetch_obj_types_thread = None
         self._active_fetch_embed_defs_thread = None

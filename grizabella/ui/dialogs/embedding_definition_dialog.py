@@ -1,15 +1,12 @@
-from typing import Optional, Any, TYPE_CHECKING # Added Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional  # Added Any, TYPE_CHECKING
 
-from PySide6.QtCore import Signal, Slot # QThread removed
-from PySide6.QtWidgets import (QApplication, QComboBox, QDialog, QDialogButtonBox, # QApplication added
-                               QLabel, QLineEdit, QMessageBox, QSpinBox,
-                               QTextEdit, QVBoxLayout)
-
+from PySide6.QtCore import Signal, Slot  # QThread removed
+from PySide6.QtWidgets import QApplication, QComboBox, QDialog, QDialogButtonBox, QLabel, QLineEdit, QMessageBox, QSpinBox, QTextEdit, QVBoxLayout  # QApplication added
 
 from grizabella.api.client import Grizabella
 from grizabella.core.models import EmbeddingDefinition, ObjectTypeDefinition, PropertyDataType, PropertyDefinition
-from grizabella.core.exceptions import DatabaseError, SchemaError
-from grizabella.ui.threads.api_client_thread import ApiClientThread # Import new thread
+from grizabella.ui.threads.api_client_thread import ApiClientThread  # Import new thread
+
 # from grizabella.ui.main_window import MainWindow # For connecting signals <- REMOVED FOR CIRCULAR IMPORT
 
 if TYPE_CHECKING:
@@ -18,6 +15,7 @@ if TYPE_CHECKING:
 
 class EmbeddingDefinitionDialog(QDialog):
     """Dialog for creating and editing Embedding Definitions."""
+
     busy_signal = Signal(bool) # To indicate busy state
 
     def __init__(self, client: Grizabella, embedding_definition: Optional[EmbeddingDefinition] = None, parent=None) -> None:
@@ -119,7 +117,7 @@ class EmbeddingDefinitionDialog(QDialog):
 
         self._active_fetch_ot_thread = ApiClientThread(
             operation_name="list_object_types",
-            parent=self
+            parent=self,
         )
         main_win = self._find_main_window()
         if main_win:
@@ -291,7 +289,7 @@ class EmbeddingDefinitionDialog(QDialog):
             self._active_create_ed_thread = ApiClientThread(
                 "create_embedding_definition", # operation_name passed positionally
                 ed_data,                       # ed_data for *args
-                parent=self                    # parent as keyword argument
+                parent=self,                    # parent as keyword argument
             )
             main_win = self._find_main_window()
             if main_win:
@@ -317,7 +315,7 @@ class EmbeddingDefinitionDialog(QDialog):
         if not isinstance(result, EmbeddingDefinition):
             self._on_save_error(f"Unexpected result type from save operation: {type(result)}")
             return
-        
+
         created_def: EmbeddingDefinition = result
         QMessageBox.information(
             self,
@@ -341,7 +339,7 @@ class EmbeddingDefinitionDialog(QDialog):
             self._active_create_ed_thread.deleteLater()
             self._active_create_ed_thread = None
 
-    def _find_main_window(self) -> Optional['MainWindow']:
+    def _find_main_window(self) -> Optional["MainWindow"]:
         """Helper to find the MainWindow instance."""
         # Import MainWindow locally to break circular dependency
         from grizabella.ui.main_window import MainWindow
@@ -351,7 +349,7 @@ class EmbeddingDefinitionDialog(QDialog):
             if isinstance(parent, MainWindow):
                 return parent
             parent = parent.parent()
-        
+
         app_instance = QApplication.instance()
         if isinstance(app_instance, QApplication):
             active_window = app_instance.activeWindow()
@@ -368,7 +366,7 @@ class EmbeddingDefinitionDialog(QDialog):
     def closeEvent(self, event: Any) -> None: # Added type hint
         threads_to_manage = [
             self._active_fetch_ot_thread,
-            self._active_create_ed_thread
+            self._active_create_ed_thread,
         ]
         for thread_instance in threads_to_manage:
             if thread_instance and thread_instance.isRunning():

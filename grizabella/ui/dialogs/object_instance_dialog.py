@@ -1,16 +1,15 @@
 # Standard library imports
 import json  # For handling JSON data in QTextEdit
+import logging  # For logging
 import uuid  # For generating mock IDs and for UUID type
 from datetime import datetime, timezone  # For mock dates and datetime type
 from decimal import Decimal  # For weight
 from pathlib import Path  # For MockGrizabella init
-from typing import Any, Optional, Union, TYPE_CHECKING # Added TYPE_CHECKING
-import logging # For logging
-import threading # For logging thread ID
+from typing import TYPE_CHECKING, Any, Optional, Union  # Added TYPE_CHECKING
 
-from PySide6.QtCore import QDateTime, Qt, Signal, Slot # QThread removed
+from PySide6.QtCore import QDateTime, Qt, Signal, Slot  # QThread removed
 from PySide6.QtWidgets import (
-    QApplication, # Added
+    QApplication,  # Added
     QCheckBox,
     QDateTimeEdit,
     QDialog,
@@ -35,10 +34,8 @@ from grizabella.core.models import (
     PropertyDataType,
     PropertyDefinition,
 )
-from grizabella.core.exceptions import DatabaseError, SchemaError, InstanceError # Added InstanceError
+from grizabella.ui.threads.api_client_thread import ApiClientThread  # Import new thread
 
-
-from grizabella.ui.threads.api_client_thread import ApiClientThread # Import new thread
 # from grizabella.ui.main_window import MainWindow # For connecting signals <- REMOVED FOR CIRCULAR IMPORT
 
 if TYPE_CHECKING:
@@ -443,7 +440,7 @@ class ObjectInstanceDialog(QDialog):
             self._active_upsert_thread = ApiClientThread(
                 "upsert_object", # operation_name passed positionally
                 object_instance_to_upsert, # obj for *args
-                parent=self
+                parent=self,
             )
             main_win = self._find_main_window()
             if main_win:
@@ -490,8 +487,8 @@ class ObjectInstanceDialog(QDialog):
         if self._active_upsert_thread:
             self._active_upsert_thread.deleteLater()
             self._active_upsert_thread = None
-    
-    def _find_main_window(self) -> Optional['MainWindow']:
+
+    def _find_main_window(self) -> Optional["MainWindow"]:
         """Helper to find the MainWindow instance."""
         # Import MainWindow locally to break circular dependency
         from grizabella.ui.main_window import MainWindow
@@ -501,7 +498,7 @@ class ObjectInstanceDialog(QDialog):
             if isinstance(parent, MainWindow):
                 return parent
             parent = parent.parent()
-        
+
         app_instance = QApplication.instance()
         if isinstance(app_instance, QApplication):
             active_window = app_instance.activeWindow()

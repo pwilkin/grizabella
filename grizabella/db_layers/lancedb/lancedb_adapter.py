@@ -1,16 +1,16 @@
 """Grizabella adapter for LanceDB, handling vector embeddings."""
 
+import logging  # Added import
 import os
 import re
+import threading  # For logging thread ID
 from typing import TYPE_CHECKING, Any, Optional
 from uuid import UUID
-import logging # Added import
-import threading # For logging thread ID
 
 from pydantic import BaseModel  # For fallback schema
+
 # Remove direct SentenceTransformer import, will be handled by LanceDB registry
 # from sentence_transformers import SentenceTransformer
-
 from grizabella.core.exceptions import DatabaseError, EmbeddingError, SchemaError
 
 # Application-specific imports
@@ -32,9 +32,9 @@ LANCEDB_AVAILABLE = False
 
 try:
     import lancedb as _lancedb_actual  # Third-party, but conditional
+    from lancedb.embeddings import get_registry as _get_registry_actual
     from lancedb.pydantic import LanceModel as _LanceModel_actual
     from lancedb.pydantic import Vector as _Vector_actual
-    from lancedb.embeddings import get_registry as _get_registry_actual
     _LANCEDB_MODULE = _lancedb_actual
     LanceModelClass = _LanceModel_actual # Renamed to conform to PascalCase
     _VECTOR_CLASS = _Vector_actual
@@ -42,7 +42,6 @@ try:
     LANCEDB_AVAILABLE = True
 except ImportError:
     LANCEDB_EMBEDDING_REGISTRY = None # Define it as None if import fails
-    pass
 
 # Constants for LanceDB index creation
 MIN_ROWS_FOR_LANCEDB_PQ_TRAINING = 256  # Based on LanceDB error message for PQ
@@ -398,20 +397,20 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
                         vector_column_name="vector",
                         num_partitions=DEFAULT_LANCEDB_NUM_PARTITIONS,
                         num_sub_vectors=DEFAULT_LANCEDB_NUM_SUB_VECTORS,
-                        replace=True
+                        replace=True,
                     )
                     logger.info(f"LanceDB: IVF_PQ cosine index creation/update successfully attempted for '{table_name}'.")
                 else:
                     logger.info(
                         f"LanceDB: Data rows ({current_rows}) below threshold (999999) for '{table_name}'. "
-                        f"Skipping index creation to observe default brute-force search metric."
+                        f"Skipping index creation to observe default brute-force search metric.",
                     )
                     # No tbl.create_index() call here for this diagnostic step.
             except Exception as index_e: # pylint: disable=W0718
                 # Log index creation error but don't let it fail the upsert operation itself
                 logger.error(
                     f"LanceDB: Error creating/updating cosine index for table '{table_name}' (rows: {current_rows}): {index_e}",
-                    exc_info=True
+                    exc_info=True,
                 )
             return instance
         except Exception as e: # pylint: disable=W0718
@@ -621,7 +620,7 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
                 ]
             else:
                 filtered_by_initial_ids = candidate_results_with_distance
-            
+
             # Sort by distance (ascending, as lower distance is more similar)
             filtered_by_initial_ids.sort(key=lambda x: x[1])
 
@@ -635,7 +634,7 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
                 final_results_with_distance = [(obj_id, dist) for obj_id, dist in filtered_by_initial_ids[:limit]]
             else:
                 final_results_with_distance = [(obj_id, dist) for obj_id, dist in filtered_by_initial_ids[:limit]]
-            
+
             logger.info(f"LanceDBAdapter.find_object_ids_by_similarity returning final_results_with_distance (limit: {limit}, initial_ids was {'None' if initial_ids is None else 'Provided'}): {final_results_with_distance}")
             return final_results_with_distance
 

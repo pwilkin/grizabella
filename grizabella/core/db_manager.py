@@ -5,7 +5,7 @@ import logging
 import shutil
 import uuid
 from pathlib import Path
-from typing import Any, Optional, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 # from grizabella.db_layers.kuzu.kuzu_adapter import KuzuAdapter # Moved to TYPE_CHECKING
 from grizabella.db_layers.lancedb.lancedb_adapter import LanceDBAdapter
@@ -111,7 +111,7 @@ class GrizabellaDBManager: # pylint: disable=R0904, R0902
         logger.info(f"GrizabellaDBManager: close() called for instance: {self.db_name}. Manager fully initialized: {self._manager_fully_initialized}")
         try:
             # Attempt to close Kuzu first and more aggressively
-            if hasattr(self._connection_helper, '_kuzu_adapter_instance') and self._connection_helper._kuzu_adapter_instance:
+            if hasattr(self._connection_helper, "_kuzu_adapter_instance") and self._connection_helper._kuzu_adapter_instance:
                 logger.info(f"GrizabellaDBManager: Explicitly closing KuzuAdapter for {self.db_name}.")
                 try:
                     self._connection_helper.kuzu_adapter.close() # Calls our logged close
@@ -127,7 +127,7 @@ class GrizabellaDBManager: # pylint: disable=R0904, R0902
             logger.info(f"GrizabellaDBManager: _connection_helper.close_all_adapters() completed for {self.db_name}.")
         except Exception as e:
             logger.error(f"GrizabellaDBManager: Error during _connection_helper.close_all_adapters() for {self.db_name}: {e}", exc_info=True)
-        
+
         try:
             self._schema_manager.clear_all_definitions()
             logger.info(f"GrizabellaDBManager: _schema_manager.clear_all_definitions() completed for {self.db_name}.")

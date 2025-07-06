@@ -9,15 +9,15 @@ knowledge management system, allowing for the creation, retrieval, and querying 
 structured data objects and their relationships.
 """
 
-import os
-import sys
 import argparse
-from pathlib import Path
 import logging
-from typing import Any, Optional, Union
-from datetime import datetime, timezone
+import os
+import signal
+import sys
 import uuid
-
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Optional, Union
 
 from fastmcp import FastMCP
 
@@ -28,16 +28,15 @@ from pydantic import BaseModel
 from grizabella.api.client import Grizabella
 from grizabella.core.exceptions import GrizabellaException, SchemaError
 from grizabella.core.models import (
+    EmbeddingDefinition,
     ObjectInstance,
     ObjectTypeDefinition,
-    RelationInstance,
-    RelationTypeDefinition,
-    EmbeddingDefinition,
     PropertyDataType,
+    RelationInstance,
     RelationInstanceList,
+    RelationTypeDefinition,
 )
-from grizabella.core.query_models import ComplexQuery, QueryResult, EmbeddingVector
-
+from grizabella.core.query_models import ComplexQuery, EmbeddingVector, QueryResult
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +58,7 @@ def get_grizabella_db_path(db_path_arg: Optional[str] = None) -> Union[str, Path
 # For now, we'll assume FastMCP can use the core Pydantic models from grizabella.core
 
 # --- MCP Application ---
-app = FastMCP("Grizabella")
+app = FastMCP(name="Grizabella", instructions="A tri-layer memory management system with a relational database, an embedding database and a graph database layer.")
 
 # --- Grizabella Client Singleton ---
 # This will be initialized in the main() function before the app runs.
@@ -387,8 +386,7 @@ async def mcp_find_objects(
     filter_criteria: Optional[dict[str, Any]] = None,
     limit: Optional[int] = None,
 ) -> list[ObjectInstance]:
-    """
-    Finds and retrieves a list of objects of a given type, with optional filtering criteria.
+    """Finds and retrieves a list of objects of a given type, with optional filtering criteria.
     """
     # ctx: ToolContext,
     try:
@@ -519,10 +517,9 @@ class GetRelationsArgs(BaseModel):
     ),
 )
 async def mcp_get_outgoing_relations(
-    object_id: str, type_name: str, relation_type_name: Optional[str] = None
+    object_id: str, type_name: str, relation_type_name: Optional[str] = None,
 ) -> list[RelationInstance]:
-    """
-    Retrieves all outgoing relations from a specific object.
+    """Retrieves all outgoing relations from a specific object.
     """
     # ctx: ToolContext,
     try:
@@ -555,10 +552,9 @@ async def mcp_get_outgoing_relations(
     ),
 )
 async def mcp_get_incoming_relations(
-    object_id: str, type_name: str, relation_type_name: Optional[str] = None
+    object_id: str, type_name: str, relation_type_name: Optional[str] = None,
 ) -> list[RelationInstance]:
-    """
-    Retrieves all incoming relations to a specific object.
+    """Retrieves all incoming relations to a specific object.
     """
     # ctx: ToolContext,
     try:
@@ -606,8 +602,7 @@ async def mcp_search_similar_objects(
     n_results: int = 5,
     search_properties: Optional[list[str]] = None,
 ) -> list[tuple[ObjectInstance, float]]:
-    """
-    Searches for objects that are semantically similar to a given object, based on embeddings of their properties.
+    """Searches for objects that are semantically similar to a given object, based on embeddings of their properties.
     """
     # ctx: ToolContext,
     try:
@@ -740,7 +735,7 @@ async def mcp_get_embedding_vector_for_text(args: GetEmbeddingVectorForTextArgs)
         temp_obj_instance = ObjectInstance(
             id=temp_obj_id,
             object_type_name=embedding_def.object_type_name,
-            properties=temp_properties
+            properties=temp_properties,
         )
         gb.upsert_object(temp_obj_instance)
 
@@ -748,7 +743,7 @@ async def mcp_get_embedding_vector_for_text(args: GetEmbeddingVectorForTextArgs)
         # This relies on internal access, similar to the original test.
         embedding_instances = gb._db_manager.lancedb_adapter.get_embedding_instances_for_object(
            object_instance_id=temp_obj_id,
-           embedding_definition_name=args.embedding_definition_name
+           embedding_definition_name=args.embedding_definition_name,
         )
 
         if not embedding_instances:
@@ -779,18 +774,37 @@ async def mcp_get_embedding_vector_for_text(args: GetEmbeddingVectorForTextArgs)
 # `python -m fastmcp grizabella.mcp.server:app`
 # or similar, depending on FastMCP's conventions.
 
+def shutdown_handler(signum, frame):
+    """Handle shutdown signals gracefully."""
+    print(f"Received signal {signum}, shutting down...")
+    # Perform any cleanup here if needed
+    sys.exit(0)
+
 def main():
     """Initializes client and runs the FastMCP application."""
+    # Register signal handlers
+    signal.signal(signal.SIGINT, shutdown_handler)
+    signal.signal(signal.SIGTERM, shutdown_handler)
+
     parser = argparse.ArgumentParser(description="Grizabella MCP Server")
     parser.add_argument("--db-path", help="Path to the Grizabella database.")
     args = parser.parse_args()
 
     global grizabella_client_instance
     db_path = get_grizabella_db_path(args.db_path)
-    
-    with Grizabella(db_name_or_path=db_path, create_if_not_exists=True) as gb:
-        grizabella_client_instance = gb
-        app.run()
+
+    try:
+        with Grizabella(db_name_or_path=db_path, create_if_not_exists=True) as gb:
+            grizabella_client_instance = gb
+            app.run()
+    except Exception as e:
+        print(f"Server error: {e}")
+        sys.exit(1)
+    finally:
+        # Ensure clean termination
+        grizabella_client_instance = None
+        print("Server terminated cleanly")
+        sys.exit(0)
 
 if __name__ == "__main__":
     # This allows the server to be run directly, defaulting to Stdio transport.

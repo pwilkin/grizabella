@@ -7,11 +7,10 @@ from PySide6.QtCore import (
     QAbstractTableModel,
     QModelIndex,
     QPersistentModelIndex,
-    QSortFilterProxyModel,
     Qt,
 )
 
-from grizabella.core.models import ObjectInstance, PropertyDefinition, PropertyDataType
+from grizabella.core.models import ObjectInstance, PropertyDefinition
 
 
 # For mock/placeholder if real models are not yet fully integrated or for testing

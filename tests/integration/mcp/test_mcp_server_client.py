@@ -69,12 +69,10 @@ class TestMCPClientRequests(unittest.TestCase):
     def test_create_object_type(self):
         # Run the async test
         result = asyncio.run(self.run_client_test())
-        # Verify successful response (CallToolResult with text content 'null')
+        # Verify successful response
         self.assertFalse(result.isError)
-        self.assertEqual(len(result.content), 1)
-        self.assertEqual(result.content[0].type, "text")
-        if result.content[0].type == "text":
-            self.assertEqual(result.content[0].text, "null")
+        self.assertIsNone(result.structuredContent)
+        self.assertEqual([], result.content)
 
 if __name__ == "__main__":
     unittest.main()

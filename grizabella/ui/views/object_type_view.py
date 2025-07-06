@@ -1,11 +1,11 @@
 """View for managing ObjectTypeDefinitions."""
-import logging # Add logging
-from typing import TYPE_CHECKING, Optional, Any
+import logging  # Add logging
+from typing import TYPE_CHECKING, Any, Optional
 
-from PySide6.QtCore import Qt, Signal, Slot # Removed QThread
+from PySide6.QtCore import Qt, Signal, Slot  # Removed QThread
 from PySide6.QtWidgets import (
     QAbstractItemView,
-    QApplication, # Added
+    QApplication,  # Added
     QFormLayout,
     QGroupBox,
     QHBoxLayout,
@@ -24,11 +24,11 @@ from PySide6.QtWidgets import (
 )
 
 from grizabella.api.client import Grizabella
-from grizabella.core.exceptions import SchemaError, DatabaseError
-
+from grizabella.core.exceptions import SchemaError
 from grizabella.core.models import ObjectTypeDefinition, PropertyDataType, PropertyDefinition
 from grizabella.ui.dialogs.object_type_dialog import ObjectTypeDialog
-from grizabella.ui.threads.api_client_thread import ApiClientThread # Import new thread
+from grizabella.ui.threads.api_client_thread import ApiClientThread  # Import new thread
+
 # from grizabella.ui.main_window import MainWindow # For connecting signals <- REMOVED FOR CIRCULAR IMPORT
 
 if TYPE_CHECKING:
@@ -37,6 +37,7 @@ if TYPE_CHECKING:
 
 class ObjectTypeView(QWidget):
     """QWidget for displaying and managing ObjectTypeDefinitions."""
+
     busy_signal = Signal(bool)
 
     def __init__(self, grizabella_client: Optional["Grizabella"] = None,
@@ -164,7 +165,7 @@ class ObjectTypeView(QWidget):
 
         self._active_list_ot_thread = ApiClientThread(
             operation_name="list_object_types",
-            parent=self
+            parent=self,
         )
         main_win = self._find_main_window()
         if main_win:
@@ -178,7 +179,7 @@ class ObjectTypeView(QWidget):
 
         self._active_list_ot_thread.result_ready.connect(self._populate_ot_list)
         self._active_list_ot_thread.error_occurred.connect(
-            lambda err_msg: self._handle_api_error("list_object_types", err_msg)
+            lambda err_msg: self._handle_api_error("list_object_types", err_msg),
         )
         self._active_list_ot_thread.finished.connect(self._on_list_worker_finished)
         self._active_list_ot_thread.start()
@@ -369,7 +370,7 @@ class ObjectTypeView(QWidget):
                 self.busy_signal.emit(False)
                 self.delete_ot_button.setEnabled(True) # Re-enable if not proceeding
                 return
-            
+
             if not self.grizabella_client or not self.grizabella_client._is_connected:
                 QMessageBox.critical(self, "Client Error", "Client not available or not connected.")
                 self.busy_signal.emit(False)
@@ -379,7 +380,7 @@ class ObjectTypeView(QWidget):
             self._active_delete_ot_thread = ApiClientThread(
                 "delete_object_type", # operation_name passed positionally
                 otd_to_delete.name,   # type_name for *args
-                parent=self
+                parent=self,
             )
             main_win = self._find_main_window()
             if main_win:
@@ -393,7 +394,7 @@ class ObjectTypeView(QWidget):
 
             self._active_delete_ot_thread.result_ready.connect(self._handle_delete_success)
             self._active_delete_ot_thread.error_occurred.connect(
-                lambda err_msg: self._handle_api_error("delete_object_type", err_msg)
+                lambda err_msg: self._handle_api_error("delete_object_type", err_msg),
             )
             self._active_delete_ot_thread.finished.connect(self._on_delete_worker_finished)
             self._active_delete_ot_thread.start()
@@ -422,7 +423,7 @@ class ObjectTypeView(QWidget):
             self._clear_details()
         elif operation_name == "delete_object_type":
             title = "Delete Failed"
-        
+
         QMessageBox.critical(self, title, error_message)
         self._update_action_buttons_state()
         # Cleanup is handled by the 'finished' signal of the respective thread.
@@ -440,7 +441,7 @@ class ObjectTypeView(QWidget):
             self._active_delete_ot_thread = None
         self._otd_name_for_delete_success = None
 
-    def _find_main_window(self) -> Optional['MainWindow']:
+    def _find_main_window(self) -> Optional["MainWindow"]:
         """Helper to find the MainWindow instance."""
         # Import MainWindow locally to break circular dependency
         from grizabella.ui.main_window import MainWindow
@@ -450,7 +451,7 @@ class ObjectTypeView(QWidget):
             if isinstance(parent, MainWindow):
                 return parent
             parent = parent.parent()
-        
+
         app_instance = QApplication.instance()
         if isinstance(app_instance, QApplication): # Ensure it's a QApplication
             active_window = app_instance.activeWindow()
@@ -463,7 +464,7 @@ class ObjectTypeView(QWidget):
         self._logger.debug(f"ObjectTypeView closeEvent triggered for {self}.")
         threads_to_manage = [
             ("_active_list_ot_thread", self._active_list_ot_thread),
-            ("_active_delete_ot_thread", self._active_delete_ot_thread)
+            ("_active_delete_ot_thread", self._active_delete_ot_thread),
         ]
         for name, thread_instance in threads_to_manage:
             if thread_instance and thread_instance.isRunning():
@@ -477,7 +478,7 @@ class ObjectTypeView(QWidget):
                     self._logger.info(f"ObjectTypeView: Worker thread '{name}' ({thread_instance}) finished.")
             elif thread_instance: # Exists but not running
                 thread_instance.deleteLater()
-        
+
         self._active_list_ot_thread = None
         self._active_delete_ot_thread = None
         self._logger.info(f"ObjectTypeView: About to call super().closeEvent() for {self}.")

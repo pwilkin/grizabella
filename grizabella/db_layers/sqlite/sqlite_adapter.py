@@ -1,9 +1,9 @@
 """Grizabella adapter for SQLite3 database."""
 
 import json
-import logging # Added
+import logging  # Added
 import sqlite3
-import threading # For logging thread ID
+import threading  # For logging thread ID
 from datetime import datetime  # timezone is not used directly here
 from decimal import Decimal
 from typing import Any, Optional  # Union is not used
@@ -24,7 +24,6 @@ from grizabella.core.models import (
 )
 from grizabella.core.query_models import RelationalFilter  # Added for new methods
 from grizabella.db_layers.common.base_adapter import BaseDBAdapter
-
 
 logger = logging.getLogger(__name__) # Added module-level logger
 
@@ -1072,7 +1071,7 @@ class SQLiteAdapter(BaseDBAdapter):  # pylint: disable=R0904
         if not self.conn:
             msg = "SQLite connection not established."
             raise DatabaseError(msg)
-        
+
         # OTD check is good practice, though not strictly needed if table name is derived directly
         otd = self.load_object_type_definition(object_type_name)
         if not otd:
@@ -1080,13 +1079,13 @@ class SQLiteAdapter(BaseDBAdapter):  # pylint: disable=R0904
             # Returning empty list is reasonable as no valid objects of this type exist.
             logger.warning(
                 f"ObjectTypeDefinition '{object_type_name}' not found when trying to get all IDs. "
-                "Assuming no instances exist or table is missing."
+                "Assuming no instances exist or table is missing.",
             )
             return []
 
         table_name = self._get_safe_table_name(object_type_name)
         sql = f'SELECT id FROM "{table_name}"'
-        
+
         found_ids: list[UUID] = []
         try:
             cursor = self.conn.execute(sql)
@@ -1097,7 +1096,7 @@ class SQLiteAdapter(BaseDBAdapter):  # pylint: disable=R0904
             # If table doesn't exist, sqlite3 will raise an OperationalError
             if "no such table" in str(e).lower():
                 logger.warning(
-                    f"Table '{table_name}' for ObjectType '{object_type_name}' not found. Returning empty list of IDs."
+                    f"Table '{table_name}' for ObjectType '{object_type_name}' not found. Returning empty list of IDs.",
                 )
                 return []
             msg = f"Error getting all IDs from '{table_name}': {e}"

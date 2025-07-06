@@ -22,7 +22,6 @@ from grizabella.core.query_models import (
     RelationalFilter,
 )
 
-
 logger = logging.getLogger(__name__)
 
 # Forward declaration for type hinting GrizabellaDBManager
@@ -66,7 +65,7 @@ class PlannedNotClause(BaseModel):
 
 # A Union for any node in our planned query tree
 PlannedClause = Union[
-    PlannedLogicalGroup, PlannedNotClause, PlannedComponentExecution
+    PlannedLogicalGroup, PlannedNotClause, PlannedComponentExecution,
 ]
 
 # Update the forward references in the recursive models
@@ -98,13 +97,13 @@ class QueryPlanner:
         # Backward compatibility: if components are provided, convert them to a query_root
         if not query_root and query.components:
             logger.info(
-                "No 'query_root' found. Converting 'components' list to an AND group for backward compatibility."
+                "No 'query_root' found. Converting 'components' list to an AND group for backward compatibility.",
             )
             if not query.components:
                 raise ValueError("ComplexQuery must have at least one component.")
             # Create a synthetic LogicalGroup to wrap the old components list
             query_root = LogicalGroup(operator=LogicalOperator.AND, clauses=list(query.components))
-        
+
         if not query_root:
             raise ValueError("Query must have a 'query_root' or a 'components' list.")
 
@@ -114,11 +113,11 @@ class QueryPlanner:
             raise ValueError("Could not determine a target object type for the query.")
 
         otd_final_target = self._schema_manager.get_object_type_definition(
-            final_target_object_type
+            final_target_object_type,
         )
         if not otd_final_target:
             raise ValueError(
-                f"Primary target ObjectTypeDefinition '{final_target_object_type}' not found in schema."
+                f"Primary target ObjectTypeDefinition '{final_target_object_type}' not found in schema.",
             )
 
         # Start the recursive planning process
@@ -144,7 +143,7 @@ class QueryPlanner:
         return None
 
     def _plan_clause(
-        self, clause: QueryClause, component_index_counter: dict[str, int]
+        self, clause: QueryClause, component_index_counter: dict[str, int],
     ) -> PlannedClause:
         """Recursively plans a single clause of a query."""
         if isinstance(clause, LogicalGroup):
@@ -168,11 +167,11 @@ class QueryPlanner:
             component_object_type_name = component.object_type_name
 
             otd_component = self._schema_manager.get_object_type_definition(
-                component_object_type_name
+                component_object_type_name,
             )
             if not otd_component:
                 raise ValueError(
-                    f"QueryComponent {idx}: ObjectTypeDefinition '{component_object_type_name}' not found."
+                    f"QueryComponent {idx}: ObjectTypeDefinition '{component_object_type_name}' not found.",
                 )
 
             # 1. Relational Filters (SQLite)
@@ -187,7 +186,7 @@ class QueryPlanner:
                             "filters": component.relational_filters,
                         },
                         input_object_ids_source_step_index=None,
-                    )
+                    ),
                 )
                 current_input_src_idx_for_component = len(component_steps) - 1
 
@@ -203,7 +202,7 @@ class QueryPlanner:
                                 "object_type_name": component_object_type_name,
                             },
                             input_object_ids_source_step_index=current_input_src_idx_for_component,
-                        )
+                        ),
                     )
                     current_input_src_idx_for_component = len(component_steps) - 1
 
@@ -219,7 +218,7 @@ class QueryPlanner:
                                 "graph_traversal_clause": traversal,
                             },
                             input_object_ids_source_step_index=current_input_src_idx_for_component,
-                        )
+                        ),
                     )
                     current_input_src_idx_for_component = len(component_steps) - 1
 
@@ -240,59 +239,56 @@ class QueryPlanner:
         context: str = "relational_filters",
     ) -> None:
         prop_def = self._schema_manager.get_property_definition_for_object_type(
-            object_type_name, rel_filter.property_name
+            object_type_name, rel_filter.property_name,
         )
         if not prop_def:
             raise ValueError(
                 f"QueryComponent {component_idx}: Property '{rel_filter.property_name}' "
-                f"not found for ObjectType '{object_type_name}'."
+                f"not found for ObjectType '{object_type_name}'.",
             )
         # Simplified validation for brevity in this refactoring
-        pass
 
     def _validate_embedding_search(
-        self, emb_search: EmbeddingSearchClause, object_type_name: str, component_idx: int
+        self, emb_search: EmbeddingSearchClause, object_type_name: str, component_idx: int,
     ) -> None:
         emb_def = self._schema_manager.get_embedding_definition(
-            emb_search.embedding_definition_name
+            emb_search.embedding_definition_name,
         )
         if not emb_def:
             raise ValueError(
                 f"QueryComponent {component_idx}: EmbeddingDefinition "
-                f"'{emb_search.embedding_definition_name}' not found."
+                f"'{emb_search.embedding_definition_name}' not found.",
             )
         if emb_def.object_type_name != object_type_name:
             raise ValueError(
                 f"QueryComponent {component_idx}: EmbeddingDefinition "
                 f"'{emb_search.embedding_definition_name}' is for ObjectType '{emb_def.object_type_name}', "
-                f"but component targets '{object_type_name}'."
+                f"but component targets '{object_type_name}'.",
             )
         # Simplified validation
-        pass
 
     def _validate_graph_traversal(
-        self, traversal: GraphTraversalClause, source_object_type_name: str, component_idx: int
+        self, traversal: GraphTraversalClause, source_object_type_name: str, component_idx: int,
     ) -> None:
         rtd = self._schema_manager.get_relation_type_definition(
-            traversal.relation_type_name
+            traversal.relation_type_name,
         )
         if not rtd:
             raise ValueError(
                 f"QueryComponent {component_idx}: RelationTypeDefinition "
-                f"'{traversal.relation_type_name}' not found."
+                f"'{traversal.relation_type_name}' not found.",
             )
         if source_object_type_name not in rtd.source_object_type_names:
             raise ValueError(
                 f"QueryComponent {component_idx}: Relation '{traversal.relation_type_name}' "
-                f"cannot originate from ObjectType '{source_object_type_name}'."
+                f"cannot originate from ObjectType '{source_object_type_name}'.",
             )
         if traversal.target_object_type_name not in rtd.target_object_type_names:
             raise ValueError(
                 f"QueryComponent {component_idx}: Relation '{traversal.relation_type_name}' "
-                f"cannot target ObjectType '{traversal.target_object_type_name}'."
+                f"cannot target ObjectType '{traversal.target_object_type_name}'.",
             )
         # Simplified validation
-        pass
 
 
 class QueryExecutor:
@@ -332,11 +328,11 @@ class QueryExecutor:
                 errors.append(msg)
 
         return QueryResult(
-            object_instances=final_instances, errors=errors if errors else None
+            object_instances=final_instances, errors=errors if errors else None,
         )
 
     def _execute_node(
-        self, plan_node: PlannedClause, errors: list[str]
+        self, plan_node: PlannedClause, errors: list[str],
     ) -> set[UUID]:
         """Recursively executes a node in the plan tree and returns a set of object IDs."""
         if isinstance(plan_node, PlannedLogicalGroup):
@@ -352,7 +348,7 @@ class QueryExecutor:
                     result_set.intersection_update(child_results[i])
                 return result_set
 
-            elif plan_node.operator == LogicalOperator.OR:
+            if plan_node.operator == LogicalOperator.OR:
                 # Union all resulting ID sets
                 result_set = set()
                 for res in child_results:
@@ -373,11 +369,11 @@ class QueryExecutor:
 
             all_ids_for_type = (
                 self._db_manager.sqlite_adapter.get_all_object_ids_for_type(
-                    object_type_name
+                    object_type_name,
                 )
             )
             universe_set = set(all_ids_for_type if all_ids_for_type else [])
-            
+
             # Return the set difference
             return universe_set.difference(excluded_ids)
 
@@ -388,7 +384,7 @@ class QueryExecutor:
         raise TypeError(f"Unsupported plan node type during execution: {type(plan_node)}")
 
     def _find_first_object_type_from_plan(
-        self, plan_node: PlannedClause
+        self, plan_node: PlannedClause,
     ) -> Optional[str]:
         """Recursively finds the first object type in a planned clause."""
         if isinstance(plan_node, PlannedComponentExecution):
@@ -402,7 +398,7 @@ class QueryExecutor:
         return None
 
     def _execute_component(
-        self, component_plan: PlannedComponentExecution, errors: list[str]
+        self, component_plan: PlannedComponentExecution, errors: list[str],
     ) -> set[UUID]:
         """Executes the planned steps for a single component and returns resulting IDs."""
         logger.info(
@@ -416,7 +412,7 @@ class QueryExecutor:
         if not component_plan.steps:
             # No steps means all objects of this type
             all_ids = self._db_manager.sqlite_adapter.get_all_object_ids_for_type(
-                component_plan.object_type_name
+                component_plan.object_type_name,
             )
             return set(all_ids if all_ids else [])
 
@@ -424,9 +420,9 @@ class QueryExecutor:
             input_ids: Optional[list[UUID]] = None
             if step.input_object_ids_source_step_index is not None:
                 input_ids = intermediate_step_results.get(
-                    step.input_object_ids_source_step_index
+                    step.input_object_ids_source_step_index,
                 )
-            
+
             if input_ids is not None and not input_ids:
                 logger.info("Component %d short-circuited due to empty input ID set.", component_plan.component_index)
                 return set()
@@ -465,9 +461,9 @@ class QueryExecutor:
                 elif step.step_type == "kuzu_traversal":
                     if input_ids is None:
                         input_ids = self._db_manager.sqlite_adapter.get_all_object_ids_for_type(
-                            component_plan.object_type_name
+                            component_plan.object_type_name,
                         ) or []
-                    
+
                     if not input_ids:
                         step_output_ids = []
                     else:

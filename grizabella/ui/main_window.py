@@ -2,14 +2,14 @@
 Handles the overall UI structure, including menus, views, and client interaction.
 """
 
+import logging  # Add logging import
 import sys
-import logging # Add logging import
 from typing import TYPE_CHECKING, Optional
 
 from PySide6.QtCore import Slot
 from PySide6.QtWidgets import QApplication, QMainWindow, QMenuBar, QStackedWidget, QTabWidget
 
-from grizabella.ui.threads.api_client_thread import ApiClientThread # Added for type hinting and sender check
+from grizabella.ui.threads.api_client_thread import ApiClientThread  # Added for type hinting and sender check
 from grizabella.ui.views.connection_view import ConnectionView
 from grizabella.ui.views.embedding_definition_view import EmbeddingDefinitionView
 from grizabella.ui.views.object_explorer_view import ObjectExplorerView
@@ -323,8 +323,7 @@ class MainWindow(QMainWindow):
 
     @Slot(str, tuple, dict)
     def handleApiRequest(self, operation_name: str, op_args: tuple, op_kwargs: dict) -> None:
-        """
-        Handles API requests emitted by worker threads.
+        """Handles API requests emitted by worker threads.
         Executes the Grizabella API call in the main thread and sends the
         result back to the originating worker thread.
         """
@@ -333,14 +332,14 @@ class MainWindow(QMainWindow):
 
         if isinstance(sender_obj, ApiClientThread):
             actual_sender_thread = sender_obj
-        elif hasattr(sender_obj, 'parent') and isinstance(sender_obj.parent(), ApiClientThread):
+        elif hasattr(sender_obj, "parent") and isinstance(sender_obj.parent(), ApiClientThread):
             # This case might occur if the signal is emitted from a child QObject of the thread
             self._logger.info("MainWindow.handleApiRequest: Sender is not ApiClientThread, but its parent is. Using parent.")
             actual_sender_thread = sender_obj.parent() # type: ignore
-        
+
         if not actual_sender_thread:
             self._logger.error(
-                "MainWindow.handleApiRequest: Could not identify an ApiClientThread as the sender or its direct parent. Ignoring request."
+                "MainWindow.handleApiRequest: Could not identify an ApiClientThread as the sender or its direct parent. Ignoring request.",
             )
             return
 
@@ -355,14 +354,14 @@ class MainWindow(QMainWindow):
             method_to_call = getattr(self.grizabella_client, operation_name)
             if not callable(method_to_call):
                 raise AttributeError(
-                    f"Method '{operation_name}' not found or not callable in Grizabella client."
+                    f"Method '{operation_name}' not found or not callable in Grizabella client.",
                 )
 
             self._logger.info(
                 f"MainWindow: Executing API call '{operation_name}' "
-                f"with args: {op_args}, kwargs: {op_kwargs} for sender: {actual_sender_thread}"
+                f"with args: {op_args}, kwargs: {op_kwargs} for sender: {actual_sender_thread}",
             )
-            
+
             # Process events to keep UI responsive during the API call.
             app_instance = QApplication.instance()
             if app_instance:

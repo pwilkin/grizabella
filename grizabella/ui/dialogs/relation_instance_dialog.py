@@ -1,12 +1,12 @@
 import uuid
-from typing import Any, Optional, TYPE_CHECKING # Added TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Optional  # Added TYPE_CHECKING
 
-from PySide6.QtCore import QDateTime, Qt, Signal, QStringListModel # Added QStringListModel
+from PySide6.QtCore import QDateTime, QStringListModel, Qt, Signal  # Added QStringListModel
 from PySide6.QtWidgets import (
-    QApplication, # Added
+    QApplication,  # Added
     QCheckBox,
     QComboBox,
-    QCompleter, # Added QCompleter
+    QCompleter,  # Added QCompleter
     QDateTimeEdit,
     QDialog,
     QDialogButtonBox,
@@ -23,12 +23,13 @@ from PySide6.QtWidgets import (
 
 from grizabella.api.client import Grizabella
 from grizabella.core.models import (
-    ObjectInstance, # Added ObjectInstance
+    ObjectInstance,  # Added ObjectInstance
     PropertyDataType,
     RelationInstance,
     RelationTypeDefinition,
 )
-from grizabella.ui.threads.api_client_thread import ApiClientThread # Corrected import path
+from grizabella.ui.threads.api_client_thread import ApiClientThread  # Corrected import path
+
 # from grizabella.ui.main_window import MainWindow # For connecting signals <- REMOVED FOR CIRCULAR IMPORT
 
 if TYPE_CHECKING:
@@ -36,8 +37,7 @@ if TYPE_CHECKING:
 
 
 class RelationInstanceDialog(QDialog):
-    """
-    Dialog for creating or editing a RelationInstance.
+    """Dialog for creating or editing a RelationInstance.
 
     This dialog allows users to select a relation type and then choose
     source and target object instances using filterable ComboBoxes.
@@ -148,13 +148,13 @@ class RelationInstanceDialog(QDialog):
         combobox = QComboBox()
         combobox.setEditable(True)
         combobox.setInsertPolicy(QComboBox.InsertPolicy.NoInsert) # Important for completer
-        
+
         completer = QCompleter(self)
         completer.setCompletionMode(QCompleter.CompletionMode.PopupCompletion)
         completer.setFilterMode(Qt.MatchFlag.MatchContains) # Filter as user types
         completer.setCaseSensitivity(Qt.CaseSensitivity.CaseInsensitive)
         combobox.setCompleter(completer)
-        
+
         # Update completer model when combobox text changes (for filtering)
         # Or, more simply, the completer will use the combobox's model directly if not set.
         # We will populate a QStringListModel for the completer.
@@ -169,7 +169,7 @@ class RelationInstanceDialog(QDialog):
         """Fetches and populates a QComboBox with ObjectInstances of a given type."""
         combobox.clear()
         completer_model = QStringListModel([], self) # Model for QCompleter
-        
+
         if not self.grizabella_client or not self.grizabella_client._is_connected:
             QMessageBox.warning(self, "API Error", "Grizabella client not connected.")
             combobox.setEnabled(False)
@@ -180,7 +180,7 @@ class RelationInstanceDialog(QDialog):
             # Use find_objects instead of get_object_instances_by_type_name
             instances: list[ObjectInstance] = (
                 self.grizabella_client.find_objects(
-                    type_name=object_type_name
+                    type_name=object_type_name,
                 )
             )
         except Exception as e:
@@ -212,7 +212,7 @@ class RelationInstanceDialog(QDialog):
                 )
                 combobox.addItem(display_text, userData=instance.id)
                 display_texts.append(display_text)
-            
+
             completer_model.setStringList(display_texts)
             active_completer = combobox.completer()
             if active_completer:
@@ -275,7 +275,7 @@ class RelationInstanceDialog(QDialog):
                     if self.instance_to_edit.relation_type_name == self.current_relation_type.name:
                         source_id_to_select = self.instance_to_edit.source_object_instance_id
                         target_id_to_select = self.instance_to_edit.target_object_instance_id
-                
+
                 # Assuming the first type name in the list is the relevant one for the dialog
                 # This might need refinement if a RelationTypeDefinition can link multiple distinct types
                 # in a way that requires user selection beyond what's currently implemented.
@@ -433,7 +433,7 @@ class RelationInstanceDialog(QDialog):
         relation_type_selected = self.current_relation_type is not None
 
         can_proceed = source_selected and target_selected and relation_type_selected
-        
+
         # Further check: if combobox has only "No instances available", currentData might be None
         # but it's effectively not a valid selection.
         if self.source_object_combo.count() == 1 and self.source_object_combo.itemText(0) == "No instances available":
@@ -445,8 +445,7 @@ class RelationInstanceDialog(QDialog):
 
 
     def accept(self) -> None:
-        """
-        Validates the form data, creates/updates the RelationInstance,
+        """Validates the form data, creates/updates the RelationInstance,
         and attempts to save it via an API call.
         Source and Target object IDs are retrieved from the ComboBox selections.
         """
@@ -471,13 +470,13 @@ class RelationInstanceDialog(QDialog):
             )
             self.target_object_combo.setFocus()
             return
-        
+
         # currentData should already be uuid.UUID if populated correctly
         if not isinstance(source_id, uuid.UUID):
-            QMessageBox.warning(self, "Validation Error", f"Invalid Source Object ID selected.")
+            QMessageBox.warning(self, "Validation Error", "Invalid Source Object ID selected.")
             return
         if not isinstance(target_id, uuid.UUID):
-            QMessageBox.warning(self, "Validation Error", f"Invalid Target Object ID selected.")
+            QMessageBox.warning(self, "Validation Error", "Invalid Target Object ID selected.")
             return
 
         properties = {}
@@ -583,7 +582,7 @@ class RelationInstanceDialog(QDialog):
         self._api_thread = ApiClientThread(
             "add_relation", # operation_name passed positionally
             relation_instance_model, # Pass model as arg for *args
-            parent=self # Parent for Qt object tree management
+            parent=self, # Parent for Qt object tree management
         )
 
         main_win = self._find_main_window()
@@ -595,7 +594,7 @@ class RelationInstanceDialog(QDialog):
             self._api_thread = None
             self.button_box.setEnabled(True)
             return
-            
+
         self._api_thread.result_ready.connect(self._handle_save_result)
         self._api_thread.error_occurred.connect(self._handle_api_error)
         # Connect finished to re-enable button box and clean up thread
@@ -629,7 +628,7 @@ class RelationInstanceDialog(QDialog):
         )
         # Dialog remains open for user to correct or cancel
 
-    def _find_main_window(self) -> Optional['MainWindow']:
+    def _find_main_window(self) -> Optional["MainWindow"]:
         """Helper to find the MainWindow instance."""
         # Import MainWindow locally to break circular dependency
         from grizabella.ui.main_window import MainWindow
@@ -639,7 +638,7 @@ class RelationInstanceDialog(QDialog):
             if isinstance(parent, MainWindow):
                 return parent
             parent = parent.parent()
-        
+
         app_instance = QApplication.instance()
         if isinstance(app_instance, QApplication):
             active_window = app_instance.activeWindow()

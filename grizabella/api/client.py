@@ -4,13 +4,13 @@ This module provides the main Grizabella class, which serves as the public
 API for interacting with the Grizabella data store.
 """
 
+import logging  # Added import
 import uuid
-import logging # Added import
 from pathlib import Path
 from typing import Any, Optional, Union
 
 from grizabella.core.db_manager import GrizabellaDBManager
-from grizabella.core.exceptions import SchemaError, DatabaseError # Added SchemaError
+from grizabella.core.exceptions import DatabaseError, SchemaError  # Added SchemaError
 from grizabella.core.models import (
     EmbeddingDefinition,
     ObjectInstance,
@@ -506,6 +506,7 @@ class Grizabella:
             NotConnectedError: If the client is not connected to the database.
             ValueError: If provided UUID strings are invalid.
             GrizabellaException: For other underlying database or processing errors.
+
         """
         if not self._is_connected:
             self._db_manager.connect()  # Ensure connection
@@ -801,6 +802,7 @@ class Grizabella:
             SchemaError: If the specified EmbeddingDefinition is not found or is invalid.
             EmbeddingError: If an error occurs during embedding generation or search.
             GrizabellaException: For other underlying database or processing errors.
+
         """
         if not self._is_connected:
             self._db_manager.connect()
@@ -818,7 +820,7 @@ class Grizabella:
             query_text=query_text,
             limit=limit,
             retrieve_full_objects=False, # We need IDs and scores to process further
-            filter_condition=filter_condition
+            filter_condition=filter_condition,
         )
 
         if not raw_results:
@@ -835,7 +837,7 @@ class Grizabella:
 
         # Re-implementing parts of _process_raw_similarity_results logic here
         # as it's not directly callable with a query_text scenario (no source_object_id)
-        
+
         final_results_with_scores: list[tuple[ObjectInstance, float]] = []
         result_ids_map: dict[uuid.UUID, float] = {}
 
@@ -851,7 +853,7 @@ class Grizabella:
                 # self._db_manager._logger.warning(...) # Can't access logger directly
                 print(f"Warning: Skipping result due to parsing error: {res}, error: {e}") # Basic print for now
                 continue
-        
+
         if not result_ids_map:
             return []
 
@@ -862,16 +864,16 @@ class Grizabella:
             # Convert UUIDs to strings for get_objects_by_ids if it expects strings
             # However, db_manager.get_objects_by_ids takes list[uuid.UUID]
             fetched_objects = self._db_manager.get_objects_by_ids(
-                target_object_type_name, result_ids_to_fetch
+                target_object_type_name, result_ids_to_fetch,
             )
             fetched_objects_map = {obj.id: obj for obj in fetched_objects}
 
             for obj_id_val, _ in sorted_similar_items: # score_val not used in final list of ObjectInstance
                 if obj_id_val in fetched_objects_map:
                     final_results_with_scores.append(
-                        (fetched_objects_map[obj_id_val], _) # Keep score for potential future use
+                        (fetched_objects_map[obj_id_val], _), # Keep score for potential future use
                     )
-        
+
         # Return only the ObjectInstances, ordered by similarity (which sorted_similar_items already did)
         return [obj_inst for obj_inst, score in final_results_with_scores]
 

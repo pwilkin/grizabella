@@ -1,12 +1,12 @@
 """Dialog for creating and editing RelationTypeDefinitions."""
 
 # Standard library imports
-import logging # Add logging import
-from typing import TYPE_CHECKING, Optional, Any
+import logging  # Add logging import
+from typing import TYPE_CHECKING, Any, Optional
 
-from PySide6.QtCore import Qt, Signal, Slot # QThread removed
+from PySide6.QtCore import Qt, Signal, Slot  # QThread removed
 from PySide6.QtWidgets import (
-    QApplication, # Added
+    QApplication,  # Added
     QCheckBox,
     QComboBox,
     QDialog,
@@ -25,15 +25,15 @@ from PySide6.QtWidgets import (
 )
 
 from grizabella.api.client import Grizabella
-from grizabella.core.exceptions import SchemaError, DatabaseError
-
+from grizabella.core.exceptions import SchemaError
 from grizabella.core.models import (
     ObjectTypeDefinition,
     PropertyDataType,
     PropertyDefinition,
     RelationTypeDefinition,
 )
-from grizabella.ui.threads.api_client_thread import ApiClientThread # Import new thread
+from grizabella.ui.threads.api_client_thread import ApiClientThread  # Import new thread
+
 # from grizabella.ui.main_window import MainWindow # For connecting signals <- REMOVED FOR CIRCULAR IMPORT
 
 
@@ -167,7 +167,7 @@ class RelationTypeDialog(QDialog):
 
         self._active_load_ot_thread = ApiClientThread(
             operation_name="list_object_types",
-            parent=self
+            parent=self,
         )
         main_win = self._find_main_window()
         if main_win:
@@ -178,7 +178,7 @@ class RelationTypeDialog(QDialog):
             self._active_load_ot_thread = None
             self.busy_signal.emit(False)
             return
-            
+
         self._active_load_ot_thread.result_ready.connect(self._populate_object_type_combos)
         self._active_load_ot_thread.error_occurred.connect(self._handle_object_types_load_failure)
         self._active_load_ot_thread.finished.connect(self._cleanup_load_ot_thread)
@@ -189,7 +189,7 @@ class RelationTypeDialog(QDialog):
         if not isinstance(result, list):
             self._handle_object_types_load_failure(f"Unexpected data type for object types: {type(result)}")
             return
-        
+
         object_types: list[ObjectTypeDefinition] = result # Assuming full OTDs are returned
         object_type_names = [ot.name for ot in object_types]
 
@@ -211,11 +211,11 @@ class RelationTypeDialog(QDialog):
         if self.existing_rtd:
             if self.existing_rtd.source_object_type_names:
                 idx_s = self.source_object_type_combo.findText(self.existing_rtd.source_object_type_names[0])
-                if idx_s >= 0: 
+                if idx_s >= 0:
                     self.source_object_type_combo.setCurrentIndex(idx_s)
             if self.existing_rtd.target_object_type_names:
                 idx_t = self.target_object_type_combo.findText(self.existing_rtd.target_object_type_names[0])
-                if idx_t >= 0: 
+                if idx_t >= 0:
                     self.target_object_type_combo.setCurrentIndex(idx_t)
 
     @Slot(str)
@@ -389,12 +389,12 @@ class RelationTypeDialog(QDialog):
                     if enum_member.value == current_text:
                         prop_data_type_enum_member = enum_member
                         break
-            
+
             print(f"DEBUG: RelationTypeDialog._on_accept: Row {row + 1}, prop_data_type_value from combo.currentText(): '{current_text}', Found enum member: {prop_data_type_enum_member} (type: {type(prop_data_type_enum_member)})")
 
             if not isinstance(prop_data_type_enum_member, PropertyDataType):
                 QMessageBox.warning(
-                    self, "Input Error", f"Invalid data type selected in row {row + 1}. Current text: '{str(current_text)}' could not be mapped to a PropertyDataType.", # Use str(current_text) for safety in f-string
+                    self, "Input Error", f"Invalid data type selected in row {row + 1}. Current text: '{current_text!s}' could not be mapped to a PropertyDataType.", # Use str(current_text) for safety in f-string
                 )
                 # Attempt to focus the combo box if possible
                 if data_type_combo_widget:
@@ -475,7 +475,7 @@ class RelationTypeDialog(QDialog):
 
         self._set_buttons_enabled(False)
         self.busy_signal.emit(True)
-        
+
         operation_name = "update_relation_type" if self.existing_rtd else "create_relation_type"
         if self.existing_rtd: # Ensure name is not changed on update
             rtd_model.name = self.existing_rtd.name
@@ -483,7 +483,7 @@ class RelationTypeDialog(QDialog):
         self._active_rtd_operation_thread = ApiClientThread(
             operation_name, # operation_name variable passed positionally
             rtd_model,      # rtd_model for *args
-            parent=self
+            parent=self,
         )
         main_win = self._find_main_window()
         if main_win:
@@ -501,17 +501,17 @@ class RelationTypeDialog(QDialog):
         else:
             self._active_rtd_operation_thread.result_ready.connect(self._handle_creation_success)
             self._active_rtd_operation_thread.error_occurred.connect(lambda err: self._handle_operation_failure("create_relation_type", err))
-        
+
         self._active_rtd_operation_thread.finished.connect(self._reset_buttons_and_worker_state)
         self._active_rtd_operation_thread.start()
 
 
     def _set_buttons_enabled(self, enabled: bool) -> None:
         ok_button = self.button_box.button(QDialogButtonBox.StandardButton.Ok)
-        if ok_button: 
+        if ok_button:
             ok_button.setEnabled(enabled)
         cancel_button = self.button_box.button(QDialogButtonBox.StandardButton.Cancel)
-        if cancel_button: 
+        if cancel_button:
             cancel_button.setEnabled(enabled)
 
     @Slot(object) # Result is Any
@@ -535,9 +535,9 @@ class RelationTypeDialog(QDialog):
     @Slot(str, str) # operation_name, error_message
     def _handle_operation_failure(self, operation_name: str, error_message: str) -> None:
         title = "Operation Failed"
-        if operation_name == "create_relation_type": 
+        if operation_name == "create_relation_type":
             title = "Creation Failed"
-        elif operation_name == "update_relation_type": 
+        elif operation_name == "update_relation_type":
             title = "Update Failed"
         QMessageBox.critical(self, title, error_message)
         # Buttons reset by _reset_buttons_and_worker_state via 'finished'
@@ -551,8 +551,8 @@ class RelationTypeDialog(QDialog):
         if self._active_load_ot_thread: # Also ensure load thread is cleaned up if it was active
             self._active_load_ot_thread.deleteLater()
             self._active_load_ot_thread = None
-            
-    def _find_main_window(self) -> Optional['MainWindow']:
+
+    def _find_main_window(self) -> Optional["MainWindow"]:
         """Helper to find the MainWindow instance."""
         # Import MainWindow locally to break circular dependency
         # This import is already guarded by TYPE_CHECKING at the top for type hints
@@ -564,7 +564,7 @@ class RelationTypeDialog(QDialog):
             if isinstance(parent, MainWindow):
                 return parent
             parent = parent.parent()
-        
+
         app_instance = QApplication.instance()
         if isinstance(app_instance, QApplication):
             active_window = app_instance.activeWindow()
@@ -577,7 +577,7 @@ class RelationTypeDialog(QDialog):
         self._logger.debug(f"RelationTypeDialog closeEvent triggered for {self}.")
         threads_to_manage = [
             self._active_load_ot_thread,
-            self._active_rtd_operation_thread
+            self._active_rtd_operation_thread,
         ]
         for thread_instance in threads_to_manage:
             if thread_instance and thread_instance.isRunning():

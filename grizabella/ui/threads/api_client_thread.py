@@ -1,13 +1,12 @@
 """QThread worker for executing Grizabella API client calls asynchronously."""
 
-from typing import Optional, Any, Dict, Tuple
+from typing import Any, Optional
 
 from PySide6.QtCore import QObject, QThread, Signal, Slot
 
 
 class ApiClientThread(QThread):
-    """
-    A QThread to prepare data for Grizabella API calls and request their execution
+    """A QThread to prepare data for Grizabella API calls and request their execution
     on the main thread. It then handles the response.
     """
 
@@ -37,8 +36,7 @@ class ApiClientThread(QThread):
         # However, a direct connection from main_window to this instance's slot is better.
 
     def run(self) -> None:
-        """
-        Prepares data (if necessary) and emits a signal to request the API call
+        """Prepares data (if necessary) and emits a signal to request the API call
         on the main thread.
         """
         try:
@@ -56,18 +54,16 @@ class ApiClientThread(QThread):
 
     @Slot(bool, object)
     def handleApiResponse(self, success: bool, result_or_error: Any) -> None:
-        """
-        Slot to receive the API call's result (or error) from the main thread.
+        """Slot to receive the API call's result (or error) from the main thread.
         It then emits the appropriate signal (result_ready or error_occurred)
         to the original UI component that initiated the operation.
         """
         if success:
             self.result_ready.emit(result_or_error)
+        elif isinstance(result_or_error, Exception):
+            self.error_occurred.emit(f"API Error: {result_or_error}")
         else:
-            if isinstance(result_or_error, Exception):
-                self.error_occurred.emit(f"API Error: {result_or_error}")
-            else:
-                self.error_occurred.emit(str(result_or_error))
+            self.error_occurred.emit(str(result_or_error))
         # self.finished.emit() should not be here, as run() has already finished.
         # The lifecycle of the thread object itself is managed by who created it.
         # If this thread instance is meant to be one-shot, it will be garbage collected

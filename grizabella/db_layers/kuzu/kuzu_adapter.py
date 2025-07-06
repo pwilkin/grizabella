@@ -1,9 +1,9 @@
 """Grizabella adapter for KuzuDB graph database."""
 
-import logging # Added
-import os # Added
-import glob # Added
-import threading # For logging thread ID
+import glob  # Added
+import logging  # Added
+import os  # Added
+import threading  # For logging thread ID
 from typing import Any, Optional
 from uuid import UUID
 
@@ -49,36 +49,28 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
         logger.info(f"KuzuAdapter: _connect called in thread ID: {threading.get_ident()} for db_path: {self.db_path}")
         try:
             # Clean up stale lock files
-            lock_file_path = os.path.join(self.db_path, ".lock") # Corrected lock file name
-            if os.path.exists(lock_file_path):
-                logger.info(f"KuzuAdapter: Found existing lock file: {lock_file_path}. Attempting to remove.")
-                try:
-                    os.remove(lock_file_path)
-                    logger.info(f"KuzuAdapter: Successfully removed lock file: {lock_file_path}.")
-                except OSError as e:
-                    logger.warning(f"KuzuAdapter: Could not remove lock file: {lock_file_path}. Error: {e}. Proceeding with connection attempt.")
-
+            lock_files = glob.glob(os.path.join(self.db_path, "*.lock"), include_hidden=True)
+            if lock_files:
+                logger.info(f"KuzuAdapter: Found {len(lock_files)} lock files. Attempting removal.")
+                for lock_file in lock_files:
+                    try:
+                        os.remove(lock_file)
+                        logger.info(f"KuzuAdapter: Removed lock file: {lock_file}")
+                    except OSError as e:
+                        logger.warning(f"KuzuAdapter: Could not remove WAL file {lock_file}: {e}")
             # Kuzu might also create WAL files that could interfere if not cleared after a crash,
             # especially if the lock file is gone but WAL remains.
-            # These are typically named something like `wal.kuzu` or in a `wal` directory.
-            # For simplicity, we'll look for `wal.kuzu` in the main db_path.
-            # More robust handling might involve checking Kuzu's specific WAL naming and location.
-            wal_files_pattern = os.path.join(self.db_path, "*.wal") # Kuzu uses a directory named 'wal'
-            # Let's correct this to look for a directory named 'wal' and its contents, or specific .wal files
-
-            # General approach: remove <db_path>/wal directory if it exists and is empty or contains Kuzu WAL files
-            # Kuzu's documentation implies the directory is named 'wal'
-            wal_directory_path = os.path.join(self.db_path, "wal")
-            if os.path.isdir(wal_directory_path):
-                logger.info(f"KuzuAdapter: Found WAL directory: {wal_directory_path}. Attempting to clean up.")
-                # This is a more complex operation; for now, we'll just log its presence.
-                # A proper cleanup might involve `shutil.rmtree(wal_directory_path)`
-                # but that's risky without more specific knowledge of Kuzu's state.
-                # For now, we rely on Kuzu's startup to handle WAL recovery if the lock is clear.
-                # If issues persist, this is an area for further investigation.
-                logger.info(f"KuzuAdapter: WAL directory found at {wal_directory_path}. Kuzu should handle recovery. If connection fails, this might be a factor.")
-
-
+            # Look for .wal files in the wal directory
+            wal_files = glob.glob(os.path.join(self.db_path, "*.wal"), include_hidden=True)
+            if wal_files:
+                logger.info(f"KuzuAdapter: Found {len(wal_files)} WAL files. Attempting removal.")
+                for wal_file in wal_files:
+                    try:
+                        os.remove(wal_file)
+                        logger.info(f"KuzuAdapter: Removed WAL file: {wal_file}")
+                    except OSError as e:
+                        logger.warning(f"KuzuAdapter: Could not remove WAL file {wal_file}: {e}")
+            logger.info(f"KuzuAdapter: Lock checks finished, starting connection in thread ID: {threading.get_ident()}.")
             self.db = kuzu.Database(self.db_path)
             logger.info(f"KuzuAdapter: kuzu.Database() successful in thread ID: {threading.get_ident()}. DB object: {self.db}")
             self.conn = kuzu.Connection(self.db)
@@ -128,7 +120,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
         if not self.conn:
             msg = "KuzuDB not connected"
             raise DatabaseError(msg)
-        
+
         try:
             existing_node_tables = self.list_object_types()
             if otd.name in existing_node_tables:
@@ -327,7 +319,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
                     actual_query_result = raw_query_result[0]
             else:
                 actual_query_result = raw_query_result
-            
+
             if actual_query_result:
                 column_names = actual_query_result.get_column_names()
                 while actual_query_result.has_next():
@@ -372,7 +364,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
             # props_for_set is used to gather all properties that need to be in the SET clause
             # We will ensure correct types when populating params_for_query later.
             props_for_set[key] = value # Store original types from instance.properties
-    
+
         # Build SET clause and populate params_for_query with correctly typed values
         set_clause_parts = []
         # Iterate over all properties intended for the node (id + instance.properties)
@@ -392,9 +384,9 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
         if not set_clause_parts:
             msg = f"KuzuDB: No properties to set for object instance {instance.id} in {table_name}."
             raise InstanceError(msg)
-        
+
         set_clause_str_on_create = ", ".join(set_clause_parts)
-        
+
         # For ON MATCH, exclude setting the 'id' property as it's used for matching.
         # Only include other properties from instance.properties.
         set_clause_parts_on_match_list = []
@@ -727,7 +719,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
             f"{type(instance.source_object_instance_id)=}, {instance.target_object_instance_id=}, "
             f"{type(instance.target_object_instance_id)=}, {instance.weight=}, "
             f"{type(instance.weight)=}, {instance.upsert_date=}, {type(instance.upsert_date)=}, "
-            f"properties: { {k: (v, type(v)) for k, v in instance.properties.items()} }"
+            f"properties: { {k: (v, type(v)) for k, v in instance.properties.items()} }",
         )
         if rtd:
             logger.debug(f"Using RTD: {rtd.name}, source_types: {rtd.source_object_type_names}, target_types: {rtd.target_object_type_names}")
@@ -773,7 +765,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
         for key, value in instance.properties.items():
             # props_for_set is used to gather all properties that need to be in the SET clause
             props_for_set[key] = value # Store original types
-    
+
         # Build SET clause and populate params_for_query with correctly typed values
         set_clause_parts = []
         # Iterate over all properties intended for the relation (id, weight, upsert_date + instance.properties)
@@ -781,7 +773,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
             "id": instance.id,
             "weight": float(instance.weight),
             "upsert_date": instance.upsert_date,
-            **instance.properties
+            **instance.properties,
         }
 
         for key, original_value in all_relation_properties.items():
@@ -794,7 +786,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
                 params_for_query[param_name] = original_value # Pass UUID object
             else:
                 params_for_query[param_name] = original_value
-                
+
         if not set_clause_parts:
             msg = f"KuzuDB: No properties to set for relation instance {instance.id} in {rel_table_name}."
             raise InstanceError(msg)
@@ -804,7 +796,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
         check_src_query = f"MATCH (s:{src_node_table} {{id: $src_id_param}}) RETURN s.id"
         logger.debug(f"KuzuAdapter: Checking source node existence with query: {check_src_query} and params: {{'src_id_param': instance.source_object_instance_id}}")
         src_exists_result = self.conn.execute(check_src_query, parameters={"src_id_param": instance.source_object_instance_id})
-        
+
         actual_src_exists_result: Optional[kuzu.query_result.QueryResult] = None
         if isinstance(src_exists_result, list):
             if src_exists_result:
@@ -1088,13 +1080,13 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
             # We already know the relation_type_name, no need to fetch it from Kuzu's TYPE() or label().
             # The actual_relation_type will be this known name.
             cypher_query_parts.append(
-                "RETURN r, src.id AS src_node_id, tgt.id AS tgt_node_id"
+                "RETURN r, src.id AS src_node_id, tgt.id AS tgt_node_id",
             )
         else:
             # If relation_type_name was not provided (broader query), try to get it using label(r)
             # This case is somewhat restricted by earlier checks in the method.
             cypher_query_parts.append(
-                "RETURN r, src.id AS src_node_id, tgt.id AS tgt_node_id, label(r) as actual_relation_type_from_kuzu"
+                "RETURN r, src.id AS src_node_id, tgt.id AS tgt_node_id, label(r) as actual_relation_type_from_kuzu",
             )
 
         if limit is not None:
@@ -1126,24 +1118,23 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
                 rel_data_from_kuzu = row[0]  # Relationship properties as a dict
                 src_id_str = row[1]
                 tgt_id_str = row[2]
-                
+
                 actual_rel_type_to_use: str
                 if relation_type_name:
                     actual_rel_type_to_use = relation_type_name
+                # This branch is taken if relation_type_name was None in the input,
+                # and we used label(r) in the query.
+                elif len(row) > 3: # Check if label(r) was actually returned
+                     actual_rel_type_to_use = row[3] # from label(r)
                 else:
-                    # This branch is taken if relation_type_name was None in the input,
-                    # and we used label(r) in the query.
-                    if len(row) > 3: # Check if label(r) was actually returned
-                         actual_rel_type_to_use = row[3] # from label(r)
-                    else:
-                        # This should not happen if the query was built correctly for this case.
-                        # Fallback or raise error. For now, let's try to make it robust.
-                        # If relation_type_name was None, and label(r) wasn't in RETURN, this is an issue.
-                        # However, the method logic tries to ensure relation_type_name if querying by props.
-                        # If it's a very generic query, this might be problematic.
-                        # For safety, if it's missing, we can't form a valid RelationInstance.
-                        logger.warning("Could not determine actual relation type for a found relation.")
-                        continue
+                    # This should not happen if the query was built correctly for this case.
+                    # Fallback or raise error. For now, let's try to make it robust.
+                    # If relation_type_name was None, and label(r) wasn't in RETURN, this is an issue.
+                    # However, the method logic tries to ensure relation_type_name if querying by props.
+                    # If it's a very generic query, this might be problematic.
+                    # For safety, if it's missing, we can't form a valid RelationInstance.
+                    logger.warning("Could not determine actual relation type for a found relation.")
+                    continue
 
 
                 if not rel_data_from_kuzu or "id" not in rel_data_from_kuzu:
@@ -1332,17 +1323,17 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
                             if isinstance(prop_filter.value, str) and operator_to_use in ["=", "!="]: # Refined condition
                                 escaped_value = prop_filter.value.replace("'", "''")
                                 where_clauses.append(
-                                    f"tgt.{prop_name_in_cypher} {operator_to_use} '{escaped_value}'"
+                                    f"tgt.{prop_name_in_cypher} {operator_to_use} '{escaped_value}'",
                                 )
                                 # No parameter needed as it's embedded
                             elif isinstance(prop_filter.value, UUID): # Check if value is UUID
                                 where_clauses.append(
-                                    f"tgt.{prop_name_in_cypher} {operator_to_use} ${param_key_prop_val}"
+                                    f"tgt.{prop_name_in_cypher} {operator_to_use} ${param_key_prop_val}",
                                 )
                                 params[param_key_prop_val] = prop_filter.value # Pass UUID object
                             else: # For numbers, booleans, or other operators with strings
                                 where_clauses.append(
-                                    f"tgt.{prop_name_in_cypher} {operator_to_use} ${param_key_prop_val}"
+                                    f"tgt.{prop_name_in_cypher} {operator_to_use} ${param_key_prop_val}",
                                 )
                                 params[param_key_prop_val] = prop_filter.value
 
@@ -1368,11 +1359,11 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
                             actual_query_result = raw_query_result[0]
                     else:
                         actual_query_result = raw_query_result
-    
+
                         if not actual_query_result or not actual_query_result.has_next():
                             current_id_satisfies_all = False
                             break
-                        
+
                         # If query is "RETURN count(tgt)", get_next()[0] will be the count
                         count_result = actual_query_result.get_next()[0]
                         if not isinstance(count_result, int) or count_result == 0:
@@ -1390,11 +1381,10 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
                     )
                     if is_kuzu_schema_issue:
                         raise SchemaError(f"Kuzu schema/binder error during traversal query: {runtime_kuzu_error}") from runtime_kuzu_error
-                    else:
-                        # For other RuntimeErrors not identified as schema issues,
-                        # assume the traversal for this specific obj_id failed.
-                        current_id_satisfies_all = False
-                        break
+                    # For other RuntimeErrors not identified as schema issues,
+                    # assume the traversal for this specific obj_id failed.
+                    current_id_satisfies_all = False
+                    break
                 except (SchemaError, DatabaseError) as db_exc: # Our own specific errors
                     raise db_exc
                 except Exception: # Catch-all for other truly unexpected errors (non-Runtime, non-Grizabella specific)
