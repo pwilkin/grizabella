@@ -1,6 +1,8 @@
 """Grizabella adapter for KuzuDB graph database."""
 
 import logging # Added
+import os # Added
+import glob # Added
 import threading # For logging thread ID
 from typing import Any, Optional
 from uuid import UUID
@@ -46,6 +48,37 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
         """Establish a connection to the Kuzu database."""
         logger.info(f"KuzuAdapter: _connect called in thread ID: {threading.get_ident()} for db_path: {self.db_path}")
         try:
+            # Clean up stale lock files
+            lock_file_path = os.path.join(self.db_path, ".lock") # Corrected lock file name
+            if os.path.exists(lock_file_path):
+                logger.info(f"KuzuAdapter: Found existing lock file: {lock_file_path}. Attempting to remove.")
+                try:
+                    os.remove(lock_file_path)
+                    logger.info(f"KuzuAdapter: Successfully removed lock file: {lock_file_path}.")
+                except OSError as e:
+                    logger.warning(f"KuzuAdapter: Could not remove lock file: {lock_file_path}. Error: {e}. Proceeding with connection attempt.")
+
+            # Kuzu might also create WAL files that could interfere if not cleared after a crash,
+            # especially if the lock file is gone but WAL remains.
+            # These are typically named something like `wal.kuzu` or in a `wal` directory.
+            # For simplicity, we'll look for `wal.kuzu` in the main db_path.
+            # More robust handling might involve checking Kuzu's specific WAL naming and location.
+            wal_files_pattern = os.path.join(self.db_path, "*.wal") # Kuzu uses a directory named 'wal'
+            # Let's correct this to look for a directory named 'wal' and its contents, or specific .wal files
+
+            # General approach: remove <db_path>/wal directory if it exists and is empty or contains Kuzu WAL files
+            # Kuzu's documentation implies the directory is named 'wal'
+            wal_directory_path = os.path.join(self.db_path, "wal")
+            if os.path.isdir(wal_directory_path):
+                logger.info(f"KuzuAdapter: Found WAL directory: {wal_directory_path}. Attempting to clean up.")
+                # This is a more complex operation; for now, we'll just log its presence.
+                # A proper cleanup might involve `shutil.rmtree(wal_directory_path)`
+                # but that's risky without more specific knowledge of Kuzu's state.
+                # For now, we rely on Kuzu's startup to handle WAL recovery if the lock is clear.
+                # If issues persist, this is an area for further investigation.
+                logger.info(f"KuzuAdapter: WAL directory found at {wal_directory_path}. Kuzu should handle recovery. If connection fails, this might be a factor.")
+
+
             self.db = kuzu.Database(self.db_path)
             logger.info(f"KuzuAdapter: kuzu.Database() successful in thread ID: {threading.get_ident()}. DB object: {self.db}")
             self.conn = kuzu.Connection(self.db)

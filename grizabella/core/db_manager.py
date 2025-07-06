@@ -5,9 +5,9 @@ import logging
 import shutil
 import uuid
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any, Optional, Union, TYPE_CHECKING
 
-from grizabella.db_layers.kuzu.kuzu_adapter import KuzuAdapter
+# from grizabella.db_layers.kuzu.kuzu_adapter import KuzuAdapter # Moved to TYPE_CHECKING
 from grizabella.db_layers.lancedb.lancedb_adapter import LanceDBAdapter
 from grizabella.db_layers.sqlite.sqlite_adapter import SQLiteAdapter
 
@@ -28,6 +28,9 @@ from .models import (
 )
 from .query_engine import QueryExecutor, QueryPlanner  # Added import
 from .query_models import ComplexQuery, QueryResult  # Added import
+
+if TYPE_CHECKING:
+    from grizabella.db_layers.kuzu.kuzu_adapter import KuzuAdapter
 
 logger = logging.getLogger(__name__)
 
@@ -160,7 +163,7 @@ class GrizabellaDBManager: # pylint: disable=R0904, R0902
             raise DatabaseError(msg)
         return self._connection_helper.lancedb_adapter
     @property
-    def kuzu_adapter(self) -> KuzuAdapter:
+    def kuzu_adapter(self) -> "KuzuAdapter":
         """Provides access to the Kuzu adapter, ensuring connection."""
         if not self._manager_fully_initialized:
             msg = "GrizabellaDBManager not fully initialized."

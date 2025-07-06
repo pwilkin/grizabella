@@ -3,12 +3,15 @@
 import logging
 import threading # For logging thread ID
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import Any, Optional, TYPE_CHECKING
 from uuid import UUID
 
-from grizabella.db_layers.kuzu.kuzu_adapter import KuzuAdapter
+# from grizabella.db_layers.kuzu.kuzu_adapter import KuzuAdapter # Moved to TYPE_CHECKING
 from grizabella.db_layers.lancedb.lancedb_adapter import LanceDBAdapter
 from grizabella.db_layers.sqlite.sqlite_adapter import SQLiteAdapter
+
+if TYPE_CHECKING:
+    from grizabella.db_layers.kuzu.kuzu_adapter import KuzuAdapter
 
 from .exceptions import (
     ConfigurationError,
@@ -72,7 +75,7 @@ class _ConnectionHelper:  # pylint: disable=R0902
         return self._lancedb_adapter_instance
 
     @property
-    def kuzu_adapter(self) -> KuzuAdapter:
+    def kuzu_adapter(self) -> "KuzuAdapter":
         """Provides access to the Kuzu adapter instance."""
         if not self._kuzu_adapter_instance or not self._adapters_are_connected:
             self._logger.error("Attempted to access Kuzu adapter when not connected.")
