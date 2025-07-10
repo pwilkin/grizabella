@@ -140,6 +140,17 @@ async def _define_schema(state: E2EState):
     await state.session.call_tool("create_relation_type", {"relation_type_def": cites_rtd})
     await state.session.call_tool("create_relation_type", {"relation_type_def": published_in_rtd})
 
+    # For datetime test
+    datetime_test_otd = ObjectTypeDefinition(
+        name="TestDateTimeObject",
+        description="An object type to test datetime handling.",
+        properties=[
+            PropertyDefinition(name="event_name", data_type=PropertyDataType.TEXT, is_nullable=False),
+            PropertyDefinition(name="event_timestamp", data_type=PropertyDataType.DATETIME, is_nullable=False),
+        ]
+    )
+    await state.session.call_tool("create_object_type", {"object_type_def": datetime_test_otd.model_dump()})
+
 
 async def _populate_data(state: E2EState):
     assert state.session is not None
@@ -433,5 +444,91 @@ async def test_full_e2e_scenario(state: E2EState):
     """
     await _run_initial_queries(state)
     await _run_logical_queries(state)
+    await _test_datetime_upsert(state) # Add the new test call
     await _modify_data(state)
     await _run_post_modification_queries(state)
+
+
+async def _test_datetime_upsert(state: E2EState):
+    """Tests upserting and retrieving an object with a datetime property via MCP."""
+    assert state.session is not None
+    from datetime import datetime, timezone, timedelta
+
+    datetime_obj_id = uuid.uuid4()
+    # Test with a timezone-aware datetime string (ISO 8601 format)
+    # Using a specific offset to ensure it's handled
+    dt_string_with_offset = "2023-10-26T10:30:00+05:30"
+    # Expected Python datetime object after Pydantic parsing (should be UTC normalized by Pydantic if coming from ISO string with offset)
+    # Kuzu stores TIMESTAMP as UTC. Pydantic, when deserializing from a JSON string that an MCP server might return
+    # (which in turn gets it from Grizabella client -> DBManager -> KuzuAdapter), will typically parse ISO strings
+    # with timezone info into timezone-aware datetime objects. If Kuzu returns UTC, Pydantic should respect that.
+    # Let's assume the MCP server and client will return UTC ISO strings if the underlying Kuzu type is TIMESTAMP.
+    # The Pydantic model ObjectInstance has `upsert_date: datetime`. When it deserializes from JSON,
+    # if the string is "2023-10-26T05:00:00Z" (UTC representation of above), it becomes a datetime object.
+
+    # The original dt_string_with_offset when converted to UTC is:
+    # 2023-10-26 10:30:00+05:30  -> 2023-10-26 05:00:00 UTC
+    expected_dt_utc = datetime(2023, 10, 26, 5, 0, 0, tzinfo=timezone.utc)
+
+
+    obj_to_upsert = ObjectInstance(
+        id=datetime_obj_id,
+        object_type_name="TestDateTimeObject",
+        properties={
+            "event_name": "Test Event with Offset",
+            "event_timestamp": dt_string_with_offset # Pass as string
+        }
+    )
+
+    upsert_response = await state.session.call_tool("upsert_object", {"obj": obj_to_upsert.model_dump(mode="json")}) # mode="json" ensures datetime is ISO string
+    assert upsert_response.content is not None
+    upserted_obj_dict = json.loads(upsert_response.content[0].text)
+    upserted_obj = ObjectInstance(**upserted_obj_dict)
+
+    assert upserted_obj.id == datetime_obj_id
+    # The event_timestamp from model_dump(mode='json') will be a string.
+    # When ObjectInstance is reconstructed from this dict, Pydantic will parse the string.
+    assert isinstance(upserted_obj.properties["event_timestamp"], datetime), \
+        f"Upserted event_timestamp should be datetime, got {type(upserted_obj.properties['event_timestamp'])}"
+    assert upserted_obj.properties["event_timestamp"] == expected_dt_utc, \
+        f"Upserted event_timestamp mismatch. Expected UTC: {expected_dt_utc}, Got: {upserted_obj.properties['event_timestamp']}"
+
+
+    # Retrieve the object
+    get_response = await state.session.call_tool("get_object_by_id", {"object_id": str(datetime_obj_id), "type_name": "TestDateTimeObject"})
+    assert get_response.content is not None
+    retrieved_obj_dict = json.loads(get_response.content[0].text)
+    retrieved_obj = ObjectInstance(**retrieved_obj_dict)
+
+    assert retrieved_obj.id == datetime_obj_id
+    assert "event_timestamp" in retrieved_obj.properties
+    retrieved_dt_prop = retrieved_obj.properties["event_timestamp"]
+
+    assert isinstance(retrieved_dt_prop, datetime), \
+        f"Retrieved event_timestamp should be datetime, got {type(retrieved_dt_prop)}"
+
+    # Kuzu stores TIMESTAMP as UTC. When ObjectInstance is reconstructed from MCP JSON response,
+    # Pydantic parses the ISO string (expected to be in UTC from server) into a datetime object.
+    # This object should be timezone-aware and represent the UTC time.
+    assert retrieved_dt_prop.tzinfo is not None and retrieved_dt_prop.tzinfo == timezone.utc, \
+        f"Retrieved datetime should be UTC timezone-aware. Got tzinfo: {retrieved_dt_prop.tzinfo}"
+
+    assert retrieved_dt_prop == expected_dt_utc, \
+        f"Retrieved event_timestamp mismatch. Expected UTC: {expected_dt_utc}, Got: {retrieved_dt_prop}"
+
+    # Test with a naive datetime string (should ideally be rejected or stored as UTC with server assumption)
+    # For now, Grizabella's default behavior might be to assume naive datetimes are UTC if not specified.
+    # Or Pydantic might attach local timezone then convert. This part is more about Grizabella's own policy.
+    # Let's test a simple case and assume it's treated as UTC by default by the underlying layers if no TZ.
+    # Kuzu's str_to_timestamp function typically expects ISO 8601.
+    # A naive datetime string like "2024-01-01T12:00:00" might be interpreted by Kuzu
+    # based on its own rules or session timezone if applicable.
+    # The Pydantic model `ObjectInstance.upsert_date` defaults to `datetime.now(timezone.utc)`.
+    # When `ObjectInstance.properties` contains a datetime string, Pydantic v2 will parse it.
+    # If the string is naive, Pydantic might make it timezone-aware using the system's local timezone.
+    # This could lead to inconsistencies if not handled carefully.
+    # The robust way is for the client (MCP caller) to always provide timezone-aware ISO strings.
+
+    # For this test, we'll focus on the timezone-aware case which is less ambiguous.
+    # Adding a naive test would require more assumptions about server/db timezone interpretation.
+    logging.info("MCP E2E: Datetime upsert and retrieval test passed successfully.")

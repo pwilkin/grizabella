@@ -85,13 +85,12 @@ def get_grizabella_client() -> Grizabella:
         "To create a 'Person' object type with 'name' and 'age' properties, you would call this tool "
         "with the following structure:\n"
         '{\n'
-        '  "object_type_def": {\n'
-        '    "name": "Person",\n'
-        '    "properties": [\n'
-        '      {"name": "name", "type": "string"},\n'
-        '      {"name": "age", "type": "integer"}\n'
-        '    ]\n'
-        '  }\n'
+        '  "name": "Person",\n'
+        '  "description": "A person object type",\n'
+        '  "properties": [\n'
+        '    {"name": "name", "data_type": "TEXT", "is_nullable": false},\n'
+        '    {"name": "age", "data_type": "INTEGER", "is_nullable": true}\n'
+        '  ]\n'
         '}'
     ),
 )
@@ -112,6 +111,22 @@ async def mcp_create_object_type(object_type_def: ObjectTypeDefinition) -> None:
     except Exception as e: # pylint: disable=broad-except
         # Unexpected errors
         msg = f"MCP: Unexpected error creating object type '{object_type_def.name}': {e}"
+        raise Exception(msg) from e
+
+
+@app.tool(
+    name="list_object_types",
+    description="Lists all defined object types in the knowledge base.",
+)
+async def mcp_list_object_types() -> list[ObjectTypeDefinition]:
+    try:
+        gb = get_grizabella_client()
+        return gb.list_object_types()
+    except GrizabellaException as e:
+        msg = f"MCP: Error listing object types: {e}"
+        raise GrizabellaException(msg) from e
+    except Exception as e: # pylint: disable=broad-except
+        msg = f"MCP: Unexpected error listing object types: {e}"
         raise Exception(msg) from e
 
 
