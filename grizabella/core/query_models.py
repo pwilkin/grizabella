@@ -1,16 +1,19 @@
 """Pydantic models for Grizabella Complex Query Engine."""
 from enum import Enum
-from typing import Any, List, Literal, Optional, Union
+from typing import List, Literal, Optional, Union
 from uuid import UUID
-
+from grizabella.core.models import ObjectInstance
 from pydantic import BaseModel, Field, model_validator
+
+# Type definition for RelationalFilter value
+FilterValueType = Union[
+    str, int, float, bool, None, List[str], List[int], List[float], List[bool]
+]
 
 # Assuming ObjectInstance will be imported from grizabella.core.models
 # This will create a circular import if ObjectInstance also imports from query_models.
 # If that's the case, we might need to use forward references (e.g., 'ObjectInstance')
 # or move some models around. For now, let's try a direct import.
-from grizabella.core.models import ObjectInstance
-
 
 class RelationalFilter(BaseModel):
     """Defines a filter condition based on an object's property value.
@@ -27,7 +30,7 @@ class RelationalFilter(BaseModel):
             include "==", "!=", ">", "<", ">=", "<=", "LIKE", "IN", "CONTAINS",
             "STARTSWITH", and "ENDSWITH".
 
-        value (Any): :noindex: The value to compare the property against. The type of this
+        value (FilterValueType): :noindex: The value to compare the property against. The type of this
             value should be compatible with the data type of the specified property.
             For "IN" operator, this should be a list of values.
 
@@ -45,9 +48,9 @@ class RelationalFilter(BaseModel):
         ...,
         description="The comparison operator.",
     )
-    value: Any = Field(
+    value: FilterValueType = Field(
         ...,
-        description="The value to compare against.",
+        description="The value to compare against. For simple operators (==, !=, >, <, etc.), this can be a string, number, boolean, or null. For the 'IN' operator, this should be a list of values of the same type.",
     )
 
 

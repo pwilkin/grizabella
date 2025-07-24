@@ -15,6 +15,7 @@ import os
 import signal
 import sys
 import uuid
+import tracemalloc
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional, Union
@@ -96,6 +97,7 @@ def get_grizabella_client() -> Grizabella:
 )
 async def mcp_create_object_type(object_type_def: ObjectTypeDefinition) -> None:
     # ctx: ToolContext,  # Removed for now, FastMCP might inject or not require it.
+    gb = None
     try:
         gb = get_grizabella_client()
         gb.create_object_type(object_type_def)
@@ -112,6 +114,10 @@ async def mcp_create_object_type(object_type_def: ObjectTypeDefinition) -> None:
         # Unexpected errors
         msg = f"MCP: Unexpected error creating object type '{object_type_def.name}': {e}"
         raise Exception(msg) from e
+    finally:
+        # Clean up to prevent memory leaks
+        if gb:
+            gb.close()
 
 
 @app.tool(
@@ -480,7 +486,7 @@ async def mcp_get_relation(
         msg = f"MCP: Error getting relation of type '{relation_type_name}' from '{from_object_id}' to '{to_object_id}': {e}"
         raise GrizabellaException(msg) from e
     except Exception as e: # pylint: disable=broad-except
-        msg = f"MCP: Unexpected error getting relation of type '{relation_type_name}' from '{from_object_id}' to '{to_object_id}': {e}"
+        msg = f"M极: Unexpected error getting relation of type '{relation_type_name}' from '{from_object_id}' to '{to_object_id}': {e}"
         raise Exception(msg) from e
 
 
@@ -797,21 +803,30 @@ def shutdown_handler(signum, frame):
 
 def main():
     """Initializes client and runs the FastMCP application."""
+    # Start memory tracing
+    tracemalloc.start()
+    snapshot1 = tracemalloc.take_snapshot()
+    
     # Register signal handlers
     signal.signal(signal.SIGINT, shutdown_handler)
     signal.signal(signal.SIGTERM, shutdown_handler)
 
     parser = argparse.ArgumentParser(description="Grizabella MCP Server")
     parser.add_argument("--db-path", help="Path to the Grizabella database.")
+    parser.add_argument("--profile-mem", action="store_true", help="Enable memory profiling")
     args = parser.parse_args()
 
     global grizabella_client_instance
     db_path = get_grizabella_db_path(args.db_path)
+    
+    if args.profile_mem:
+        logger.info("Memory profiling enabled")
+        logger.info(f"Initial memory snapshot: {snapshot1.statistics('lineno')[:10]}")
 
     try:
         with Grizabella(db_name_or_path=db_path, create_if_not_exists=True) as gb:
             grizabella_client_instance = gb
-            app.run()
+            app.run(show_banner=False)
     except Exception as e:
         print(f"Server error: {e}")
         sys.exit(1)
@@ -819,6 +834,14 @@ def main():
         # Ensure clean termination
         grizabella_client_instance = None
         print("Server terminated cleanly")
+        
+        if args.profile_mem:
+            snapshot2 = tracemalloc.take_snapshot()
+            top_stats = snapshot2.compare_to(snapshot1, 'lineno')
+            logger.info("[Top 10 memory differences]")
+            for stat in top_stats[:10]:
+                logger.info(stat)
+        
         sys.exit(0)
 
 if __name__ == "__main__":

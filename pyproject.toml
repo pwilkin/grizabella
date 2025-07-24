@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "grizabella"
-version = "0.1.3"
+version = "0.2.5"
 description = "A tri-layer memory framework for LLM solutions."
 authors = ["Grizabella Project Contributors <contributors@example.com>"]
 readme = "README.md"
@@ -31,10 +31,13 @@ lancedb = "^0.24.0"
 sentence-transformers = "^3.0.0"
 kuzu = "^0.10.1"
 pandas = "^2.3.0" # Added for Kuzu adapter query result handling
-fastmcp = "^2.10.2"
+fastmcp = "^2.10.6"
 PySide6 = "^6.7.0"
 optimum = "^1.26.1"
 qt_material = "^2.14"
+litellm = "^1.74.4"  # For OpenRouter integration
+pytest-asyncio = "^1.1.0"
+psutil = "^7.0.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"

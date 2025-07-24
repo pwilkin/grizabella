@@ -3,7 +3,7 @@
 import logging  # Added import
 import os
 import re
-import threading  # For logging thread ID
+import threading  # For logging and synchronization
 from typing import TYPE_CHECKING, Any, Optional
 from uuid import UUID
 
@@ -85,7 +85,7 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
     def __init__(self, db_uri: str, config: Optional[dict[str, Any]] = None) -> None:
         """Initializes the LanceDB adapter."""
         self.db = None # Initialize db attribute
-        self._embedding_model_cache: dict[str, Any] = {} # Model objects from LanceDB registry
+        self._model_lock = threading.Lock()  # Lock for model loading
         super().__init__(db_path=db_uri, config=config)
 
     def _connect(self) -> None:
@@ -287,46 +287,34 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
     # --- Embedding Instance Management (Subtask 2.2) ---
 
     def get_embedding_model(self, model_identifier: str) -> Any:
-        """Loads an embedding model function using LanceDB's registry or retrieves it from cache.
-        Public method to allow access from helpers if necessary, though primarily internal.
+        """Loads an embedding model function using LanceDB's registry.
+        Uses thread locking to prevent multiple concurrent loads of the same model.
         """
-        if model_identifier in self._embedding_model_cache:
-            return self._embedding_model_cache[model_identifier]
-
         if not LANCEDB_AVAILABLE or not LANCEDB_EMBEDDING_REGISTRY:
             msg = "LanceDB or its embedding registry is not available. Cannot load models."
             raise EmbeddingError(msg)
 
         try:
-            # Assuming model_identifier is like "colbert-ir/colbertv2.0"
-            # The registry expects the provider (e.g., "huggingface") and then the name.
-            # For now, we'll assume "huggingface" is the provider if not specified.
-            # A more robust solution might parse the model_identifier or require it
-            # in a specific format like "huggingface:model_name".
-            # For "colbert-ir/colbertv2.0", this should be passed as name="colbert-ir/colbertv2.0"
-            # to the "huggingface" provider.
-            # If model_identifier is "huggingface/colbert-ir/colbertv2.0", then this is fine.
-            # If it's just "colbert-ir/colbertv2.0", we assume it's for huggingface.
-
-            provider_name = "huggingface" # Default assumption
+            # Parse model identifier to extract provider and model name
+            provider_name = "huggingface"  # Default provider
             actual_model_name = model_identifier
 
-            # A simple check if the identifier already includes a common provider prefix
-            # This is a basic heuristic and might need refinement.
-            if ":" in model_identifier: # e.g., "huggingface:model_name"
+            if ":" in model_identifier:
                 parts = model_identifier.split(":", 1)
                 if len(parts) == 2:
                     provider_name = parts[0]
                     actual_model_name = parts[1]
             elif "/" in model_identifier and not model_identifier.startswith("sentence-transformers/"):
-                 # If it contains a / and isn't a sentence-transformers model,
-                 # it's likely an org/model_name from Hugging Face.
-                 # The LanceDB huggingface provider expects just the org/model_name.
-                 pass # actual_model_name is already model_identifier
+                # Already in org/model format
+                pass
 
-            model_func = LANCEDB_EMBEDDING_REGISTRY.get(provider_name).create(name=actual_model_name, trust_remote_code=True)
-            self._embedding_model_cache[model_identifier] = model_func
-            return model_func
+            # Get the provider
+            provider = LANCEDB_EMBEDDING_REGISTRY.get(provider_name)
+            if not provider:
+                raise EmbeddingError(f"Embedding provider '{provider_name}' not found in registry")
+                
+            # Load model directly without caching
+            return provider.create(name=actual_model_name, trust_remote_code=True)
         except Exception as e: # pylint: disable=W0718
             msg = f"Failed to load embedding model '{model_identifier}' via LanceDB registry: {e}"
             raise EmbeddingError(msg) from e

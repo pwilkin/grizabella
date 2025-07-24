@@ -22,6 +22,7 @@ Grizabella is a sophisticated memory layer designed for Large Language Model (LL
 * [User Guide](./docs/user_guide/)
 * [API Reference](./docs/api_reference/build/html/)
 * [Examples](./examples/)
+* [MCP Server Startup](./scripts/README.md)
 
 ## Quick Installation
 

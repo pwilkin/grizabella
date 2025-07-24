@@ -4,6 +4,7 @@ import glob  # Added
 import logging  # Added
 import os  # Added
 import threading  # For logging thread ID
+from datetime import datetime
 from typing import Any, Optional
 from uuid import UUID
 
@@ -357,29 +358,42 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
             "id": str(instance.id),
         }  # Kuzu expects UUID as string
 
+        # Build SET clause and populate params_for_query with correctly typed values
+        set_clause_parts = []
+        # Add id parameter
+        params_for_query["id_param"] = instance.id
+        set_clause_parts.append("n.id = $id_param")
+
+        # Process each property
+        for key, original_value in instance.properties.items():
+            param_name = f"p_{key}"
+            set_clause_parts.append(f"n.{key} = ${param_name}")
+            # Ensure the parameter type matches Kuzu's expectation for the property
+            if isinstance(original_value, UUID):
+                params_for_query[param_name] = original_value # Pass UUID object
+            elif isinstance(original_value, datetime):
+                params_for_query[param_name] = original_value  # Pass datetime object directly
+            elif isinstance(original_value, str):
+                # Handle datetime strings by converting to datetime objects
+                try:
+                    dt_value = datetime.fromisoformat(original_value)
+                    params_for_query[param_name] = dt_value
+                except (ValueError, TypeError):
+                    # If conversion fails, pass the original string
+                    params_for_query[param_name] = original_value
+            else:
+                params_for_query[param_name] = original_value
+
+        # props_for_set should include 'id' and all other properties from instance.properties
+        props_for_set: dict[str, Any] = {
+            "id": str(instance.id),
+        }  # Kuzu expects UUID as string
         # Convert all property values to types Kuzu can handle directly in Cypher
         # For example, datetime to string, UUID to string.
         # Kuzu's Python API might handle some conversions, but explicit is safer for $props_for_set.
         for key, value in instance.properties.items():
             # props_for_set is used to gather all properties that need to be in the SET clause
-            # We will ensure correct types when populating params_for_query later.
             props_for_set[key] = value # Store original types from instance.properties
-
-        # Build SET clause and populate params_for_query with correctly typed values
-        set_clause_parts = []
-        # Iterate over all properties intended for the node (id + instance.properties)
-        all_node_properties = {"id": instance.id, **instance.properties}
-
-        for key, original_value in all_node_properties.items():
-            param_name = f"p_{key}"
-            set_clause_parts.append(f"n.{key} = ${param_name}")
-            # Ensure the parameter type matches Kuzu's expectation for the property
-            if key == "id": # 'id' property in Kuzu is UUID
-                params_for_query[param_name] = instance.id # Pass UUID object
-            elif isinstance(original_value, UUID): # Other potential UUID properties
-                params_for_query[param_name] = original_value # Pass UUID object
-            else:
-                params_for_query[param_name] = original_value
 
         if not set_clause_parts:
             msg = f"KuzuDB: No properties to set for object instance {instance.id} in {table_name}."

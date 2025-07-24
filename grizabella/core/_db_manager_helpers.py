@@ -268,11 +268,16 @@ class _SchemaManager:
         """Ensures Kuzu node table exists for the given OTD."""
         self._logger.info(f"_SchemaManager: Ensuring Kuzu node table for OTD '{otd.name}'.")
         try:
-            # KuzuAdapter.create_node_table should be idempotent or handle "already exists"
-            # It internally calls list_object_types to check if table exists.
+            # First check if the node table already exists in Kuzu
+            existing_tables = self._conn_helper.kuzu_adapter.list_object_types()
+            if otd.name in existing_tables:
+                self._logger.debug(f"Kuzu node table for OTD '{otd.name}' already exists. Skipping creation.")
+                return
+
+            # If not, create it
             self._conn_helper.kuzu_adapter.create_node_table(otd)
             self._logger.info(
-                "_SchemaManager: Kuzu node table ensured/created for OTD '%s'.",
+                "_SchemaManager: Kuzu node table created for OTD '%s'.",
                 otd.name,
             )
         except (SchemaError, DatabaseError) as e:

@@ -452,19 +452,9 @@ async def test_full_e2e_scenario(state: E2EState):
 async def _test_datetime_upsert(state: E2EState):
     """Tests upserting and retrieving an object with a datetime property via MCP."""
     assert state.session is not None
-    from datetime import datetime, timezone, timedelta
+    from datetime import datetime, timezone
 
     datetime_obj_id = uuid.uuid4()
-    # Test with a timezone-aware datetime string (ISO 8601 format)
-    # Using a specific offset to ensure it's handled
-    dt_string_with_offset = "2023-10-26T10:30:00+05:30"
-    # Expected Python datetime object after Pydantic parsing (should be UTC normalized by Pydantic if coming from ISO string with offset)
-    # Kuzu stores TIMESTAMP as UTC. Pydantic, when deserializing from a JSON string that an MCP server might return
-    # (which in turn gets it from Grizabella client -> DBManager -> KuzuAdapter), will typically parse ISO strings
-    # with timezone info into timezone-aware datetime objects. If Kuzu returns UTC, Pydantic should respect that.
-    # Let's assume the MCP server and client will return UTC ISO strings if the underlying Kuzu type is TIMESTAMP.
-    # The Pydantic model ObjectInstance has `upsert_date: datetime`. When it deserializes from JSON,
-    # if the string is "2023-10-26T05:00:00Z" (UTC representation of above), it becomes a datetime object.
 
     # The original dt_string_with_offset when converted to UTC is:
     # 2023-10-26 10:30:00+05:30  -> 2023-10-26 05:00:00 UTC
@@ -476,13 +466,21 @@ async def _test_datetime_upsert(state: E2EState):
         object_type_name="TestDateTimeObject",
         properties={
             "event_name": "Test Event with Offset",
-            "event_timestamp": dt_string_with_offset # Pass as string
+            "event_timestamp": expected_dt_utc # Pass as datetime object
         }
     )
 
     upsert_response = await state.session.call_tool("upsert_object", {"obj": obj_to_upsert.model_dump(mode="json")}) # mode="json" ensures datetime is ISO string
     assert upsert_response.content is not None
-    upserted_obj_dict = json.loads(upsert_response.content[0].text)
+    # Extract text content from the response
+    content_text = ""
+    for content_item in upsert_response.content:
+        if isinstance(content_item, TextContent):
+            content_text = content_item.text
+            break
+    if not content_text:
+        pytest.fail("No TextContent found in upsert response")
+    upserted_obj_dict = json.loads(content_text)
     upserted_obj = ObjectInstance(**upserted_obj_dict)
 
     assert upserted_obj.id == datetime_obj_id
@@ -497,7 +495,15 @@ async def _test_datetime_upsert(state: E2EState):
     # Retrieve the object
     get_response = await state.session.call_tool("get_object_by_id", {"object_id": str(datetime_obj_id), "type_name": "TestDateTimeObject"})
     assert get_response.content is not None
-    retrieved_obj_dict = json.loads(get_response.content[0].text)
+    # Extract text content from the response
+    content_text = ""
+    for content_item in get_response.content:
+        if isinstance(content_item, TextContent):
+            content_text = content_item.text
+            break
+    if not content_text:
+        pytest.fail("No TextContent found in get response")
+    retrieved_obj_dict = json.loads(content_text)
     retrieved_obj = ObjectInstance(**retrieved_obj_dict)
 
     assert retrieved_obj.id == datetime_obj_id

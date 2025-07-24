@@ -15,7 +15,6 @@ from grizabella.core.query_models import (
     ComplexQuery, QueryComponent, RelationalFilter,
     EmbeddingSearchClause, GraphTraversalClause, QueryResult
 )
-from grizabella.core.exceptions import GrizabellaException # For specific error handling if needed
 
 class TestGrizabellaE2EScenario(unittest.TestCase):
     """
