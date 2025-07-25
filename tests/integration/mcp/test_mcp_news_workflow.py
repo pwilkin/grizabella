@@ -7,8 +7,7 @@ from litellm import completion
 from litellm.utils import get_response_string
 from litellm.types.utils import ModelResponse, Choices
 from grizabella.core.models import ObjectTypeDefinition, PropertyDefinition, PropertyDataType
-from scripts.start_mcp_servers import create_clients
-from mcp import stdio_client, ClientSession
+from scripts.start_mcp_servers import create_clients, MCPClientManager
 
 # Test configuration
 TEST_DB_PATH = "test_mcp_news_db"
@@ -32,28 +31,29 @@ def news_object_type():
         ]
     )
 
-async def get_tools_config(clients):
+async def get_tools_config(clients, sessions):
     """Return MCP tools configuration for LLM by reading from MCP servers"""
+    print("Getting tools configuration from servers...")
     tools = []
     
-    # Get tools from each client
-    for _, client in clients.items():
-        async with stdio_client(client) as (read, write):
-            async with ClientSession(read, write) as session:
-                await session.initialize()
-                server_tools = await session.list_tools()
-                for tool in server_tools.tools:
-                    tools.append({
-                        "type": "function",
-                        "function": {
-                            "name": tool.name,
-                            "description": tool.description or "",
-                            "parameters": tool.inputSchema
-                        }
-                    })
+    # Get tools from each client session
+    for server_name, session in sessions.items():
+        print(f"Getting tools from server: {server_name}")
+        server_tools = await session.list_tools()
+        print(f"Got {len(server_tools.tools)} tools from server: {server_name}")
+        for tool in server_tools.tools:
+            tools.append({
+                "type": "function",
+                "function": {
+                    "name": f"{server_name}:{tool.name}",
+                    "description": tool.description or "",
+                    "parameters": tool.inputSchema
+                }
+            })
+    print(f"Total tools collected: {len(tools)}")
     return tools
 
-async def execute_tool_call(tool_call, clients):
+async def execute_tool_call(tool_call, sessions):
     """Execute a single tool call and return the result"""
     # Parse tool name to get server and tool
     tool_name_parts = tool_call.function.name.split(":", 1)
@@ -61,19 +61,16 @@ async def execute_tool_call(tool_call, clients):
         raise ValueError(f"Invalid tool name format: {tool_call.function.name}")
     
     server_name, tool_name = tool_name_parts
-    if server_name not in clients:
+    if server_name not in sessions:
         raise ValueError(f"Unknown server: {server_name}")
     
-    client = clients[server_name]
-    async with stdio_client(client) as (read, write):
-        async with ClientSession(read, write) as session:
-            await session.initialize()
-            # Parse arguments from JSON string
-            import json
-            args = json.loads(tool_call.function.arguments)
-            # Call the tool
-            result = await session.call_tool(tool_name, args)
-            return result
+    session = sessions[server_name]
+    # Parse arguments from JSON string
+    import json
+    args = json.loads(tool_call.function.arguments)
+    # Call the tool
+    result = await session.call_tool(tool_name, args)
+    return result
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(
@@ -84,10 +81,16 @@ async def test_news_workflow():
     # Create MCP clients using start_mcp_servers utility
     clients = create_clients()
     
-    # Wait for clients to initialize
-    time.sleep(3)
+    # Create persistent client sessions
+    manager = None
     
     try:
+        # Initialize client sessions
+        print("Initializing client sessions...")
+        manager = MCPClientManager(clients)
+        await manager.open_all()
+        print("All client sessions initialized successfully")
+              
         # Set up LiteLLM model
         model = os.getenv("LMSTUDIO_MODEL")
         
@@ -102,7 +105,9 @@ async def test_news_workflow():
             "5. Return the recalled news articles"
         )
         
-        tools = await get_tools_config(clients)
+        print("Getting tools configuration...")
+        tools = await get_tools_config(clients, manager.sessions)
+        print(f"Got {len(tools)} tools from servers")
         
         # Initialize message history
         messages = [
@@ -179,43 +184,6 @@ async def test_news_workflow():
                 print(f"  Tool call {i+1}: {tool_call.function.name}")
                 print(f"  Arguments: {tool_call.function.arguments}")
             
-            cast_response = cast(ModelResponse, response)
-            
-            # Extract tool calls if present
-            tool_calls = []
-            try:
-                if hasattr(cast(Choices, cast_response.choices)[0].message, 'tool_calls') and cast(Choices, cast_response.choices)[0].message.tool_calls:
-                    tool_calls = cast(Choices, cast_response.choices)[0].message.tool_calls
-            except (ValueError, IndexError, AttributeError) as e:
-                print(f"Warning: Could not extract tool calls from response: {e}")
-            
-            # If no tool calls, we're done
-            if not tool_calls:
-                print(f"No tool calls in iteration {iteration}, breaking loop")
-                break
-                
-            # Add assistant message with tool calls to history
-            assistant_message = {
-                "role": "assistant",
-                "tool_calls": [
-                    {
-                        "id": tc.id,
-                        "type": "function",
-                        "function": {
-                            "name": tc.function.name,
-                            "arguments": tc.function.arguments
-                        }
-                    }
-                    for tc in tool_calls
-                ]
-            }
-            # Only add content if it exists
-            if hasattr(cast(Choices, cast_response.choices)[0].message, 'content'):
-                content = cast(Choices, cast_response.choices)[0].message.content
-                if content:
-                    assistant_message["content"] = content
-            messages.append(assistant_message)
-            
             # Execute each tool call and add results to message history
             for tool_call in tool_calls:
                 total_tool_calls += 1
@@ -223,7 +191,7 @@ async def test_news_workflow():
                 # Execute the tool
                 try:
                     print(f"Executing tool: {tool_call.function.name}")
-                    result = await execute_tool_call(tool_call, clients)
+                    result = await execute_tool_call(tool_call, manager.sessions)
                     print(f"Tool execution result: {result}")
                     
                     # Add tool response to message history
@@ -243,7 +211,20 @@ async def test_news_workflow():
                         "name": tool_call.function.name,
                         "content": f"Error: {str(e)}"
                     })
-        # At this point, response has been set either in the loop or before it
+            
+            # Get next response from LLM based on tool results
+            response = completion(
+                model=(str(model)) or "openai/auto",
+                messages=messages,
+                stream=False,
+                tools=tools,
+                tool_choice="auto",
+                max_tokens=MAX_TOKENS,
+                api_base="http://localhost:1234/v1",
+                api_key="1234"
+            )
+            
+            iteration += 1
         # Make final call to get response without tools if needed
         cast_response = cast(ModelResponse, response)
         tool_calls = []
@@ -280,6 +261,10 @@ async def test_news_workflow():
         print(f"LLM successfully completed workflow:\n{final_response}")
     
     finally:
+        # Cleanup - close client sessions
+        if manager:
+            await manager.close()
+        
         # Cleanup - terminate any child processes
         current_process = psutil.Process()
         children = current_process.children(recursive=True)

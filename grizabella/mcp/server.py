@@ -10,15 +10,12 @@ structured data objects and their relationships.
 """
 
 import argparse
+from datetime import datetime, timezone
 import logging
 import os
 import signal
 import sys
-import threading
-import time
 import uuid
-import tracemalloc
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional, Union
 
@@ -108,7 +105,6 @@ def get_grizabella_client() -> Grizabella:
 )
 async def mcp_create_object_type(object_type_def: ObjectTypeDefinition) -> None:
     # ctx: ToolContext,  # Removed for now, FastMCP might inject or not require it.
-    gb = None
     try:
         gb = get_grizabella_client()
         gb.create_object_type(object_type_def)
@@ -125,10 +121,6 @@ async def mcp_create_object_type(object_type_def: ObjectTypeDefinition) -> None:
         # Unexpected errors
         msg = f"MCP: Unexpected error creating object type '{object_type_def.name}': {e}"
         raise Exception(msg) from e
-    finally:
-        # Clean up to prevent memory leaks
-        if gb:
-            gb.close()
 
 
 @app.tool(
@@ -806,172 +798,37 @@ async def mcp_get_embedding_vector_for_text(args: GetEmbeddingVectorForTextArgs)
 # `python -m fastmcp grizabella.mcp.server:app`
 # or similar, depending on FastMCP's conventions.
 
-# Global variables for memory profiling
-snapshot1 = None
-args = None
-
-def print_memory_stats(label="Memory Stats"):
-    """Print current memory statistics if profiling is enabled."""
-    global snapshot1, args
-    logger.info(f"print_memory_stats called with label: {label}")
-    logger.info(f"args: {args}, profile_mem: {getattr(args, 'profile_mem', 'N/A') if args else 'N/A'}, snapshot1: {snapshot1 is not None}")
-    if args and args.profile_mem and snapshot1:
-        try:
-            current_snapshot = tracemalloc.take_snapshot()
-            top_stats = current_snapshot.compare_to(snapshot1, 'lineno')
-            logger.info("[Current Top 10 memory consumers]")
-            stats_output = []
-            stats_output.append("[Current Top 10 memory consumers]")
-            for stat in top_stats[:10]:
-                logger.info(stat)
-                stats_output.append(str(stat))
-            
-            # Save to file if specified
-            # Save to file if specified
-            if args.profile_file:
-                try:
-                    with open(args.profile_file, 'a') as f:
-                        f.write(f"\n--- {label} at {datetime.now()} ---\n")
-                        f.write('\n'.join(stats_output) + '\n')
-                        f.flush()  # Ensure data is written immediately
-                        os.fsync(f.fileno())  # Force OS to write to disk
-                except Exception as e:
-                    logger.error(f"Error saving memory stats to file: {e}")
-        except Exception as e:
-            logger.error(f"Error printing memory stats: {e}")
-
 def shutdown_handler(signum, frame):
     """Handle shutdown signals gracefully."""
     print(f"Received signal {signum}, shutting down...")
     logger.info(f"Received signal {signum}, shutting down...")
-    # Print final memory stats before exiting
-    print_memory_stats()
-    # Ensure memory profile file is flushed
-    global args
-    logger.info(f"Shutdown handler args: {args}")
-    if args and args.profile_mem and args.profile_file:
-        try:
-            # Try to flush any buffered writes
-            logger.info(f"Writing shutdown signal to profile file: {args.profile_file}")
-            with open(args.profile_file, 'a') as f:
-                f.write(f"\n--- Shutdown Signal {signum} received at {datetime.now()} ---\n")
-                f.flush()
-                os.fsync(f.fileno())
-            logger.info("Shutdown signal written to profile file successfully")
-            # Small delay to ensure file operations complete
-            time.sleep(0.1)
-        except Exception as e:
-            print(f"Error writing shutdown signal to profile file: {e}")
-            logger.error(f"Error writing shutdown signal to profile file: {e}")
     # Perform any cleanup here if needed
     sys.exit(0)
 
 def main():
     """Initializes client and runs the FastMCP application."""
-    global snapshot1, args
-    
-    # Start memory tracing
-    tracemalloc.start()
-    snapshot1 = tracemalloc.take_snapshot()
-    
     # Register signal handlers
     signal.signal(signal.SIGINT, shutdown_handler)
     signal.signal(signal.SIGTERM, shutdown_handler)
 
     parser = argparse.ArgumentParser(description="Grizabella MCP Server")
     parser.add_argument("--db-path", help="Path to the Grizabella database.")
-    parser.add_argument("--profile-mem", action="store_true", help="Enable memory profiling")
-    parser.add_argument("--profile-interval", type=int, default=0, help="Interval in seconds to print memory stats (0 = disabled)")
-    parser.add_argument("--profile-file", type=str, default="memory_profile.txt", help="File to save memory profiling data")
     args = parser.parse_args()
 
     global grizabella_client_instance
     db_path = get_grizabella_db_path(args.db_path)
     
-    if args.profile_mem:
-        logger.info("Memory profiling enabled")
-        initial_stats = snapshot1.statistics('lineno')[:10]
-        logger.info(f"Initial memory snapshot: {initial_stats}")
-        logger.info(f"Initial memory stats count: {len(initial_stats)}")
-        
-        # Save initial snapshot to file
-        if args.profile_file:
-            try:
-                with open(args.profile_file, 'w') as f:
-                    f.write(f"Initial memory snapshot at {datetime.now()}\n")
-                    for stat in snapshot1.statistics('lineno')[:10]:
-                        f.write(f"{stat}\n")
-                logger.info(f"Initial memory snapshot saved to {args.profile_file}")
-            except Exception as e:
-                logger.error(f"Error saving initial memory snapshot: {e}")
-
-    # Start periodic memory reporting if interval is set (before app.run)
-    memory_thread = None
-    if args.profile_mem and args.profile_interval > 0:
-        def periodic_memory_report():
-            logger.info("Periodic memory reporting thread started")
-            iteration = 0
-            while True:
-                try:
-                    iteration += 1
-                    logger.info(f"Periodic memory report #{iteration} triggered, sleeping for {args.profile_interval} seconds")  # type: ignore
-                    time.sleep(args.profile_interval)  # type: ignore
-                    logger.info(f"Periodic memory report #{iteration} running")
-                    print_memory_stats(f"Periodic Report #{iteration}")
-                    logger.info(f"Periodic memory report #{iteration} completed")
-                except Exception as e:
-                    logger.error(f"Error in periodic memory reporting thread: {e}")
-                    # Continue running even if there's an error
-                    time.sleep(5)  # Wait a bit before retrying
-        
-        memory_thread = threading.Thread(target=periodic_memory_report, daemon=True)
-        memory_thread.start()
-        logger.info(f"Periodic memory reporting enabled every {args.profile_interval} seconds")
-    
     try:
         with Grizabella(db_name_or_path=db_path, create_if_not_exists=True) as gb:
             grizabella_client_instance = gb
-            # Print memory stats before starting the server
-            print_memory_stats("Before starting FastMCP server")
             app.run(show_banner=False)
-            # Print memory stats after server stops (if it ever stops normally)
-            print_memory_stats("After FastMCP server stopped")
     except Exception as e:
         print(f"Server error: {e}")
-        # Print memory stats on error
-        print_memory_stats()
         sys.exit(1)
     finally:
         # Ensure clean termination
         grizabella_client_instance = None
         print("Server terminated cleanly")
-        
-        if args and args.profile_mem and snapshot1:
-            try:
-                logger.info("Taking final memory snapshot")
-                snapshot2 = tracemalloc.take_snapshot()
-                top_stats = snapshot2.compare_to(snapshot1, 'lineno')
-                logger.info("[Top 10 memory differences]")
-                stats_output = []
-                stats_output.append("[Top 10 memory differences]")
-                for stat in top_stats[:10]:
-                    logger.info(stat)
-                    stats_output.append(str(stat))
-                
-                # Save to file if specified
-                if args.profile_file:
-                    try:
-                        with open(args.profile_file, 'a') as f:
-                            f.write(f"\n--- Final Memory Differences at {datetime.now()} ---\n")
-                            f.write('\n'.join(stats_output) + '\n')
-                            f.write(f"Total memory allocated: {sum(stat.size for stat in top_stats)} bytes\n")
-                            f.flush()
-                            os.fsync(f.fileno())
-                        logger.info("Final memory differences written to file")
-                    except Exception as e:
-                        logger.error(f"Error writing final memory differences to file: {e}")
-            except Exception as e:
-                logger.error(f"Error in final memory profiling: {e}")
         
         sys.exit(0)
 

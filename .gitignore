@@ -8,3 +8,4 @@ tests/unit/core/__pycache__
 .env
 *.pyc
 memory_profile.txt
+memory_profile.log
