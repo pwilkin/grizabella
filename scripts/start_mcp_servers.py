@@ -5,7 +5,7 @@ SERVERS = {
     "grizabella": {
         "transport": "stdio",
         "command": "poetry",
-        "args": ["run", "python", "-m", "grizabella.mcp.server", "--db-path", "grizabella_mcp_db"],
+        "args": ["run", "python", "-m", "grizabella.mcp.server", "--db-path", "grizabella_mcp_db", "--profile-mem", "--profile-interval", "5", "--profile-file", "memory_profile.txt"],
     },
     "searxng-public": {
         "transport": "stdio",

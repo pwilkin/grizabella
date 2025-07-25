@@ -6,3 +6,5 @@ tests/integration/core/__pycache__
 tests/integration/core/__pycache__
 tests/unit/core/__pycache__
 .env
+*.pyc
+memory_profile.txt
