@@ -1,0 +1,1669 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://pwilkin.github.io/grizabella/api/mcp_server/">
+      
+      
+        <link rel="prev" href="../client/">
+      
+      
+        <link rel="next" href="../../troubleshooting_faq/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
+    
+    
+      
+        <title>MCP Server - Grizabella</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#mcp-server" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Grizabella" class="md-header__button md-logo" aria-label="Grizabella" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Grizabella
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              MCP Server
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pwilkin/grizabella" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pwilkin/grizabella
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Grizabella" class="md-nav__button md-logo" aria-label="Grizabella" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Grizabella
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pwilkin/grizabella" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pwilkin/grizabella
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../core_concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core Concepts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python_api_detailed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Python API Detailed Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../mcp_server_api_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Server API Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../pyside6_ui_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PySide6 UI Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../query_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Query Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    MCP Server
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Server
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#grizabella.mcp.server" class="md-nav__link">
+    <span class="md-ellipsis">
+      server
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.get_grizabella_client" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_grizabella_client
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.get_grizabella_db_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_grizabella_db_path
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.main" class="md-nav__link">
+    <span class="md-ellipsis">
+      main
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.mcp_find_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      mcp_find_objects
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.mcp_get_embedding_vector_for_text" class="md-nav__link">
+    <span class="md-ellipsis">
+      mcp_get_embedding_vector_for_text
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.mcp_get_incoming_relations" class="md-nav__link">
+    <span class="md-ellipsis">
+      mcp_get_incoming_relations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.mcp_get_outgoing_relations" class="md-nav__link">
+    <span class="md-ellipsis">
+      mcp_get_outgoing_relations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.mcp_search_similar_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      mcp_search_similar_objects
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.shutdown_handler" class="md-nav__link">
+    <span class="md-ellipsis">
+      shutdown_handler
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting_faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting & FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#grizabella.mcp.server" class="md-nav__link">
+    <span class="md-ellipsis">
+      server
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="server">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.get_grizabella_client" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_grizabella_client
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.get_grizabella_db_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_grizabella_db_path
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.main" class="md-nav__link">
+    <span class="md-ellipsis">
+      main
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.mcp_find_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      mcp_find_objects
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.mcp_get_embedding_vector_for_text" class="md-nav__link">
+    <span class="md-ellipsis">
+      mcp_get_embedding_vector_for_text
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.mcp_get_incoming_relations" class="md-nav__link">
+    <span class="md-ellipsis">
+      mcp_get_incoming_relations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.mcp_get_outgoing_relations" class="md-nav__link">
+    <span class="md-ellipsis">
+      mcp_get_outgoing_relations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.mcp_search_similar_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      mcp_search_similar_objects
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grizabella.mcp.server.shutdown_handler" class="md-nav__link">
+    <span class="md-ellipsis">
+      shutdown_handler
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="mcp-server">MCP Server</h1>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="grizabella.mcp.server" class="doc doc-heading">
+            <code>grizabella.mcp.server</code>
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+      <p>Grizabella MCP Server.</p>
+<p>This module provides an MCP (Model Context Protocol) server for Grizabella,
+exposing its core functionalities as tools that can be called remotely.
+It uses FastMCP to define and serve these tools.</p>
+<p>Server Description: This MCP server exposes the core functionalities of the Grizabella
+knowledge management system, allowing for the creation, retrieval, and querying of
+structured data objects and their relationships.</p>
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="grizabella.mcp.server.get_grizabella_client" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_grizabella_client</span><span class="p">()</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Returns the shared Grizabella client instance.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>grizabella/mcp/server.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">76</span>
+<span class="normal">77</span>
+<span class="normal">78</span>
+<span class="normal">79</span>
+<span class="normal">80</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_grizabella_client</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Grizabella</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Returns the shared Grizabella client instance.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">grizabella_client_instance</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">GrizabellaException</span><span class="p">(</span><span class="s2">&quot;Grizabella client is not initialized.&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">grizabella_client_instance</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="grizabella.mcp.server.get_grizabella_db_path" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_grizabella_db_path</span><span class="p">(</span><span class="n">db_path_arg</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Determines the database path from arg, env var, or default.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>grizabella/mcp/server.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_grizabella_db_path</span><span class="p">(</span><span class="n">db_path_arg</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Path</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Determines the database path from arg, env var, or default.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">db_path_arg</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">db_path_arg</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="n">GRIZABELLA_DB_PATH_ENV_VAR</span><span class="p">,</span> <span class="n">DEFAULT_GRIZABELLA_DB_PATH</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="grizabella.mcp.server.main" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">main</span><span class="p">()</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Initializes client and runs the FastMCP application.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>grizabella/mcp/server.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">808</span>
+<span class="normal">809</span>
+<span class="normal">810</span>
+<span class="normal">811</span>
+<span class="normal">812</span>
+<span class="normal">813</span>
+<span class="normal">814</span>
+<span class="normal">815</span>
+<span class="normal">816</span>
+<span class="normal">817</span>
+<span class="normal">818</span>
+<span class="normal">819</span>
+<span class="normal">820</span>
+<span class="normal">821</span>
+<span class="normal">822</span>
+<span class="normal">823</span>
+<span class="normal">824</span>
+<span class="normal">825</span>
+<span class="normal">826</span>
+<span class="normal">827</span>
+<span class="normal">828</span>
+<span class="normal">829</span>
+<span class="normal">830</span>
+<span class="normal">831</span>
+<span class="normal">832</span>
+<span class="normal">833</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">main</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Initializes client and runs the FastMCP application.&quot;&quot;&quot;</span>
+    <span class="c1"># Register signal handlers</span>
+    <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGINT</span><span class="p">,</span> <span class="n">shutdown_handler</span><span class="p">)</span>
+    <span class="n">signal</span><span class="o">.</span><span class="n">signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">SIGTERM</span><span class="p">,</span> <span class="n">shutdown_handler</span><span class="p">)</span>
+
+    <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Grizabella MCP Server&quot;</span><span class="p">)</span>
+    <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--db-path&quot;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to the Grizabella database.&quot;</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()</span>
+
+    <span class="k">global</span> <span class="n">grizabella_client_instance</span>
+    <span class="n">db_path</span> <span class="o">=</span> <span class="n">get_grizabella_db_path</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">db_path</span><span class="p">)</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">Grizabella</span><span class="p">(</span><span class="n">db_name_or_path</span><span class="o">=</span><span class="n">db_path</span><span class="p">,</span> <span class="n">create_if_not_exists</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">gb</span><span class="p">:</span>
+            <span class="n">grizabella_client_instance</span> <span class="o">=</span> <span class="n">gb</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">show_banner</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Server error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="c1"># Ensure clean termination</span>
+        <span class="n">grizabella_client_instance</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Server terminated cleanly&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+
+        <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="grizabella.mcp.server.mcp_find_objects" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">mcp_find_objects</span><span class="p">(</span><span class="n">type_name</span><span class="p">,</span> <span class="n">filter_criteria</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Finds and retrieves a list of objects of a given type, with optional filtering criteria.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>grizabella/mcp/server.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">391</span>
+<span class="normal">392</span>
+<span class="normal">393</span>
+<span class="normal">394</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span>
+<span class="normal">402</span>
+<span class="normal">403</span>
+<span class="normal">404</span>
+<span class="normal">405</span>
+<span class="normal">406</span>
+<span class="normal">407</span>
+<span class="normal">408</span>
+<span class="normal">409</span>
+<span class="normal">410</span>
+<span class="normal">411</span>
+<span class="normal">412</span>
+<span class="normal">413</span>
+<span class="normal">414</span>
+<span class="normal">415</span>
+<span class="normal">416</span>
+<span class="normal">417</span>
+<span class="normal">418</span>
+<span class="normal">419</span>
+<span class="normal">420</span>
+<span class="normal">421</span>
+<span class="normal">422</span>
+<span class="normal">423</span>
+<span class="normal">424</span>
+<span class="normal">425</span>
+<span class="normal">426</span>
+<span class="normal">427</span>
+<span class="normal">428</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@app</span><span class="o">.</span><span class="n">tool</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;find_objects&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">&quot;Finds and retrieves a list of objects of a given type, with optional filtering criteria.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;Example:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;To find all &#39;Person&#39; objects where the age is greater than 30:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s1">&#39;{</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;  &quot;args&quot;: {</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;    &quot;type_name&quot;: &quot;Person&quot;,</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;    &quot;filter_criteria&quot;: {</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;      &quot;age&quot;: {&quot;&gt;&quot;: 30}</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;    },</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;    &quot;limit&quot;: 10</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;  }</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;}&#39;</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">mcp_find_objects</span><span class="p">(</span>
+    <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">filter_criteria</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">limit</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">ObjectInstance</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Finds and retrieves a list of objects of a given type, with optional filtering criteria.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># ctx: ToolContext,</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">gb</span> <span class="o">=</span> <span class="n">get_grizabella_client</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">gb</span><span class="o">.</span><span class="n">find_objects</span><span class="p">(</span>
+            <span class="n">type_name</span><span class="o">=</span><span class="n">type_name</span><span class="p">,</span>
+            <span class="n">filter_criteria</span><span class="o">=</span><span class="n">filter_criteria</span><span class="p">,</span>
+            <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="n">GrizabellaException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;MCP: Error finding objects of type &#39;</span><span class="si">{</span><span class="n">type_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="n">GrizabellaException</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;MCP: Unexpected error finding objects of type &#39;</span><span class="si">{</span><span class="n">type_name</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="grizabella.mcp.server.mcp_get_embedding_vector_for_text" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">mcp_get_embedding_vector_for_text</span><span class="p">(</span><span class="n">args</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Generates an embedding vector for a given text using a specified embedding definition.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>grizabella/mcp/server.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">717</span>
+<span class="normal">718</span>
+<span class="normal">719</span>
+<span class="normal">720</span>
+<span class="normal">721</span>
+<span class="normal">722</span>
+<span class="normal">723</span>
+<span class="normal">724</span>
+<span class="normal">725</span>
+<span class="normal">726</span>
+<span class="normal">727</span>
+<span class="normal">728</span>
+<span class="normal">729</span>
+<span class="normal">730</span>
+<span class="normal">731</span>
+<span class="normal">732</span>
+<span class="normal">733</span>
+<span class="normal">734</span>
+<span class="normal">735</span>
+<span class="normal">736</span>
+<span class="normal">737</span>
+<span class="normal">738</span>
+<span class="normal">739</span>
+<span class="normal">740</span>
+<span class="normal">741</span>
+<span class="normal">742</span>
+<span class="normal">743</span>
+<span class="normal">744</span>
+<span class="normal">745</span>
+<span class="normal">746</span>
+<span class="normal">747</span>
+<span class="normal">748</span>
+<span class="normal">749</span>
+<span class="normal">750</span>
+<span class="normal">751</span>
+<span class="normal">752</span>
+<span class="normal">753</span>
+<span class="normal">754</span>
+<span class="normal">755</span>
+<span class="normal">756</span>
+<span class="normal">757</span>
+<span class="normal">758</span>
+<span class="normal">759</span>
+<span class="normal">760</span>
+<span class="normal">761</span>
+<span class="normal">762</span>
+<span class="normal">763</span>
+<span class="normal">764</span>
+<span class="normal">765</span>
+<span class="normal">766</span>
+<span class="normal">767</span>
+<span class="normal">768</span>
+<span class="normal">769</span>
+<span class="normal">770</span>
+<span class="normal">771</span>
+<span class="normal">772</span>
+<span class="normal">773</span>
+<span class="normal">774</span>
+<span class="normal">775</span>
+<span class="normal">776</span>
+<span class="normal">777</span>
+<span class="normal">778</span>
+<span class="normal">779</span>
+<span class="normal">780</span>
+<span class="normal">781</span>
+<span class="normal">782</span>
+<span class="normal">783</span>
+<span class="normal">784</span>
+<span class="normal">785</span>
+<span class="normal">786</span>
+<span class="normal">787</span>
+<span class="normal">788</span>
+<span class="normal">789</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@app</span><span class="o">.</span><span class="n">tool</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;get_embedding_vector_for_text&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Generates an embedding vector for a given text using a specified embedding definition.&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">mcp_get_embedding_vector_for_text</span><span class="p">(</span><span class="n">args</span><span class="p">:</span> <span class="n">GetEmbeddingVectorForTextArgs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">EmbeddingVector</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generates an embedding vector for a given text using a specified embedding definition.&quot;&quot;&quot;</span>
+    <span class="n">gb</span> <span class="o">=</span> <span class="n">get_grizabella_client</span><span class="p">()</span>
+    <span class="n">temp_obj_id</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span>
+    <span class="n">embedding_def</span> <span class="o">=</span> <span class="n">gb</span><span class="o">.</span><span class="n">get_embedding_definition</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">embedding_definition_name</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># 1. Get the embedding definition</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">embedding_def</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">GrizabellaException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Embedding definition &#39;</span><span class="si">{</span><span class="n">args</span><span class="o">.</span><span class="n">embedding_definition_name</span><span class="si">}</span><span class="s2">&#39; not found.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># 2. Get the corresponding object type definition</span>
+        <span class="n">obj_type_def</span> <span class="o">=</span> <span class="n">gb</span><span class="o">.</span><span class="n">get_object_type_definition</span><span class="p">(</span><span class="n">embedding_def</span><span class="o">.</span><span class="n">object_type_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">obj_type_def</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">GrizabellaException</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Object type &#39;</span><span class="si">{</span><span class="n">embedding_def</span><span class="o">.</span><span class="n">object_type_name</span><span class="si">}</span><span class="s2">&#39; not found for embedding definition.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># 3. Create a temporary object with dummy data for required fields</span>
+        <span class="n">temp_properties</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">prop_def</span> <span class="ow">in</span> <span class="n">obj_type_def</span><span class="o">.</span><span class="n">properties</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">prop_def</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">embedding_def</span><span class="o">.</span><span class="n">source_property_name</span><span class="p">:</span>
+                <span class="n">temp_properties</span><span class="p">[</span><span class="n">prop_def</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">text_to_embed</span>
+            <span class="k">elif</span> <span class="ow">not</span> <span class="n">prop_def</span><span class="o">.</span><span class="n">is_nullable</span><span class="p">:</span>
+                <span class="c1"># Provide dummy data for non-nullable fields</span>
+                <span class="k">if</span> <span class="n">prop_def</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">TEXT</span><span class="p">:</span>
+                    <span class="n">temp_properties</span><span class="p">[</span><span class="n">prop_def</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;dummy_</span><span class="si">{</span><span class="n">prop_def</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">elif</span> <span class="n">prop_def</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">INTEGER</span><span class="p">:</span>
+                    <span class="n">temp_properties</span><span class="p">[</span><span class="n">prop_def</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="k">elif</span> <span class="n">prop_def</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">FLOAT</span><span class="p">:</span>
+                    <span class="n">temp_properties</span><span class="p">[</span><span class="n">prop_def</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="k">elif</span> <span class="n">prop_def</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">BOOLEAN</span><span class="p">:</span>
+                    <span class="n">temp_properties</span><span class="p">[</span><span class="n">prop_def</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">elif</span> <span class="n">prop_def</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">DATETIME</span><span class="p">:</span>
+                    <span class="n">temp_properties</span><span class="p">[</span><span class="n">prop_def</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+                <span class="k">elif</span> <span class="n">prop_def</span><span class="o">.</span><span class="n">data_type</span> <span class="o">==</span> <span class="n">PropertyDataType</span><span class="o">.</span><span class="n">UUID</span><span class="p">:</span>
+                    <span class="n">temp_properties</span><span class="p">[</span><span class="n">prop_def</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># For BLOB, JSON, etc., we might need more robust dummy data generation</span>
+                    <span class="n">temp_properties</span><span class="p">[</span><span class="n">prop_def</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># This might fail if not nullable, but it&#39;s a start</span>
+
+        <span class="n">temp_obj_instance</span> <span class="o">=</span> <span class="n">ObjectInstance</span><span class="p">(</span>
+            <span class="nb">id</span><span class="o">=</span><span class="n">temp_obj_id</span><span class="p">,</span>
+            <span class="n">object_type_name</span><span class="o">=</span><span class="n">embedding_def</span><span class="o">.</span><span class="n">object_type_name</span><span class="p">,</span>
+            <span class="n">properties</span><span class="o">=</span><span class="n">temp_properties</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">gb</span><span class="o">.</span><span class="n">upsert_object</span><span class="p">(</span><span class="n">temp_obj_instance</span><span class="p">)</span>
+
+        <span class="c1"># 4. Retrieve the embedding vector</span>
+        <span class="c1"># This relies on internal access, similar to the original test.</span>
+        <span class="n">embedding_instances</span> <span class="o">=</span> <span class="n">gb</span><span class="o">.</span><span class="n">_db_manager</span><span class="o">.</span><span class="n">lancedb_adapter</span><span class="o">.</span><span class="n">get_embedding_instances_for_object</span><span class="p">(</span>
+           <span class="n">object_instance_id</span><span class="o">=</span><span class="n">temp_obj_id</span><span class="p">,</span>
+           <span class="n">embedding_definition_name</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">embedding_definition_name</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">embedding_instances</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">GrizabellaException</span><span class="p">(</span><span class="s2">&quot;Failed to generate or retrieve embedding for temporary object.&quot;</span><span class="p">)</span>
+
+        <span class="n">vector</span> <span class="o">=</span> <span class="n">embedding_instances</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">vector</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">vector</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">GrizabellaException</span><span class="p">(</span><span class="s2">&quot;Retrieved embedding instance has no vector.&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">EmbeddingVector</span><span class="p">(</span><span class="n">vector</span><span class="o">=</span><span class="n">vector</span><span class="p">)</span>
+
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="c1"># 5. Clean up the temporary object</span>
+        <span class="k">if</span> <span class="n">embedding_def</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">gb</span><span class="o">.</span><span class="n">delete_object</span><span class="p">(</span><span class="n">object_id</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">temp_obj_id</span><span class="p">),</span> <span class="n">type_name</span><span class="o">=</span><span class="n">embedding_def</span><span class="o">.</span><span class="n">object_type_name</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="c1"># Log cleanup error but don&#39;t let it hide the main result/error</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;MCP: Warning: Failed to clean up temporary object </span><span class="si">{</span><span class="n">temp_obj_id</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="grizabella.mcp.server.mcp_get_incoming_relations" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">mcp_get_incoming_relations</span><span class="p">(</span><span class="n">object_id</span><span class="p">,</span> <span class="n">type_name</span><span class="p">,</span> <span class="n">relation_type_name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Retrieves all incoming relations to a specific object.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>grizabella/mcp/server.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">564</span>
+<span class="normal">565</span>
+<span class="normal">566</span>
+<span class="normal">567</span>
+<span class="normal">568</span>
+<span class="normal">569</span>
+<span class="normal">570</span>
+<span class="normal">571</span>
+<span class="normal">572</span>
+<span class="normal">573</span>
+<span class="normal">574</span>
+<span class="normal">575</span>
+<span class="normal">576</span>
+<span class="normal">577</span>
+<span class="normal">578</span>
+<span class="normal">579</span>
+<span class="normal">580</span>
+<span class="normal">581</span>
+<span class="normal">582</span>
+<span class="normal">583</span>
+<span class="normal">584</span>
+<span class="normal">585</span>
+<span class="normal">586</span>
+<span class="normal">587</span>
+<span class="normal">588</span>
+<span class="normal">589</span>
+<span class="normal">590</span>
+<span class="normal">591</span>
+<span class="normal">592</span>
+<span class="normal">593</span>
+<span class="normal">594</span>
+<span class="normal">595</span>
+<span class="normal">596</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@app</span><span class="o">.</span><span class="n">tool</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;get_incoming_relations&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">&quot;Retrieves all incoming relations to a specific object.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;Example:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;To get all incoming relations to Jane Doe&#39;s &#39;Person&#39; object:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s1">&#39;{</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;  &quot;args&quot;: {</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;    &quot;object_id&quot;: &quot;jane_doe_456&quot;,</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;    &quot;type_name&quot;: &quot;Person&quot;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;  }</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;}&#39;</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">mcp_get_incoming_relations</span><span class="p">(</span>
+    <span class="n">object_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">relation_type_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">RelationInstance</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieves all incoming relations to a specific object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># ctx: ToolContext,</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">gb</span> <span class="o">=</span> <span class="n">get_grizabella_client</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">gb</span><span class="o">.</span><span class="n">get_incoming_relations</span><span class="p">(</span>
+            <span class="n">object_id</span><span class="o">=</span><span class="n">object_id</span><span class="p">,</span>
+            <span class="n">type_name</span><span class="o">=</span><span class="n">type_name</span><span class="p">,</span>
+            <span class="n">relation_type_name</span><span class="o">=</span><span class="n">relation_type_name</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="n">GrizabellaException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;MCP: Error getting incoming relations for object &#39;</span><span class="si">{</span><span class="n">object_id</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="n">GrizabellaException</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;MCP: Unexpected error getting incoming relations for object &#39;</span><span class="si">{</span><span class="n">object_id</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="grizabella.mcp.server.mcp_get_outgoing_relations" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">mcp_get_outgoing_relations</span><span class="p">(</span><span class="n">object_id</span><span class="p">,</span> <span class="n">type_name</span><span class="p">,</span> <span class="n">relation_type_name</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Retrieves all outgoing relations from a specific object.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>grizabella/mcp/server.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">529</span>
+<span class="normal">530</span>
+<span class="normal">531</span>
+<span class="normal">532</span>
+<span class="normal">533</span>
+<span class="normal">534</span>
+<span class="normal">535</span>
+<span class="normal">536</span>
+<span class="normal">537</span>
+<span class="normal">538</span>
+<span class="normal">539</span>
+<span class="normal">540</span>
+<span class="normal">541</span>
+<span class="normal">542</span>
+<span class="normal">543</span>
+<span class="normal">544</span>
+<span class="normal">545</span>
+<span class="normal">546</span>
+<span class="normal">547</span>
+<span class="normal">548</span>
+<span class="normal">549</span>
+<span class="normal">550</span>
+<span class="normal">551</span>
+<span class="normal">552</span>
+<span class="normal">553</span>
+<span class="normal">554</span>
+<span class="normal">555</span>
+<span class="normal">556</span>
+<span class="normal">557</span>
+<span class="normal">558</span>
+<span class="normal">559</span>
+<span class="normal">560</span>
+<span class="normal">561</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@app</span><span class="o">.</span><span class="n">tool</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;get_outgoing_relations&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">&quot;Retrieves all outgoing relations from a specific object.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;Example:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;To get all outgoing relations from John Doe&#39;s &#39;Person&#39; object:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s1">&#39;{</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;  &quot;args&quot;: {</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;    &quot;object_id&quot;: &quot;john_doe_123&quot;,</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;    &quot;type_name&quot;: &quot;Person&quot;</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;  }</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;}&#39;</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">mcp_get_outgoing_relations</span><span class="p">(</span>
+    <span class="n">object_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">relation_type_name</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">RelationInstance</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieves all outgoing relations from a specific object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># ctx: ToolContext,</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">gb</span> <span class="o">=</span> <span class="n">get_grizabella_client</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">gb</span><span class="o">.</span><span class="n">get_outgoing_relations</span><span class="p">(</span>
+            <span class="n">object_id</span><span class="o">=</span><span class="n">object_id</span><span class="p">,</span>
+            <span class="n">type_name</span><span class="o">=</span><span class="n">type_name</span><span class="p">,</span>
+            <span class="n">relation_type_name</span><span class="o">=</span><span class="n">relation_type_name</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="n">GrizabellaException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;MCP: Error getting outgoing relations for object &#39;</span><span class="si">{</span><span class="n">object_id</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="n">GrizabellaException</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;MCP: Unexpected error getting outgoing relations for object &#39;</span><span class="si">{</span><span class="n">object_id</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="grizabella.mcp.server.mcp_search_similar_objects" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">mcp_search_similar_objects</span><span class="p">(</span><span class="n">object_id</span><span class="p">,</span> <span class="n">type_name</span><span class="p">,</span> <span class="n">n_results</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">search_properties</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-async"><code>async</code></small>
+  </span>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Searches for objects that are semantically similar to a given object, based on embeddings of their properties.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>grizabella/mcp/server.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">607</span>
+<span class="normal">608</span>
+<span class="normal">609</span>
+<span class="normal">610</span>
+<span class="normal">611</span>
+<span class="normal">612</span>
+<span class="normal">613</span>
+<span class="normal">614</span>
+<span class="normal">615</span>
+<span class="normal">616</span>
+<span class="normal">617</span>
+<span class="normal">618</span>
+<span class="normal">619</span>
+<span class="normal">620</span>
+<span class="normal">621</span>
+<span class="normal">622</span>
+<span class="normal">623</span>
+<span class="normal">624</span>
+<span class="normal">625</span>
+<span class="normal">626</span>
+<span class="normal">627</span>
+<span class="normal">628</span>
+<span class="normal">629</span>
+<span class="normal">630</span>
+<span class="normal">631</span>
+<span class="normal">632</span>
+<span class="normal">633</span>
+<span class="normal">634</span>
+<span class="normal">635</span>
+<span class="normal">636</span>
+<span class="normal">637</span>
+<span class="normal">638</span>
+<span class="normal">639</span>
+<span class="normal">640</span>
+<span class="normal">641</span>
+<span class="normal">642</span>
+<span class="normal">643</span>
+<span class="normal">644</span>
+<span class="normal">645</span>
+<span class="normal">646</span>
+<span class="normal">647</span>
+<span class="normal">648</span>
+<span class="normal">649</span>
+<span class="normal">650</span>
+<span class="normal">651</span>
+<span class="normal">652</span>
+<span class="normal">653</span>
+<span class="normal">654</span>
+<span class="normal">655</span>
+<span class="normal">656</span>
+<span class="normal">657</span>
+<span class="normal">658</span>
+<span class="normal">659</span>
+<span class="normal">660</span>
+<span class="normal">661</span>
+<span class="normal">662</span>
+<span class="normal">663</span>
+<span class="normal">664</span>
+<span class="normal">665</span>
+<span class="normal">666</span>
+<span class="normal">667</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@app</span><span class="o">.</span><span class="n">tool</span><span class="p">(</span>
+    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;search_similar_objects&quot;</span><span class="p">,</span>
+    <span class="n">description</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">&quot;Searches for objects that are semantically similar to a given object, based on embeddings &quot;</span>
+        <span class="s2">&quot;of their properties. Note: This feature is not yet fully implemented.</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;Example:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;To find 5 objects similar to John Doe&#39;s &#39;Person&#39; object:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s1">&#39;{</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;  &quot;args&quot;: {</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;    &quot;object_id&quot;: &quot;john_doe_123&quot;,</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;    &quot;type_name&quot;: &quot;Person&quot;,</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;    &quot;n_results&quot;: 5</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;  }</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="s1">&#39;}&#39;</span>
+    <span class="p">),</span>
+<span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">mcp_search_similar_objects</span><span class="p">(</span>
+    <span class="n">object_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">type_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">n_results</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="n">search_properties</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">ObjectInstance</span><span class="p">,</span> <span class="nb">float</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Searches for objects that are semantically similar to a given object, based on embeddings of their properties.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># ctx: ToolContext,</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">gb</span> <span class="o">=</span> <span class="n">get_grizabella_client</span><span class="p">()</span>
+        <span class="c1"># The Grizabella client&#39;s search_similar_objects currently raises NotImplementedError.</span>
+        <span class="c1"># We must call it to respect the interface, but handle the expected error.</span>
+        <span class="c1"># If it were implemented, results would be List[Tuple[ObjectInstance, float]].</span>
+        <span class="c1"># For now, to satisfy Pylint and type checkers if the method were to return,</span>
+        <span class="c1"># we can assign and then immediately handle the expected NotImplementedError.</span>
+        <span class="c1"># However, a cleaner approach is to directly call and handle.</span>
+
+        <span class="c1"># Attempt the call and handle NotImplementedError specifically.</span>
+        <span class="c1"># Other GrizabellaExceptions or general Exceptions will be caught below.</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># This line will raise NotImplementedError based on current client.py</span>
+            <span class="n">results</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span>
+                <span class="nb">tuple</span><span class="p">[</span><span class="n">ObjectInstance</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span>
+            <span class="p">]</span> <span class="o">=</span> <span class="n">gb</span><span class="o">.</span><span class="n">search_similar_objects</span><span class="p">(</span>
+                <span class="n">object_id</span><span class="o">=</span><span class="n">object_id</span><span class="p">,</span>
+                <span class="n">type_name</span><span class="o">=</span><span class="n">type_name</span><span class="p">,</span>
+                <span class="n">n_results</span><span class="o">=</span><span class="n">n_results</span><span class="p">,</span>
+                <span class="n">search_properties</span><span class="o">=</span><span class="n">search_properties</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">results</span>  <span class="c1"># This line will not be reached if NotImplementedError is raised</span>
+        <span class="k">except</span> <span class="ne">NotImplementedError</span> <span class="k">as</span> <span class="n">nie</span><span class="p">:</span>
+            <span class="c1"># Specific handling for the known unimplemented feature.</span>
+            <span class="c1"># Raising a general Exception here for the MCP layer is acceptable to signal this state.</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;MCP: search_similar_objects feature is not yet implemented in the Grizabella client: </span><span class="si">{</span><span class="n">nie</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">nie</span>
+
+    <span class="k">except</span> <span class="n">GrizabellaException</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="c1"># Handle other Grizabella-specific errors, re-raise as GrizabellaException</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;MCP: Error searching similar objects for &#39;</span><span class="si">{</span><span class="n">object_id</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="n">GrizabellaException</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>  <span class="c1"># pylint: disable=broad-except</span>
+        <span class="c1"># Handle any other unexpected errors, re-raise as general Exception</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;MCP: Unexpected error searching similar objects for &#39;</span><span class="si">{</span><span class="n">object_id</span><span class="si">}</span><span class="s2">&#39;: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span> <span class="kn">from</span><span class="w"> </span><span class="nn">e</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="grizabella.mcp.server.shutdown_handler" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">shutdown_handler</span><span class="p">(</span><span class="n">signum</span><span class="p">,</span> <span class="n">frame</span><span class="p">)</span></code>
+
+</h3>
+
+
+    <div class="doc doc-contents ">
+
+      <p>Handle shutdown signals gracefully.</p>
+
+            <details class="quote">
+              <summary>Source code in <code>grizabella/mcp/server.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">801</span>
+<span class="normal">802</span>
+<span class="normal">803</span>
+<span class="normal">804</span>
+<span class="normal">805</span>
+<span class="normal">806</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">shutdown_handler</span><span class="p">(</span><span class="n">signum</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handle shutdown signals gracefully.&quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Received signal </span><span class="si">{</span><span class="n">signum</span><span class="si">}</span><span class="s2">, shutting down...&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Received signal </span><span class="si">{</span><span class="n">signum</span><span class="si">}</span><span class="s2">, shutting down...&quot;</span><span class="p">)</span>
+    <span class="c1"># Perform any cleanup here if needed</span>
+    <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.50899def.min.js"></script>
+      
+    
+  </body>
+</html>
