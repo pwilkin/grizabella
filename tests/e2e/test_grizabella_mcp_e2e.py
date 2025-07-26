@@ -28,7 +28,7 @@ class E2EState:
     def __init__(self):
         self.db_dir: Optional[str] = None
         self.db_path: Optional[Path] = None
-        self.server_script: str = "grizabella/mcp/server.py"
+        # self.server_script: str = "grizabella/mcp/server.py"
         self.ids: Dict[str, uuid.UUID] = {}
         self.fixed_paper_id_4: uuid.UUID = uuid.uuid4()
         self.session: Optional[ClientSession] = None
@@ -57,8 +57,8 @@ async def state():
     test_state._generate_ids()
 
     async with AsyncExitStack() as stack:
-        server_args = [test_state.server_script, "--db-path", str(test_state.db_path)]
-        params = StdioServerParameters(command="python", args=server_args)
+        server_args = ["-m", "grizabella.mcp.server", "--db-path", str(test_state.db_path)]
+        params = StdioServerParameters(command="poetry", args=["run", "python"] + server_args)
         reader, writer = await stack.enter_async_context(stdio_client(params))  # type: ignore
         test_state.session = await stack.enter_async_context(ClientSession(reader, writer))
         await test_state.session.initialize()

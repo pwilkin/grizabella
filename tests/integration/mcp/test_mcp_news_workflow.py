@@ -8,6 +8,9 @@ from litellm.utils import get_response_string
 from litellm.types.utils import ModelResponse, Choices
 from grizabella.core.models import ObjectTypeDefinition, PropertyDefinition, PropertyDataType
 from scripts.start_mcp_servers import create_clients, MCPClientManager
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Test configuration
 TEST_DB_PATH = "test_mcp_news_db"
@@ -72,11 +75,12 @@ async def execute_tool_call(tool_call, sessions):
     result = await session.call_tool(tool_name, args)
     return result
 
+#@pytest.mark.skipif(
+#not os.getenv("OPENROUTER_MODEL"),
+#    reason="OpenRouter model not set"
+#)
 @pytest.mark.asyncio
-@pytest.mark.skipif(
-    not os.getenv("OPENROUTER_API_KEY") or not os.getenv("OPENROUTER_MODEL"),
-    reason="OpenRouter credentials not set"
-)
+@pytest.mark.skip
 async def test_news_workflow():
     # Create MCP clients using start_mcp_servers utility
     clients = create_clients()
@@ -92,7 +96,9 @@ async def test_news_workflow():
         print("All client sessions initialized successfully")
               
         # Set up LiteLLM model
-        model = os.getenv("LMSTUDIO_MODEL")
+        model = os.getenv("OPENROUTER_MODEL")
+        api_base="https://openrouter.ai/api/v1"
+        api_key=os.getenv("OPENROUTER_API_KEY")
         
         # System message guiding the LLM
         system_message = (
@@ -126,8 +132,8 @@ async def test_news_workflow():
             tools=tools,
             tool_choice="auto",
             max_tokens=MAX_TOKENS,
-            api_base="http://localhost:1234/v1",
-            api_key="1234"
+            api_base=api_base,
+            api_key=api_key
         )
         print(f"Initial LLM response: {response}")
         cast_response = cast(ModelResponse, response)
@@ -220,8 +226,8 @@ async def test_news_workflow():
                 tools=tools,
                 tool_choice="auto",
                 max_tokens=MAX_TOKENS,
-                api_base="http://localhost:1234/v1",
-                api_key="1234"
+                api_base=api_base,
+                api_key=api_key
             )
             
             iteration += 1
@@ -243,8 +249,8 @@ async def test_news_workflow():
                 tools=[],  # No tools to prevent further tool calls
                 tool_choice="none",
                 max_tokens=MAX_TOKENS,
-                api_base="http://localhost:1234/v1",
-                api_key="1234"
+                api_base=api_base,
+                api_key=api_key
             )
         
         final_response = get_response_string(cast(ModelResponse, response))

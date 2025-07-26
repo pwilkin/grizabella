@@ -249,11 +249,11 @@ def test_get_embedding_model(temp_lancedb_uri):
             MockRegistry.get.assert_called_once_with("huggingface")
             mock_provider.create.assert_called_once_with(name="huggingface/test-model", trust_remote_code=True)
             assert model1 is mock_model_func
-            assert "huggingface/test-model" in adapter._embedding_model_cache
+            # Model is loaded directly without caching
 
-            # Second call - should return from cache
+            # Second call - should load again (no caching)
             model2 = adapter.get_embedding_model("huggingface/test-model")
-            mock_provider.create.assert_called_once() # Still called only once
+            assert mock_provider.create.call_count == 2 # Called twice
             assert model2 is mock_model_func
 
     finally:

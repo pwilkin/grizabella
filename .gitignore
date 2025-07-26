@@ -9,3 +9,5 @@ tests/unit/core/__pycache__
 *.pyc
 memory_profile.txt
 memory_profile.log
+.vscode/settings.json
+/*.log

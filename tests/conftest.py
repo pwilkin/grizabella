@@ -25,9 +25,8 @@ async def mcp_session() -> AsyncGenerator[ClientSession, None]:
     
     try:
         async with AsyncExitStack() as stack:
-            server_script = "grizabella/mcp/server.py"
-            server_args = [server_script, "--db-path", str(db_path)]
-            params = StdioServerParameters(command="python3", args=server_args)
+            server_args = ["-m", "grizabella.mcp.server", "--db-path", str(db_path)]
+            params = StdioServerParameters(command="poetry", args=["run", "python"] + server_args)
             
             reader, writer = await stack.enter_async_context(stdio_client(params))
             session = await stack.enter_async_context(ClientSession(reader, writer))

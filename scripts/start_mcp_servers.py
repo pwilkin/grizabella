@@ -50,16 +50,37 @@ class MCPClientManager:
         self.sessions = {}
 
     async def open_all(self):
-        async def open_one(name, params):
-            read, write = await self.exit_stack.enter_async_context(stdio_client(params))
-            session = await self.exit_stack.enter_async_context(ClientSession(read, write))
-            await session.initialize()
-            return session
+        # Open clients sequentially to avoid task group issues
+        sessions = []
+        session_names = []
+        for name, params in self.params_by_name.items():
+            try:
+                read, write = await self.exit_stack.enter_async_context(stdio_client(params))
+                session = await self.exit_stack.enter_async_context(ClientSession(read, write))
+                await session.initialize()
+                sessions.append(session)
+                session_names.append(name)
+            except Exception as e:
+                print(f"Failed to open client for {name}: {e}")
+                # Close any opened clients before re-raising
+                await self.close()
+                raise
 
-        sessions = await asyncio.gather(
-            *(open_one(name, params) for name, params in self.params_by_name.items())
-        )
-        self.sessions = dict(zip(self.params_by_name.keys(), sessions))
+        self.sessions = dict(zip(session_names, sessions))
 
     async def close(self):
-        await self.exit_stack.aclose()
+        # Close in reverse order to avoid dependency issues
+        # Use shielded approach to prevent cancellation issues
+        try:
+            await self.exit_stack.aclose()
+        except RuntimeError as e:
+            if "Attempted to exit cancel scope in a different task than it was entered in" in str(e):
+                print("Warning: Cancel scope issue during cleanup, continuing anyway")
+                # This is a known issue with the anyio library and stdio_client
+                # We can't do much about it, so we'll continue
+                pass
+            else:
+                raise
+        except Exception as e:
+            print(f"Error during cleanup: {e}")
+            raise

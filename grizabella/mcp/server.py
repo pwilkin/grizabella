@@ -43,7 +43,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.StreamHandler(sys.stdout)
+        logging.FileHandler('mcp-server-' + datetime.now().strftime('%Y%m%d_%H%M%S') + '.log')
     ]
 )
 
@@ -800,7 +800,7 @@ async def mcp_get_embedding_vector_for_text(args: GetEmbeddingVectorForTextArgs)
 
 def shutdown_handler(signum, frame):
     """Handle shutdown signals gracefully."""
-    print(f"Received signal {signum}, shutting down...")
+    print(f"Received signal {signum}, shutting down...", file=sys.stderr)
     logger.info(f"Received signal {signum}, shutting down...")
     # Perform any cleanup here if needed
     sys.exit(0)
@@ -823,12 +823,12 @@ def main():
             grizabella_client_instance = gb
             app.run(show_banner=False)
     except Exception as e:
-        print(f"Server error: {e}")
+        print(f"Server error: {e}", file=sys.stderr)
         sys.exit(1)
     finally:
         # Ensure clean termination
         grizabella_client_instance = None
-        print("Server terminated cleanly")
+        print("Server terminated cleanly", file=sys.stderr)
         
         sys.exit(0)
 

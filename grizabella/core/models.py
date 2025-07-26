@@ -5,7 +5,7 @@ from enum import Enum  # Standard library import first
 from typing import Any, Optional
 from uuid import UUID, uuid4
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 # --- Enums ---
@@ -354,6 +354,28 @@ class ObjectInstance(MemoryInstance):
         ...,
         description="Actual data for the instance, mapping property names to values.",
     )
+
+    @model_validator(mode='after')
+    def _convert_datetime_strings(self) -> 'ObjectInstance':
+        """Convert ISO format datetime strings in properties back to datetime objects."""
+        if not isinstance(self.properties, dict):
+            return self
+        
+        for key, value in self.properties.items():
+            # Check if the value is a string that looks like an ISO datetime
+            if isinstance(value, str):
+                # Try to parse as ISO format datetime
+                try:
+                    # Handle various ISO datetime formats
+                    if 'T' in value and ('+' in value or value.endswith('Z') or value.count(':') >= 2):
+                        parsed_dt = datetime.fromisoformat(value)
+                        self.properties[key] = parsed_dt
+                except (ValueError, TypeError):
+                    # If parsing fails, leave as string
+                    pass
+        return self
+
+    model_config = ConfigDict(validate_assignment=True)
 
 class EmbeddingInstance(MemoryInstance):
     """Represents an instance of an embedding, linked to an ``ObjectInstance``.

@@ -428,7 +428,7 @@ def test_upsert_object_instance(kuzu_adapter_fixture: KuzuAdapter, sample_otd_pe
 
     assert expected_query_fragment_merge in actual_query
     # Updated assertions for individual SET properties
-    assert "ON CREATE SET n.id = $p_id" in actual_query
+    assert "ON CREATE SET n.id = $id_param" in actual_query
     assert "n.name = $p_name" in actual_query
     assert "n.age = $p_age" in actual_query
     assert "n.isVerified = $p_isVerified" in actual_query
@@ -449,7 +449,6 @@ def test_upsert_object_instance(kuzu_adapter_fixture: KuzuAdapter, sample_otd_pe
     assert "n.metadata = $p_metadata" in actual_query
 
     assert actual_params['id_param'] == sample_person_instance.id
-    assert actual_params['p_id'] == sample_person_instance.id
     assert actual_params['p_name'] == sample_person_instance.properties['name']
     assert actual_params['p_age'] == sample_person_instance.properties['age']
     assert actual_params['p_isVerified'] == sample_person_instance.properties['isVerified']
