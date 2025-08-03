@@ -3,6 +3,7 @@ from typing import cast
 import pytest
 import time
 import psutil
+import warnings
 from litellm import completion
 from litellm.utils import get_response_string
 from litellm.types.utils import ModelResponse, Choices
@@ -33,6 +34,16 @@ def news_object_type():
             PropertyDefinition(name="published_at", data_type=PropertyDataType.TEXT)
         ]
     )
+
+@pytest.fixture(autouse=True)
+def suppress_pydantic_warnings():
+    """Suppress Pydantic serializer warnings that occur during LiteLLM completion calls."""
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning, message=".*Pydantic serializer warnings.*")
+        warnings.filterwarnings("ignore", category=UserWarning, message=".*Expected.*fields but got.*")
+        warnings.filterwarnings("ignore", category=UserWarning, message=".*Expected.*Message.*serialized value may not be as expected.*")
+        warnings.filterwarnings("ignore", category=UserWarning, message=".*Expected.*StreamingChoices.*serialized value may not be as expected.*")
+        yield
 
 async def get_tools_config(clients, sessions):
     """Return MCP tools configuration for LLM by reading from MCP servers"""
