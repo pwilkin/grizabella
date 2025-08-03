@@ -75,12 +75,11 @@ async def execute_tool_call(tool_call, sessions):
     result = await session.call_tool(tool_name, args)
     return result
 
-#@pytest.mark.skipif(
-#not os.getenv("OPENROUTER_MODEL"),
-#    reason="OpenRouter model not set"
-#)
+@pytest.mark.skipif(
+    not os.getenv("TESTING_MODEL"),
+    reason="Test model not set"
+)
 @pytest.mark.asyncio
-@pytest.mark.skip
 async def test_news_workflow():
     # Create MCP clients using start_mcp_servers utility
     clients = create_clients()
@@ -96,9 +95,9 @@ async def test_news_workflow():
         print("All client sessions initialized successfully")
               
         # Set up LiteLLM model
-        model = os.getenv("OPENROUTER_MODEL")
-        api_base="https://openrouter.ai/api/v1"
-        api_key=os.getenv("OPENROUTER_API_KEY")
+        model = os.getenv("TESTING_MODEL")
+        api_base = os.getenv("TESTING_BASE_URL")
+        api_key= os.getenv("TESTING_API_KEY")
         
         # System message guiding the LLM
         system_message = (
@@ -108,7 +107,8 @@ async def test_news_workflow():
             "2. Fetch content of top 3 results using fetch:fetch_html\n"
             "3. Store each news as a NewsArticle object using grizabella:upsert_object\n"
             "4. Start new session and recall news using grizabella:find_objects\n"
-            "5. Return the recalled news articles"
+            "5. Return the recalled news articles\n"
+            "IMPORTANT: This is an automated workflow, so you should perform all the steps in one go, do not ask the user anything as that will break the workflow."
         )
         
         print("Getting tools configuration...")
@@ -158,7 +158,7 @@ async def test_news_workflow():
             
             # If no tool calls, we're done
             if not tool_calls:
-                print(f"No tool calls in iteration {iteration}, breaking loop")
+                print(f"No tool calls in iteration {iteration}, breaking loop, got message: {response.choices[0].message.content}")
                 break
                 
             # Add assistant message with tool calls to history
