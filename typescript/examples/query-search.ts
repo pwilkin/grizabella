@@ -229,7 +229,7 @@ async function basicAndAdvancedFilteringExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'query-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
+
     createIfNotExists: true,
   });
 
@@ -281,7 +281,7 @@ async function relationshipQueriesExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'relationship-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
+
     createIfNotExists: true,
   });
 
@@ -333,7 +333,7 @@ async function complexGraphQueriesExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'complex-query-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
+
     createIfNotExists: true,
   });
 
@@ -382,7 +382,7 @@ async function semanticSearchExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'semantic-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
+
     createIfNotExists: true,
   });
 
@@ -440,7 +440,7 @@ async function performanceOptimizationExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'performance-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
+
     createIfNotExists: true,
   });
 

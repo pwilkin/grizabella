@@ -55,7 +55,8 @@ describe('Grizabella TypeScript API - End-to-End Scenario', () => {
     const dbPath = path.join(tempDir, 'e2e_test_db');
     client = new GrizabellaClient({
       dbNameOrPath: dbPath,
-      createIfNotExists: true
+      createIfNotExists: true,
+      debug: true
     });
 
     // Connect to client
@@ -152,11 +153,11 @@ describe('Grizabella TypeScript API - End-to-End Scenario', () => {
       name: 'PaperAbstractEmbedding',
       object_type_name: 'Paper',
       source_property_name: 'abstract',
-      embedding_model: 'mixedbread-ai/mxbai-embed-large-v1',
+      embedding_model: 'colbert-ir/colbertv2.0',
       description: 'Embedding for the abstract of papers.'
     };
 
-    process.stdout.write('Creating embedding definition...\n');
+    process.stdout.write('Creating embedding definition...:' + JSON.stringify(paperAbstractEd));
     try {
       await client.createEmbeddingDefinition(paperAbstractEd);
       process.stdout.write('Embedding definition created successfully\n');

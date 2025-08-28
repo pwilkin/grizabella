@@ -11,3 +11,4 @@ memory_profile.txt
 memory_profile.log
 .vscode/settings.json
 /*.log
+typescript/test-embedding-*

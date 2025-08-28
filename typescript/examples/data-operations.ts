@@ -77,7 +77,6 @@ async function basicCRUDEexample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'crud-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
     createIfNotExists: true,
   });
 
@@ -160,7 +159,7 @@ async function batchOperationsExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'batch-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
+
     createIfNotExists: true,
   });
 
@@ -238,7 +237,7 @@ async function validationAndErrorHandlingExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'validation-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
+
     createIfNotExists: true,
   });
 
@@ -321,7 +320,7 @@ async function performanceExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'performance-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
+
     createIfNotExists: true,
   });
 
@@ -381,7 +380,7 @@ async function advancedManipulationExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'advanced-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
+
     createIfNotExists: true,
   });
 

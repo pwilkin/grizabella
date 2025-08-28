@@ -341,7 +341,7 @@ async def mcp_create_embedding_definition(embedding_def: EmbeddingDefinition) ->
 
         # Auto-detect dimensions if not specified or if MCP client set a default
         logger.info(f"Checking dimensions for embedding definition '{embedding_def.name}': current dimensions = {embedding_def.dimensions}")
-        if embedding_def.dimensions is None or embedding_def.dimensions == 0 or embedding_def.dimensions == 1536:
+        if embedding_def.dimensions is None or embedding_def.dimensions == 0:
             logger.info(f"Auto-detecting dimensions for model '{model_identifier}' (overriding default {embedding_def.dimensions})")
             try:
                 # Load the model to get its dimensions

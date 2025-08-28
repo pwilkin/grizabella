@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Decimal } from 'decimal.js';
-import { MCPClient } from '../../src/client/MCPClient';
+import { GrizabellaClient } from '../../src/client/GrizabellaClient';
 import {
   PropertyDataType,
   LogicalOperator,
@@ -26,7 +26,7 @@ import {
 
 describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
   console.log('=== MCP TEST FILE LOADED ===');
-  let client: MCPClient;
+  let client: GrizabellaClient;
   let tempDir: string;
   const ids: Record<string, string> = {};
 
@@ -52,12 +52,11 @@ describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
     // Create temporary directory
     tempDir = fs.mkdtempSync(path.join(process.cwd(), 'test-temp-'));
 
-    // Create MCP client with temporary database
+    // Create Grizabella client with temporary database
     const dbPath = path.join(tempDir, 'e2e_mcp_test_db');
-    client = new MCPClient({
-      serverUrl: 'stdio',
-      serverCommand: 'poetry',
-      serverArgs: ['run', 'python', '-m', 'grizabella.mcp.server', '--db-path', dbPath],
+    client = new GrizabellaClient({
+      dbNameOrPath: dbPath,
+      createIfNotExists: true,
       debug: true
     });
 
@@ -74,7 +73,7 @@ describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
   afterEach(async () => {
     // Close client and cleanup
     if (client) {
-      await client.disconnect();
+      await client.close();
     }
 
     if (tempDir && fs.existsSync(tempDir)) {
@@ -127,10 +126,10 @@ describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
     };
 
     process.stdout.write('Creating object types...\n');
-    await client.createObjectType({ object_type_def: authorOtd });
-    await client.createObjectType({ object_type_def: paperOtd });
-    await client.createObjectType({ object_type_def: venueOtd });
-    await client.createObjectType({ object_type_def: datetimeTestOtd });
+    await client.createObjectType(authorOtd);
+    await client.createObjectType(paperOtd);
+    await client.createObjectType(venueOtd);
+    await client.createObjectType(datetimeTestOtd);
     process.stdout.write('Object types created successfully\n');
 
     // EmbeddingDefinition
@@ -139,7 +138,8 @@ describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
       object_type_name: 'Paper',
       source_property_name: 'abstract',
       embedding_model: 'mixedbread-ai/mxbai-embed-large-v1',
-      description: 'Embedding for the abstract of papers.'
+      description: 'Embedding for the abstract of papers.',
+      dimensions: 512
     };
 
     process.stdout.write('Creating embedding definition...\n');
@@ -187,298 +187,253 @@ describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
       properties: []
     };
 
-    await client.createRelationType({ relation_type_def: authoredByRtd });
-    await client.createRelationType({ relation_type_def: citesRtd });
-    await client.createRelationType({ relation_type_def: publishedInRtd });
+    await client.createRelationType(authoredByRtd);
+    await client.createRelationType(citesRtd);
+    await client.createRelationType(publishedInRtd);
   }
 
   async function populateData() {
     // Author Instances
     await client.upsertObject({
-      obj: {
-        id: ids['author_1']!,
-        object_type_name: 'Author',
-        properties: {
-          full_name: 'Dr. Alice Wonderland',
-          email: 'alice@example.com',
-          birth_year: 1980
-        },
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: ids['author_1']!,
+      object_type_name: 'Author',
+      properties: {
+        full_name: 'Dr. Alice Wonderland',
+        email: 'alice@example.com',
+        birth_year: 1980
+      },
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     await client.upsertObject({
-      obj: {
-        id: ids['author_2']!,
-        object_type_name: 'Author',
-        properties: {
-          full_name: 'Dr. Bob The Builder',
-          email: 'bob@example.com',
-          birth_year: 1975
-        },
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: ids['author_2']!,
+      object_type_name: 'Author',
+      properties: {
+        full_name: 'Dr. Bob The Builder',
+        email: 'bob@example.com',
+        birth_year: 1975
+      },
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     await client.upsertObject({
-      obj: {
-        id: ids['author_3']!,
-        object_type_name: 'Author',
-        properties: {
-          full_name: 'Dr. Carol Danvers',
-          email: 'carol@example.com',
-          birth_year: 1985
-        },
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: ids['author_3']!,
+      object_type_name: 'Author',
+      properties: {
+        full_name: 'Dr. Carol Danvers',
+        email: 'carol@example.com',
+        birth_year: 1985
+      },
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     // Venue Instances
     await client.upsertObject({
-      obj: {
-        id: ids['venue_1']!,
-        object_type_name: 'Venue',
-        properties: {
-          venue_name: 'Journal of Fantastical AI',
-          venue_type: 'Journal',
-          city: 'Virtual'
-        },
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: ids['venue_1']!,
+      object_type_name: 'Venue',
+      properties: {
+        venue_name: 'Journal of Fantastical AI',
+        venue_type: 'Journal',
+        city: 'Virtual'
+      },
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     await client.upsertObject({
-      obj: {
-        id: ids['venue_2']!,
-        object_type_name: 'Venue',
-        properties: {
-          venue_name: 'Conference on Practical Magic',
-          venue_type: 'Conference',
-          city: 'New Orleans'
-        },
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: ids['venue_2']!,
+      object_type_name: 'Venue',
+      properties: {
+        venue_name: 'Conference on Practical Magic',
+        venue_type: 'Conference',
+        city: 'New Orleans'
+      },
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     // Paper Instances
     await client.upsertObject({
-      obj: {
-        id: ids['paper_1']!,
-        object_type_name: 'Paper',
-        properties: {
-          title: 'Advanced Gryphon Behavior',
-          abstract: 'This seminal paper explores the intricate and often misunderstood social structures within modern gryphon populations. We present a novel longitudinal dataset, collected over five years, and employ advanced statistical modeling to analyze their complex mating rituals and hierarchical dynamics. Our findings challenge previous assumptions about gryphon territoriality and communication patterns.',
-          publication_year: 2023,
-          doi: '10.1000/jfa.2023.001'
-        },
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: ids['paper_1']!,
+      object_type_name: 'Paper',
+      properties: {
+        title: 'Advanced Gryphon Behavior',
+        abstract: 'This seminal paper explores the intricate and often misunderstood social structures within modern gryphon populations. We present a novel longitudinal dataset, collected over five years, and employ advanced statistical modeling to analyze their complex mating rituals and hierarchical dynamics. Our findings challenge previous assumptions about gryphon territoriality and communication patterns.',
+        publication_year: 2023,
+        doi: '10.1000/jfa.2023.001'
+      },
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     await client.upsertObject({
-      obj: {
-        id: ids['paper_2']!,
-        object_type_name: 'Paper',
-        properties: {
-          title: 'The Aerodynamics of Broomsticks',
-          abstract: 'An in-depth computational and experimental study of broomstick flight dynamics, considering the interplay of magical enchantments and traditional material science. Various wood types and enchantment patterns were tested. Results indicate a strong, statistically significant correlation between willow wood construction and enhanced flight stability, particularly in turbulent conditions.',
-          publication_year: 2022,
-          doi: '10.2000/cpm.2022.002'
-        },
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: ids['paper_2']!,
+      object_type_name: 'Paper',
+      properties: {
+        title: 'The Aerodynamics of Broomsticks',
+        abstract: 'An in-depth computational and experimental study of broomstick flight dynamics, considering the interplay of magical enchantments and traditional material science. Various wood types and enchantment patterns were tested. Results indicate a strong, statistically significant correlation between willow wood construction and enhanced flight stability, particularly in turbulent conditions.',
+        publication_year: 2022,
+        doi: '10.2000/cpm.2022.002'
+      },
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     await client.upsertObject({
-      obj: {
-        id: ids['paper_3']!,
-        object_type_name: 'Paper',
-        properties: {
-          title: 'Quantum Entanglement in Potion Brewing',
-          abstract: 'We investigate the previously hypothesized role of quantum mechanical effects in the efficacy of advanced potion-making. This research specifically focuses on entanglement-assisted ingredient mixing protocols. Our experimental results suggest that leveraging quantum entanglement can significantly enhance potion potency and reduce brewing time, potentially revolutionizing alchemical practices.',
-          publication_year: 2023,
-          doi: '10.1000/jfa.2023.003'
-        },
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: ids['paper_3']!,
+      object_type_name: 'Paper',
+      properties: {
+        title: 'Quantum Entanglement in Potion Brewing',
+        abstract: 'We investigate the previously hypothesized role of quantum mechanical effects in the efficacy of advanced potion-making. This research specifically focuses on entanglement-assisted ingredient mixing protocols. Our experimental results suggest that leveraging quantum entanglement can significantly enhance potion potency and reduce brewing time, potentially revolutionizing alchemical practices.',
+        publication_year: 2023,
+        doi: '10.1000/jfa.2023.003'
+      },
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     await client.upsertObject({
-      obj: {
-        id: ids['paper_4']!,
-        object_type_name: 'Paper',
-        properties: {
-          title: 'A History of Mythical Creatures',
-          abstract: 'A foundational and comprehensive text on the historical study of mythical creatures across various cultures. This volume includes detailed chapters on early gryphon observations, their symbolism in ancient art, and documented interactions with human societies. It serves as a critical reference for researchers in cryptozoology and mythological studies.',
-          publication_year: 2010,
-          doi: '10.3000/hmc.2010.004'
-        },
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: ids['paper_4']!,
+      object_type_name: 'Paper',
+      properties: {
+        title: 'A History of Mythical Creatures',
+        abstract: 'A foundational and comprehensive text on the historical study of mythical creatures across various cultures. This volume includes detailed chapters on early gryphon observations, their symbolism in ancient art, and documented interactions with human societies. It serves as a critical reference for researchers in cryptozoology and mythological studies.',
+        publication_year: 2010,
+        doi: '10.3000/hmc.2010.004'
+      },
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     // RelationInstances - AUTHORED_BY
     await client.addRelation({
-      relation: {
-        id: uuidv4(),
-        relation_type_name: 'AUTHORED_BY',
-        source_object_instance_id: ids['paper_1']!,
-        target_object_instance_id: ids['author_1']!,
-        properties: { author_order: 1 },
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: uuidv4(),
+      relation_type_name: 'AUTHORED_BY',
+      source_object_instance_id: ids['paper_1']!,
+      target_object_instance_id: ids['author_1']!,
+      properties: { author_order: 1 },
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     await client.addRelation({
-      relation: {
-        id: uuidv4(),
-        relation_type_name: 'AUTHORED_BY',
-        source_object_instance_id: ids['paper_1']!,
-        target_object_instance_id: ids['author_2']!,
-        properties: { author_order: 2 },
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: uuidv4(),
+      relation_type_name: 'AUTHORED_BY',
+      source_object_instance_id: ids['paper_1']!,
+      target_object_instance_id: ids['author_2']!,
+      properties: { author_order: 2 },
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     await client.addRelation({
-      relation: {
-        id: uuidv4(),
-        relation_type_name: 'AUTHORED_BY',
-        source_object_instance_id: ids['paper_2']!,
-        target_object_instance_id: ids['author_2']!,
-        properties: { author_order: 1 },
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: uuidv4(),
+      relation_type_name: 'AUTHORED_BY',
+      source_object_instance_id: ids['paper_2']!,
+      target_object_instance_id: ids['author_2']!,
+      properties: { author_order: 1 },
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     await client.addRelation({
-      relation: {
-        id: uuidv4(),
-        relation_type_name: 'AUTHORED_BY',
-        source_object_instance_id: ids['paper_3']!,
-        target_object_instance_id: ids['author_1']!,
-        properties: { author_order: 1 },
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: uuidv4(),
+      relation_type_name: 'AUTHORED_BY',
+      source_object_instance_id: ids['paper_3']!,
+      target_object_instance_id: ids['author_1']!,
+      properties: { author_order: 1 },
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     await client.addRelation({
-      relation: {
-        id: uuidv4(),
-        relation_type_name: 'AUTHORED_BY',
-        source_object_instance_id: ids['paper_3']!,
-        target_object_instance_id: ids['author_3']!,
-        properties: { author_order: 2 },
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: uuidv4(),
+      relation_type_name: 'AUTHORED_BY',
+      source_object_instance_id: ids['paper_3']!,
+      target_object_instance_id: ids['author_3']!,
+      properties: { author_order: 2 },
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     await client.addRelation({
-      relation: {
-        id: uuidv4(),
-        relation_type_name: 'AUTHORED_BY',
-        source_object_instance_id: ids['paper_4']!,
-        target_object_instance_id: ids['author_3']!,
-        properties: { author_order: 1 },
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: uuidv4(),
+      relation_type_name: 'AUTHORED_BY',
+      source_object_instance_id: ids['paper_4']!,
+      target_object_instance_id: ids['author_3']!,
+      properties: { author_order: 1 },
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     // RelationInstances - CITES
     await client.addRelation({
-      relation: {
-        id: uuidv4(),
-        relation_type_name: 'CITES',
-        source_object_instance_id: ids['paper_1']!,
-        target_object_instance_id: ids['paper_4']!,
-        properties: { citation_context: 'Builds upon foundational gryphon observations and historical accounts.' },
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: uuidv4(),
+      relation_type_name: 'CITES',
+      source_object_instance_id: ids['paper_1']!,
+      target_object_instance_id: ids['paper_4']!,
+      properties: { citation_context: 'Builds upon foundational gryphon observations and historical accounts.' },
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     await client.addRelation({
-      relation: {
-        id: uuidv4(),
-        relation_type_name: 'CITES',
-        source_object_instance_id: ids['paper_3']!,
-        target_object_instance_id: ids['paper_2']!,
-        properties: { citation_context: 'Compares quantum effects in potions to observed magical flight principles in broomsticks.' },
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: uuidv4(),
+      relation_type_name: 'CITES',
+      source_object_instance_id: ids['paper_3']!,
+      target_object_instance_id: ids['paper_2']!,
+      properties: { citation_context: 'Compares quantum effects in potions to observed magical flight principles in broomsticks.' },
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     // RelationInstances - PUBLISHED_IN
     await client.addRelation({
-      relation: {
-        id: uuidv4(),
-        relation_type_name: 'PUBLISHED_IN',
-        source_object_instance_id: ids['paper_1']!,
-        target_object_instance_id: ids['venue_1']!,
-        properties: {},
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: uuidv4(),
+      relation_type_name: 'PUBLISHED_IN',
+      source_object_instance_id: ids['paper_1']!,
+      target_object_instance_id: ids['venue_1']!,
+      properties: {},
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     await client.addRelation({
-      relation: {
-        id: uuidv4(),
-        relation_type_name: 'PUBLISHED_IN',
-        source_object_instance_id: ids['paper_2']!,
-        target_object_instance_id: ids['venue_2']!,
-        properties: {},
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: uuidv4(),
+      relation_type_name: 'PUBLISHED_IN',
+      source_object_instance_id: ids['paper_2']!,
+      target_object_instance_id: ids['venue_2']!,
+      properties: {},
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     await client.addRelation({
-      relation: {
-        id: uuidv4(),
-        relation_type_name: 'PUBLISHED_IN',
-        source_object_instance_id: ids['paper_3']!,
-        target_object_instance_id: ids['venue_1']!,
-        properties: {},
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: uuidv4(),
+      relation_type_name: 'PUBLISHED_IN',
+      source_object_instance_id: ids['paper_3']!,
+      target_object_instance_id: ids['venue_1']!,
+      properties: {},
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     await client.addRelation({
-      relation: {
-        id: uuidv4(),
-        relation_type_name: 'PUBLISHED_IN',
-        source_object_instance_id: ids['paper_4']!,
-        target_object_instance_id: ids['venue_1']!,
-        properties: {},
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: uuidv4(),
+      relation_type_name: 'PUBLISHED_IN',
+      source_object_instance_id: ids['paper_4']!,
+      target_object_instance_id: ids['venue_1']!,
+      properties: {},
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
   }
 
   async function getEmbeddingVectorForQueryText(text: string, embeddingDefinitionName = 'PaperAbstractEmbedding'): Promise<EmbeddingVector> {
-    const result = await client.getEmbeddingVectorForText({
-      text,
-      embedding_definition_name: embeddingDefinitionName
-    });
+    const result = await client.getEmbeddingVectorForText(text, embeddingDefinitionName);
     return result;
   }
 
@@ -510,7 +465,7 @@ describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
       }]
     };
 
-    const result1 = await client.executeComplexQuery({ query: query1 });
+    const result1 = await client.executeComplexQuery(query1);
     assertResults(result1, [ids['paper_1']!], 'Initial Query 1');
 
     // Query 2
@@ -545,47 +500,35 @@ describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
       }]
     };
 
-    const result2 = await client.executeComplexQuery({ query: query2 });
+    const result2 = await client.executeComplexQuery(query2);
     assertResults(result2, [ids['paper_1']!], 'Initial Query 2');
   }
 
   async function modifyData() {
     // 1. Update Paper abstract (paper_1)
-    const paper1 = await client.getObjectById({
-      object_id: ids['paper_1']!,
-      type_name: 'Paper'
-    });
+    const paper1 = await client.getObjectById(ids['paper_1']!, 'Paper');
     if (paper1) {
       paper1.properties['abstract'] = 'A new study on dragon linguistics.';
-      await client.upsertObject({ obj: paper1 });
+      await client.upsertObject(paper1);
     }
 
     // 2. Add CITES relation (paper_2 -> paper_4)
     await client.addRelation({
-      relation: {
-        id: uuidv4(),
-        relation_type_name: 'CITES',
-        source_object_instance_id: ids['paper_2']!,
-        target_object_instance_id: ids['paper_4']!,
-        properties: {},
-        weight: new Decimal(1.0),
-        upsert_date: new Date()
-      }
+      id: uuidv4(),
+      relation_type_name: 'CITES',
+      source_object_instance_id: ids['paper_2']!,
+      target_object_instance_id: ids['paper_4']!,
+      properties: {},
+      weight: new Decimal(1.0),
+      upsert_date: new Date()
     });
 
     // 3. Delete AUTHORED_BY relation (paper_1, author_2)
-    const relationsToDelete = await client.getRelation({
-      from_object_id: ids['paper_1']!,
-      to_object_id: ids['author_2']!,
-      relation_type_name: 'AUTHORED_BY'
-    });
+    const relationsToDelete = await client.getRelation(ids['paper_1']!, ids['author_2']!, 'AUTHORED_BY');
     expect(relationsToDelete.relations.length).toBeGreaterThan(0);
 
     for (const rel of relationsToDelete.relations) {
-      await client.deleteRelation({
-        relation_type_name: 'AUTHORED_BY',
-        relation_id: rel.id
-      });
+      await client.deleteRelation('AUTHORED_BY', rel.id);
     }
   }
 
@@ -617,7 +560,7 @@ describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
       }]
     };
 
-    const result1 = await client.executeComplexQuery({ query: query1 });
+    const result1 = await client.executeComplexQuery(query1);
     assertResults(result1, [], 'Post-Mod Query 1');
 
     // Re-run Query 2
@@ -652,7 +595,7 @@ describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
       }]
     };
 
-    const result2 = await client.executeComplexQuery({ query: query2 });
+    const result2 = await client.executeComplexQuery(query2);
     assertResults(result2, [], 'Post-Mod Query 2');
 
     // New Query 4
@@ -677,7 +620,7 @@ describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
       }]
     };
 
-    const result4 = await client.executeComplexQuery({ query: query4 });
+    const result4 = await client.executeComplexQuery(query4);
     assertResults(result4, [ids['paper_2']!], 'Post-Mod Query 4');
   }
 
@@ -741,7 +684,7 @@ describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
       } as LogicalGroup
     };
 
-    const result = await client.executeComplexQuery({ query: logicalQuery });
+    const result = await client.executeComplexQuery(logicalQuery);
     assertResults(result, [ids['paper_1']!, ids['paper_2']!, ids['paper_3']!], 'Complex Logical Query');
 
     // Backward compatibility with components
@@ -768,7 +711,7 @@ describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
       ]
     };
 
-    const resultBackwardCompat = await client.executeComplexQuery({ query: queryBackwardCompat });
+    const resultBackwardCompat = await client.executeComplexQuery(queryBackwardCompat);
 
     // New explicit AND query
     const queryNewAnd: ComplexQuery = {
@@ -790,14 +733,14 @@ describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
               target_object_type_name: 'Author',
               target_object_properties: [
                 { property_name: 'full_name', operator: '==' as RelationalOperator, value: 'Dr. Alice Wonderland' }
-              ]
-            }]
-          }
-        ]
-      } as LogicalGroup
-    };
+                ]
+              }]
+            }
+          ]
+        } as LogicalGroup
+      };
 
-    const resultNewAnd = await client.executeComplexQuery({ query: queryNewAnd });
+    const resultNewAnd = await client.executeComplexQuery(queryNewAnd);
 
     const expectedIdsAndQuery = [ids['paper_1']!, ids['paper_3']!];
 
@@ -824,15 +767,12 @@ describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
       upsert_date: new Date()
     };
 
-    const upsertedObj = await client.upsertObject({ obj: objToUpsert });
+    const upsertedObj = await client.upsertObject(objToUpsert);
 
     expect(upsertedObj.id).toBe(datetimeObjId);
 
     // Retrieve the object
-    const retrievedObj = await client.getObjectById({
-      object_id: datetimeObjId,
-      type_name: 'TestDateTimeObject'
-    });
+    const retrievedObj = await client.getObjectById(datetimeObjId, 'TestDateTimeObject');
 
     expect(retrievedObj).toBeDefined();
     expect(retrievedObj!.id).toBe(datetimeObjId);

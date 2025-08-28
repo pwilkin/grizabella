@@ -276,7 +276,7 @@ export interface CreateEmbeddingDefinitionParams {
   name: string;
   object_type_name: string;
   source_property_name: string;
-  embedding_model: string;
+  embedding_model?: string;
   description?: string;
   dimensions?: number;
 }

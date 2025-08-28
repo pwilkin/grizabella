@@ -6,11 +6,9 @@
  * basic CRUD operations, and simple queries.
  */
 
-import {
-  GrizabellaClient,
-  PropertyDataType,
-  Decimal,
-} from '../src/index';
+import { GrizabellaClient } from '../src/client/GrizabellaClient';
+import { PropertyDataType } from '../src/types/enums';
+import { Decimal } from 'decimal.js';
 
 /**
  * Example 1: Basic Connection Management
@@ -22,7 +20,6 @@ async function basicConnectionExample() {
   // Method 1: Context manager pattern (recommended for TypeScript 5.2+)
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'basic-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
     createIfNotExists: true,
     debug: true,
   });
@@ -33,7 +30,6 @@ async function basicConnectionExample() {
   // Method 2: Manual connection management
   const manualClient = new GrizabellaClient({
     dbNameOrPath: 'basic-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
     createIfNotExists: true,
   });
 
@@ -54,7 +50,6 @@ async function schemaAndDataExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'schema-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
     createIfNotExists: true,
   });
 
@@ -145,7 +140,6 @@ async function queryExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'schema-example-db', // Reuse the same database
-    serverUrl: 'http://localhost:8000/mcp',
   });
 
   // Get a specific book by ID
@@ -180,7 +174,6 @@ async function relationsExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'relations-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
     createIfNotExists: true,
   });
 
@@ -294,7 +287,7 @@ async function errorHandlingExample() {
     // Try to connect to a non-existent server
     await using client = await GrizabellaClient.connect({
       dbNameOrPath: 'error-example-db',
-      serverUrl: 'http://non-existent-server:8000/mcp',
+      serverUrl: 'stdio',
       timeout: 5000, // Short timeout for demo
     });
   } catch (error) {
@@ -305,7 +298,7 @@ async function errorHandlingExample() {
   try {
     await using client = await GrizabellaClient.connect({
       dbNameOrPath: 'error-example-db',
-      serverUrl: 'http://localhost:8000/mcp',
+  
       createIfNotExists: true,
     });
 

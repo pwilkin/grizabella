@@ -52,7 +52,7 @@ async function advancedErrorHandlingExample() {
     return await withRetry(async () => {
       const client = new GrizabellaClient({
         dbNameOrPath: 'error-handling-example-db',
-        serverUrl: 'http://localhost:8000/mcp',
+    
         createIfNotExists: true,
       });
 
@@ -91,7 +91,7 @@ async function advancedErrorHandlingExample() {
   try {
     await using client = new GrizabellaClient({
       dbNameOrPath: 'error-handling-example-db',
-      serverUrl: 'http://non-existent-server:8000/mcp',
+      serverUrl: 'stdio',
       timeout: 2000,
     });
 
@@ -129,7 +129,7 @@ async function resourceManagementExample() {
       if (!this.clients.has(name)) {
         const client = new GrizabellaClient({
           dbNameOrPath: `${name}-db`,
-          serverUrl: 'http://localhost:8000/mcp',
+      
           createIfNotExists: true,
         });
 
@@ -215,7 +215,7 @@ async function resourceManagementExample() {
   // Usage example
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'transaction-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
+
     createIfNotExists: true,
   });
 
@@ -248,7 +248,7 @@ async function performanceMonitoringExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'performance-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
+
     createIfNotExists: true,
   });
 
@@ -398,7 +398,7 @@ async function configurationManagementExample() {
 
   // Custom configuration with validation
   const customConfig: Partial<GrizabellaConfig> = {
-    serverUrl: 'http://localhost:8000/mcp',
+
     dbNameOrPath: 'config-example-db',
     timeout: 15000,
     debug: true,
@@ -420,7 +420,7 @@ async function configurationManagementExample() {
 
   // Build configuration with defaults
   const finalConfig = buildConfig({
-    serverUrl: 'http://localhost:8000/mcp',
+
     dbNameOrPath: 'config-example-db',
     debug: true,
   });
@@ -468,7 +468,7 @@ async function advancedTypeScriptPatternsExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'typescript-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
+
     createIfNotExists: true,
   });
 

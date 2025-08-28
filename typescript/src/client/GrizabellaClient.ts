@@ -614,25 +614,11 @@ export class GrizabellaClient {
   async createEmbeddingDefinition(embeddingDef: EmbeddingDefinition): Promise<EmbeddingDefinition> {
     this.ensureConnected();
 
-    // Convert the embedding definition to the MCP parameter format
-    const params: any = {
-      name: embeddingDef.name,
-      model_id: embeddingDef.embedding_model,
-      object_type_name: embeddingDef.object_type_name,
-      source_property_name: embeddingDef.source_property_name,
-      dimensions: embeddingDef.dimensions || 1536, // Default dimensions if not specified
-    };
-
-    // Only add description if it's provided
-    if (embeddingDef.description !== undefined) {
-      params.description = embeddingDef.description;
-    }
-
     if (this._config.debug) {
-      console.log('Creating embedding definition with params:', JSON.stringify(params, null, 2));
+      console.log('Creating embedding definition with params:', JSON.stringify(embeddingDef, null, 2));
     }
 
-    await this._mcpClient.createEmbeddingDefinition(params);
+    await this._mcpClient.createEmbeddingDefinition(embeddingDef);
     return embeddingDef; // Return the original definition as created
   }
 

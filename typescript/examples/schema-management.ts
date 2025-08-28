@@ -28,7 +28,6 @@ async function complexObjectTypesExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'schema-management-db',
-    serverUrl: 'http://localhost:8000/mcp',
     createIfNotExists: true,
   });
 
@@ -169,7 +168,7 @@ async function complexRelationTypesExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'schema-management-db',
-    serverUrl: 'http://localhost:8000/mcp',
+
   });
 
   // Employment relationship with detailed properties
@@ -271,7 +270,6 @@ async function embeddingDefinitionsExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'schema-management-db',
-    serverUrl: 'http://localhost:8000/mcp',
   });
 
   // Create embedding for person biographies
@@ -318,7 +316,6 @@ async function schemaHelpersExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'helpers-example-db',
-    serverUrl: 'http://localhost:8000/mcp',
     createIfNotExists: true,
   });
 
@@ -400,7 +397,7 @@ async function schemaValidationExample() {
 
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'schema-management-db',
-    serverUrl: 'http://localhost:8000/mcp',
+
   });
 
   // List all object types
