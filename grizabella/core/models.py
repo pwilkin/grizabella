@@ -226,7 +226,7 @@ class EmbeddingDefinition(BaseModel):
 
         embedding_model (str): :noindex: An identifier for the embedding model to be
             used (e.g., a Hugging Face model name like
-            'huggingface/colbert-ir/colbertv2.0').
+            'huggingface/mixedbread-ai/mxbai-embed-large-v1').
 
         dimensions (Optional[int]): :noindex: The expected dimensionality of the
             embedding vector. If None, the system may attempt to infer it
@@ -257,7 +257,7 @@ class EmbeddingDefinition(BaseModel):
         ),
     )
     embedding_model: str = Field(
-        default="huggingface/colbert-ir/colbertv2.0",
+        default="huggingface/mixedbread-ai/mxbai-embed-large-v1",
         description="Identifier for the embedding model to use.",
     )
     dimensions: Optional[int] = Field(

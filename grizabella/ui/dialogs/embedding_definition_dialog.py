@@ -60,7 +60,7 @@ class EmbeddingDefinitionDialog(QDialog):
 
         # Embedding Model
         self.model_label = QLabel("Embedding Model:")
-        self.model_edit = QLineEdit("colbert-ir/colbertv2.0") # Removed "huggingface/" prefix
+        self.model_edit = QLineEdit("mixedbread-ai/mxbai-embed-large-v1") # Removed "huggingface/" prefix
         layout.addWidget(self.model_label)
         layout.addWidget(self.model_edit)
 

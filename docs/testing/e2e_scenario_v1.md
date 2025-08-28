@@ -52,7 +52,7 @@ The following schema will be created using the `Grizabella` client's API methods
     - `name`: "PaperAbstractEmbedding"
     - `object_type_name`: "Paper"
     - `source_property_name`: "abstract"
-    - `embedding_model`: "huggingface/colbert-ir/colbertv2.0" (default, or specify if different)
+    - `embedding_model`: "huggingface/mixedbread-ai/mxbai-embed-large-v1" (default, or specify if different)
     - `description`: "Embedding for the abstract of papers."
 
 ### 3.3. `RelationTypeDefinition`(s)

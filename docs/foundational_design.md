@@ -187,7 +187,7 @@ class EmbeddingDefinition(BaseModel):
     name: str = Field(..., description="Unique name for this embedding configuration (e.g., 'content_embedding_v1'). Convention: snake_case.")
     object_type_name: str = Field(..., description="Name of the ObjectTypeDefinition this embedding applies to.")
     source_property_name: str = Field(..., description="Name of the property within the ObjectTypeDefinition whose content will be embedded.")
-    embedding_model: str = Field(default="huggingface/colbert-ir/colbertv2.0", description="Identifier for the embedding model to use.")
+    embedding_model: str = Field(default="huggingface/mixedbread-ai/mxbai-embed-large-v1", description="Identifier for the embedding model to use.")
     dimensions: Optional[int] = Field(default=None, description="Expected dimensions of the embedding vector. If None, inferred from model.")
     description: Optional[str] = Field(default=None, description="Optional description of this embedding definition.")
     # _created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

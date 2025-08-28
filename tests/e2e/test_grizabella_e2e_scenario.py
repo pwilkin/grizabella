@@ -114,7 +114,7 @@ class TestGrizabellaE2EScenario(unittest.TestCase):
             name="PaperAbstractEmbedding",
             object_type_name="Paper",
             source_property_name="abstract",
-            embedding_model="colbert-ir/colbertv2.0", # Default from models.py
+            embedding_model="mixedbread-ai/mxbai-embed-large-v1", # Default from models.py
             description="Embedding for the abstract of papers."
         )
         self.client.create_embedding_definition(paper_abstract_ed)
