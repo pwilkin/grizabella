@@ -165,4 +165,4 @@ export const MIN_WEIGHT = 0.0;
 /**
  * Default embedding model identifier used by EmbeddingDefinitions.
  */
-export const DEFAULT_EMBEDDING_MODEL = 'huggingface/colbert-ir/colbertv2.0';
+export const DEFAULT_EMBEDDING_MODEL = 'huggingface/mixedbread-ai/mxbai-embed-large-v1';

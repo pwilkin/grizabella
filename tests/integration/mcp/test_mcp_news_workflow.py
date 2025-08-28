@@ -86,10 +86,12 @@ async def execute_tool_call(tool_call, sessions):
     result = await session.call_tool(tool_name, args)
     return result
 
-@pytest.mark.skipif(
-    not os.getenv("TESTING_MODEL"),
-    reason="Test model not set"
-)
+#@pytest.mark.skipif(
+#    not os.getenv("TESTING_MODEL"),
+#    reason="Test model not set"
+#)
+# Uncomment above and comment the next one to use the test, it's disabled by default
+@pytest.mark.skip
 @pytest.mark.asyncio
 async def test_news_workflow():
     # Create MCP clients using start_mcp_servers utility

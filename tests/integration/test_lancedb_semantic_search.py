@@ -124,7 +124,7 @@ def test_semantic_search_with_lancedb(temp_grizabella_db: Grizabella):
         name="content_embedding",
         object_type_name="TextDocument",
         source_property_name="content",
-        embedding_model="colbert-ir/colbertv2.0", # Default model
+        embedding_model="mixedbread-ai/mxbai-embed-large-v1", # Default model
     )
     gz_client.create_embedding_definition(embedding_def) # Corrected method name
 

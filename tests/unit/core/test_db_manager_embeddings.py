@@ -17,8 +17,8 @@ from grizabella.core.db_manager import GrizabellaDBManager
 from grizabella.core.exceptions import SchemaError, EmbeddingError
 
 # Default HuggingFace model for tests if not overridden
-DEFAULT_HF_MODEL = "huggingface/colbert-ir/colbertv2.0"
-DEFAULT_DIMENSIONS = 128 # Assuming this for the default model
+DEFAULT_HF_MODEL = "huggingface/mixedbread-ai/mxbai-embed-large-v1"
+DEFAULT_DIMENSIONS = 512 # Assuming this for the default model
 
 @pytest.fixture
 def mock_sqlite_adapter_instance():

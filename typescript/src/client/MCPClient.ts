@@ -308,24 +308,40 @@ export class MCPClient {
         if (toolName === 'get_embedding_vector_for_text' && this.config.debug) {
           console.log(`About to parse result for ${toolName}. Raw result structure:`, JSON.stringify(result, null, 2));
         }
- 
-          // Parse the result content
-          // Log the actual response structure for debugging
-          console.log(`Result from tool ${toolName}:`, JSON.stringify(result, null, 2));
-          if (!result['result']) {
-            // Check if the result has a different structure
-            if (result.hasOwnProperty('content')) {
-              return result['content'] as unknown as T;
+
+        // Handle MCP protocol response format
+        if (Array.isArray(result.content) && result.content.length > 0) {
+          const content = result.content[0];
+          if (content.type === 'text') {
+            try {
+              const parsedData = JSON.parse(content.text);
+              return parsedData;
+            } catch (parseError) {
+              if (this.config.debug) {
+                console.log(`Failed to parse MCP text content for ${toolName}:`, content.text);
+              }
+              throw new Error(`Failed to parse MCP text response: ${content.text}`);
             }
-            // For void operations, return undefined
-            if (toolName === 'create_object_type' || toolName === 'create_relation_type' ||
-                toolName === 'upsert_object' || toolName === 'add_relation' ||
-                toolName === 'delete_object' || toolName === 'delete_relation' ||
-                toolName === 'delete_object_type' || toolName === 'delete_relation_type') {
-              return undefined as unknown as T;
-            }
-            throw new Error(`Empty response from tool: ${toolName}`);
+          } else {
+            throw new Error(`Unsupported content type: ${content.type}`);
           }
+        }
+
+        // Legacy response format handling
+        if (!result['result']) {
+          // Check if the result has a different structure
+          if (result.hasOwnProperty('content')) {
+            return result['content'] as unknown as T;
+          }
+          // For void operations, return undefined
+          if (toolName === 'create_object_type' || toolName === 'create_relation_type' ||
+              toolName === 'upsert_object' || toolName === 'add_relation' ||
+              toolName === 'delete_object' || toolName === 'delete_relation' ||
+              toolName === 'delete_object_type' || toolName === 'delete_relation_type') {
+            return undefined as unknown as T;
+          }
+          throw new Error(`Empty response from tool: ${toolName}`);
+        }
 
         // If result is already a string, parse it
         if (typeof result['result'] === 'string') {
@@ -449,44 +465,92 @@ export class MCPClient {
    * Creates or updates an object instance.
    */
   async upsertObject(params: UpsertObjectParams): Promise<ObjectInstance> {
-    return await this.callTool<ObjectInstance>('upsert_object', {
+    const result = await this.callTool<ObjectInstance>('upsert_object', {
       obj: params.obj,
     });
+
+    // If the server returns undefined (bug in MCP server), try to fetch the object by ID
+    if (!result) {
+      if (this.config.debug) {
+        console.warn('upsertObject returned undefined, attempting to fetch object by ID:', params.obj.id);
+      }
+      const fetched = await this.getObjectById({
+        object_id: params.obj.id,
+        type_name: params.obj.object_type_name
+      });
+      if (fetched) {
+        return fetched;
+      }
+      throw new Error(`Failed to upsert and retrieve object ${params.obj.id}`);
+    }
+
+    return result;
   }
 
   /**
    * Retrieves an object instance by ID and type.
    */
-  async getObjectById(params: GetObjectByIdParams): Promise<ObjectInstance | null> {
-    const rawResult = await this.callTool<any>('get_object_by_id', {
-      object_id: params.object_id,
-      type_name: params.type_name,
-    });
+   async getObjectById(params: GetObjectByIdParams): Promise<ObjectInstance | null> {
+     const rawResult = await this.callTool<any>('get_object_by_id', {
+       object_id: params.object_id,
+       type_name: params.type_name,
+     });
 
-    // Debug: Log the raw result structure
-    if (this.config.debug) {
-      console.log('getObjectById raw result:', JSON.stringify(rawResult, null, 2));
-    }
+     // Debug: Log the raw result structure
+     if (this.config.debug) {
+       console.log('getObjectById raw result:', JSON.stringify(rawResult, null, 2));
+     }
 
-    let result: ObjectInstance | null;
+     let result: ObjectInstance | null;
 
-    // Handle MCP protocol response format
-    if (Array.isArray(rawResult) && rawResult.length > 0 && rawResult[0].type === 'text') {
-      // MCP protocol format: [{"type":"text","text":"{json_string}"}]
-      try {
-        const parsedData = JSON.parse(rawResult[0].text);
-        result = parsedData;
-      } catch (parseError) {
-        throw new Error(`Failed to parse MCP text response: ${rawResult[0].text}`);
+     // Handle MCP protocol response format
+     if (Array.isArray(rawResult) && rawResult.length > 0 && rawResult[0].type === 'text') {
+       // MCP protocol format: [{"type":"text","text":"{json_string}"}]
+       try {
+         const parsedData = JSON.parse(rawResult[0].text);
+         result = parsedData;
+       } catch (parseError) {
+         throw new Error(`Failed to parse MCP text response: ${rawResult[0].text}`);
+       }
+     } else if (rawResult && typeof rawResult === 'object') {
+       // Direct format: {object_instance} or null
+       result = rawResult as ObjectInstance | null;
+     } else {
+       throw new Error(`Invalid object by ID response format: ${JSON.stringify(rawResult)}`);
+     }
+
+     // Deserialize datetime properties
+     if (result && result.properties) {
+       result.properties = this.deserializeProperties(result.properties);
+     }
+
+     return result;
+   }
+
+  /**
+   * Deserializes properties, converting datetime strings to Date objects.
+   */
+  private deserializeProperties(properties: Record<string, any>): Record<string, any> {
+    const deserialized = { ...properties };
+
+    for (const [key, value] of Object.entries(deserialized)) {
+      if (typeof value === 'string') {
+        // Check if it's an ISO 8601 datetime string
+        const isoRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/;
+        if (isoRegex.test(value)) {
+          try {
+            deserialized[key] = new Date(value);
+          } catch (dateError) {
+            // If parsing fails, keep the original string
+            if (this.config.debug) {
+              console.warn(`Failed to parse datetime string '${value}' for property '${key}':`, dateError);
+            }
+          }
+        }
       }
-    } else if (rawResult && typeof rawResult === 'object') {
-      // Direct format: {object_instance} or null
-      result = rawResult as ObjectInstance | null;
-    } else {
-      throw new Error(`Invalid object by ID response format: ${JSON.stringify(rawResult)}`);
     }
 
-    return result;
+    return deserialized;
   }
 
   /**

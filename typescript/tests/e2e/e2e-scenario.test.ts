@@ -152,7 +152,7 @@ describe('Grizabella TypeScript API - End-to-End Scenario', () => {
       name: 'PaperAbstractEmbedding',
       object_type_name: 'Paper',
       source_property_name: 'abstract',
-      embedding_model: 'colbert-ir/colbertv2.0',
+      embedding_model: 'mixedbread-ai/mxbai-embed-large-v1',
       description: 'Embedding for the abstract of papers.'
     };
 

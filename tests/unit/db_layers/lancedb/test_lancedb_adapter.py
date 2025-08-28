@@ -41,7 +41,7 @@ def embedding_def_sample1():
         name="test_embedding_def_1",
         object_type_name="TestObject",
         source_property_name="text_content",
-        embedding_model="huggingface/colbert-ir/colbertv2.0", # Example model
+        embedding_model="huggingface/mixedbread-ai/mxbai-embed-large-v1", # Example model
         dimensions=128 # Example dimension
     )
 
