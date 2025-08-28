@@ -1005,25 +1005,36 @@ class _InstanceManager:
 
         deleted_sqlite = False
         deleted_kuzu = False
+        deleted_lancedb = False
 
         try:
-            # LanceDB deletion (embeddings)
+            # LanceDB deletion (embeddings) - collect results
             applicable_eds = [
                 ed
                 for ed in self._schema_manager.list_embedding_definitions()
                 if ed.object_type_name == object_type_name
             ]
+            lancedb_errors = []
             for ed_instance in applicable_eds:
                 try:
-                    self._conn_helper.lancedb_adapter.delete_embedding_instances_for_object(
+                    lancedb_result = self._conn_helper.lancedb_adapter.delete_embedding_instances_for_object(
                         instance_id, ed_instance.name,
                     )
-                    self._logger.info(
-                        "Deleted embeddings for OI '%s' using def '%s' from LanceDB.",
-                        instance_id,
-                        ed_instance.name,
-                    )
+                    if lancedb_result:
+                        self._logger.info(
+                            "Deleted embeddings for OI '%s' using def '%s' from LanceDB.",
+                            instance_id,
+                            ed_instance.name,
+                        )
+                        deleted_lancedb = True
+                    else:
+                        self._logger.debug(
+                            "No embeddings found for OI '%s' using def '%s' in LanceDB.",
+                            instance_id,
+                            ed_instance.name,
+                        )
                 except Exception as e:  # pylint: disable=broad-except
+                    lancedb_errors.append(f"ED '{ed_instance.name}': {e}")
                     self._logger.error(
                         "Error deleting embeddings for OI '%s', def '%s' from LanceDB: %s",
                         instance_id,
@@ -1031,6 +1042,15 @@ class _InstanceManager:
                         e,
                         exc_info=True,
                     )  # Log and continue, as main deletion might still succeed
+
+            # Report LanceDB deletion summary
+            if lancedb_errors:
+                self._logger.warning(
+                    "LanceDB deletion completed with %d errors for OI '%s': %s",
+                    len(lancedb_errors),
+                    instance_id,
+                    "; ".join(lancedb_errors[:3]),  # Limit error details in summary
+                )
 
             # Kuzu deletion
             try:
@@ -1056,48 +1076,73 @@ class _InstanceManager:
                     e,
                     exc_info=True,
                 )
-                # Depending on policy, we might want to stop or continue to SQLite deletion
-                # For now, we'll log and continue to ensure SQLite cleanup is attempted.
+                # Don't re-raise here - continue with SQLite deletion for partial cleanup
 
-            # SQLite deletion (master record)
-            deleted_sqlite = self._conn_helper.sqlite_adapter.delete_object_instance(
-                object_type_name, instance_id,
-            )
-            if deleted_sqlite:
-                self._logger.debug(
-                    "OI '%s' of type '%s' deleted from SQLite.",
-                    instance_id,
-                    object_type_name,
+            # SQLite deletion (master record) - do this last as it's the primary store
+            try:
+                deleted_sqlite = self._conn_helper.sqlite_adapter.delete_object_instance(
+                    object_type_name, instance_id,
                 )
+                if deleted_sqlite:
+                    self._logger.debug(
+                        "OI '%s' of type '%s' deleted from SQLite.",
+                        instance_id,
+                        object_type_name,
+                    )
+                else:
+                    self._logger.warning(
+                        "OI '%s' of type '%s' not found in SQLite or delete failed.",
+                        instance_id,
+                        object_type_name,
+                    )
+            except Exception as e:
+                self._logger.error(
+                    "Error deleting OI '%s' from SQLite: %s",
+                    instance_id,
+                    e,
+                    exc_info=True,
+                )
+                # SQLite is the primary store, so this is more critical
+                raise
 
-            # The overall success might depend on all parts succeeding.
-            # For now, returning SQLite's result as it's the primary store for existence.
-            # Kuzu deletion status is logged.
+            # Determine overall success based on primary store (SQLite)
+            # Log summary of the deletion operation
+            deletion_summary = []
+            if deleted_sqlite:
+                deletion_summary.append("SQLite: ✓")
+            else:
+                deletion_summary.append("SQLite: ✗")
+
+            if deleted_kuzu:
+                deletion_summary.append("Kuzu: ✓")
+            elif not deleted_kuzu:
+                deletion_summary.append("Kuzu: ✗ (not found or failed)")
+
+            if deleted_lancedb:
+                deletion_summary.append("LanceDB: ✓")
+            elif applicable_eds and not deleted_lancedb:
+                deletion_summary.append("LanceDB: ✗ (errors or not found)")
+
+            self._logger.info(
+                "Object deletion summary for OI '%s' of type '%s': %s",
+                instance_id,
+                object_type_name,
+                " | ".join(deletion_summary),
+            )
+
+            # Return SQLite result as it's the primary store for existence
             return deleted_sqlite
 
-        except (
-            DatabaseError,
-            SchemaError,
-        ) as e:  # Catch errors from SQLite delete if Kuzu part failed earlier
+        except Exception as e:  # Catch any remaining errors not handled above
             self._logger.error(
-                "Error during delete_object_instance for OI '%s' of type '%s': %s",
+                "Unexpected error during delete_object_instance for OI '%s' of type '%s': %s",
                 instance_id,
                 object_type_name,
                 e,
                 exc_info=True,
             )
-            raise
-        except Exception as e:  # pylint: disable=broad-except
-            self._logger.error(
-                "Unexpected error during delete_object_instance for OI '%s': %s",
-                instance_id,
-                e,
-                exc_info=True,
-            )
             msg = f"Failed during deletion or cleanup for {instance_id}: {e}"
-            raise DatabaseError(
-                msg,
-            ) from e
+            raise DatabaseError(msg) from e
 
     def query_object_instances(
         self,

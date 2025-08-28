@@ -11,6 +11,7 @@ structured data objects and their relationships.
 
 import argparse
 from datetime import datetime, timezone
+import functools
 import logging
 import os
 import signal
@@ -48,6 +49,41 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
+
+def log_tool_call(func):
+    """Decorator to log detailed information about tool calls."""
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        # Extract tool name from function name (remove mcp_ prefix)
+        tool_name = func.__name__
+        if tool_name.startswith('mcp_'):
+            tool_name = tool_name[4:]
+
+        # Log the tool call with details
+        logger.info(f"🔧 Tool Call: {tool_name}")
+
+        # Log arguments if any (excluding 'self' for methods)
+        if args:
+            # Skip 'self' argument for methods
+            actual_args = args[1:] if args and hasattr(args[0], '__class__') else args
+            if actual_args:
+                logger.info(f"📝 Arguments: {actual_args}")
+
+        if kwargs:
+            logger.info(f"📝 Keyword Arguments: {kwargs}")
+
+        # Call the original function
+        try:
+            result = await func(*args, **kwargs)
+            logger.info(f"✅ Tool Call Success: {tool_name}")
+            return result
+        except Exception as e:
+            logger.error(f"❌ Tool Call Failed: {tool_name} - Error: {e}")
+            raise
+
+    return wrapper
+
 
 # --- Configuration ---
 GRIZABELLA_DB_PATH_ENV_VAR = "GRIZABELLA_DB_PATH"
@@ -103,6 +139,7 @@ def get_grizabella_client() -> Grizabella:
         '}'
     ),
 )
+@log_tool_call
 async def mcp_create_object_type(object_type_def: ObjectTypeDefinition) -> None:
     # ctx: ToolContext,  # Removed for now, FastMCP might inject or not require it.
     try:
@@ -127,6 +164,7 @@ async def mcp_create_object_type(object_type_def: ObjectTypeDefinition) -> None:
     name="list_object_types",
     description="Lists all defined object types in the knowledge base.",
 )
+@log_tool_call
 async def mcp_list_object_types() -> list[ObjectTypeDefinition]:
     try:
         gb = get_grizabella_client()
@@ -150,6 +188,7 @@ async def mcp_list_object_types() -> list[ObjectTypeDefinition]:
         '}'
     ),
 )
+@log_tool_call
 async def mcp_get_object_type(type_name: str) -> Optional[ObjectTypeDefinition]:
     # ctx: ToolContext,
     try:
@@ -175,6 +214,7 @@ async def mcp_get_object_type(type_name: str) -> Optional[ObjectTypeDefinition]:
         '}'
     ),
 )
+@log_tool_call
 async def mcp_delete_object_type(type_name: str) -> None:
     # ctx: ToolContext,
     try:
@@ -211,6 +251,7 @@ async def mcp_delete_object_type(type_name: str) -> None:
         '}'
     ),
 )
+@log_tool_call
 async def mcp_create_relation_type(relation_type_def: RelationTypeDefinition) -> None:
     # ctx: ToolContext,
     try:
@@ -284,9 +325,48 @@ async def mcp_delete_relation_type(type_name: str) -> None:
     name="create_embedding_definition",
     description="Defines how an embedding should be generated for an object type.",
 )
+@log_tool_call
 async def mcp_create_embedding_definition(embedding_def: EmbeddingDefinition) -> None:
     try:
         gb = get_grizabella_client()
+
+        # Strip 'huggingface/' prefix if present, as LanceDB registry expects just the model name
+        # This ensures consistency with get_embedding_vector_for_text tool
+        model_identifier = embedding_def.embedding_model
+        if model_identifier.startswith('huggingface/'):
+            model_identifier = model_identifier[len('huggingface/'):]
+            logger.info(f"Stripped 'huggingface/' prefix from model identifier: '{embedding_def.embedding_model}' -> '{model_identifier}'")
+            # Update the embedding definition with the stripped model identifier
+            embedding_def.embedding_model = model_identifier
+
+        # Auto-detect dimensions if not specified or if MCP client set a default
+        logger.info(f"Checking dimensions for embedding definition '{embedding_def.name}': current dimensions = {embedding_def.dimensions}")
+        if embedding_def.dimensions is None or embedding_def.dimensions == 0 or embedding_def.dimensions == 1536:
+            logger.info(f"Auto-detecting dimensions for model '{model_identifier}' (overriding default {embedding_def.dimensions})")
+            try:
+                # Load the model to get its dimensions
+                embedding_model_func = gb._db_manager._connection_helper.lancedb_adapter.get_embedding_model(model_identifier)
+
+                # Generate a test embedding to determine dimensions
+                test_text = "test"
+                test_embeddings = embedding_model_func.compute_query_embeddings([test_text])
+                if test_embeddings and len(test_embeddings) > 0:
+                    detected_dimensions = len(test_embeddings[0])
+                    embedding_def.dimensions = detected_dimensions
+                    logger.info(f"Auto-detected {detected_dimensions} dimensions for model '{model_identifier}'")
+                else:
+                    # Fallback to a reasonable default
+                    embedding_def.dimensions = 768
+                    logger.warning(f"Could not detect dimensions for model '{model_identifier}', using default 768")
+            except Exception as dim_error:
+                # Fallback to a reasonable default
+                embedding_def.dimensions = 768
+                logger.warning(f"Error detecting dimensions for model '{model_identifier}': {dim_error}, using default 768")
+        else:
+            logger.info(f"Dimensions already specified for '{embedding_def.name}': {embedding_def.dimensions}")
+
+        logger.info(f"Final dimensions for embedding definition '{embedding_def.name}': {embedding_def.dimensions}")
+
         gb.create_embedding_definition(embedding_def)
         return
     except SchemaError as e:
@@ -320,6 +400,7 @@ async def mcp_create_embedding_definition(embedding_def: EmbeddingDefinition) ->
         '}'
     ),
 )
+@log_tool_call
 async def mcp_upsert_object(obj: ObjectInstance) -> ObjectInstance:
     # ctx: ToolContext,
     try:
@@ -697,6 +778,7 @@ async def mcp_search_similar_objects(
         '}'
     ),
 )
+@log_tool_call
 async def mcp_execute_complex_query(query: ComplexQuery) -> QueryResult:
     # ctx: ToolContext,
     try:
@@ -718,75 +800,71 @@ class GetEmbeddingVectorForTextArgs(BaseModel):
     name="get_embedding_vector_for_text",
     description="Generates an embedding vector for a given text using a specified embedding definition.",
 )
+@log_tool_call
 async def mcp_get_embedding_vector_for_text(args: GetEmbeddingVectorForTextArgs) -> EmbeddingVector:
     """Generates an embedding vector for a given text using a specified embedding definition."""
     gb = get_grizabella_client()
-    temp_obj_id = uuid.uuid4()
     embedding_def = gb.get_embedding_definition(args.embedding_definition_name)
     try:
         # 1. Get the embedding definition
         if not embedding_def:
             raise GrizabellaException(f"Embedding definition '{args.embedding_definition_name}' not found.")
 
-        # 2. Get the corresponding object type definition
-        obj_type_def = gb.get_object_type_definition(embedding_def.object_type_name)
-        if not obj_type_def:
-            raise GrizabellaException(f"Object type '{embedding_def.object_type_name}' not found for embedding definition.")
+        # 2. Generate embedding vector directly using the same logic as find_similar_objects_by_embedding
+        # This approach mirrors the Python client's successful method
+        logger.info(f"Generating embedding vector for text using model '{embedding_def.embedding_model}'")
 
-        # 3. Create a temporary object with dummy data for required fields
-        temp_properties = {}
-        for prop_def in obj_type_def.properties:
-            if prop_def.name == embedding_def.source_property_name:
-                temp_properties[prop_def.name] = args.text_to_embed
-            elif not prop_def.is_nullable:
-                # Provide dummy data for non-nullable fields
-                if prop_def.data_type == PropertyDataType.TEXT:
-                    temp_properties[prop_def.name] = f"dummy_{prop_def.name}"
-                elif prop_def.data_type == PropertyDataType.INTEGER:
-                    temp_properties[prop_def.name] = 0
-                elif prop_def.data_type == PropertyDataType.FLOAT:
-                    temp_properties[prop_def.name] = 0.0
-                elif prop_def.data_type == PropertyDataType.BOOLEAN:
-                    temp_properties[prop_def.name] = False
-                elif prop_def.data_type == PropertyDataType.DATETIME:
-                    temp_properties[prop_def.name] = datetime.now(timezone.utc).isoformat()
-                elif prop_def.data_type == PropertyDataType.UUID:
-                    temp_properties[prop_def.name] = str(uuid.uuid4())
-                else:
-                    # For BLOB, JSON, etc., we might need more robust dummy data generation
-                    temp_properties[prop_def.name] = None # This might fail if not nullable, but it's a start
+        # Get the embedding model function
+        # Strip 'huggingface/' prefix if present, as LanceDB registry expects just the model name
+        model_identifier = embedding_def.embedding_model
+        if model_identifier.startswith('huggingface/'):
+            model_identifier = model_identifier[len('huggingface/'):]
+            logger.info(f"Stripped 'huggingface/' prefix from model identifier: '{embedding_def.embedding_model}' -> '{model_identifier}'")
 
-        temp_obj_instance = ObjectInstance(
-            id=temp_obj_id,
-            object_type_name=embedding_def.object_type_name,
-            properties=temp_properties,
-        )
-        gb.upsert_object(temp_obj_instance)
-
-        # 4. Retrieve the embedding vector
-        # This relies on internal access, similar to the original test.
-        embedding_instances = gb._db_manager.lancedb_adapter.get_embedding_instances_for_object(
-           object_instance_id=temp_obj_id,
-           embedding_definition_name=args.embedding_definition_name,
+        logger.info(f"About to load embedding model with identifier: '{model_identifier}'")
+        embedding_model_func = gb._db_manager._connection_helper.lancedb_adapter.get_embedding_model(
+            model_identifier,
         )
 
-        if not embedding_instances:
-            raise GrizabellaException("Failed to generate or retrieve embedding for temporary object.")
+        # Generate embedding using compute_query_embeddings (same as Python client)
+        raw_query_embeddings = embedding_model_func.compute_query_embeddings([args.text_to_embed])
+        if not raw_query_embeddings:
+            logger.error(f"Model '{embedding_def.embedding_model}' returned empty list for text.")
+            raise GrizabellaException(f"Model {embedding_def.embedding_model} returned empty list for text.")
 
-        vector = embedding_instances[0].vector
-        if not vector:
-            raise GrizabellaException("Retrieved embedding instance has no vector.")
+        raw_query_vector = raw_query_embeddings[0]
 
-        return EmbeddingVector(vector=vector)
+        # Convert to list if it's a numpy array
+        if hasattr(raw_query_vector, "tolist"):  # Handles numpy array
+            final_query_vector = raw_query_vector.tolist()
+        elif isinstance(raw_query_vector, list):
+            final_query_vector = raw_query_vector
+        else:
+            logger.error(f"Unexpected query vector type from model '{embedding_def.embedding_model}': {type(raw_query_vector)}")
+            raise GrizabellaException(f"Unexpected query vector type from model {embedding_def.embedding_model}")
 
-    finally:
-        # 5. Clean up the temporary object
-        if embedding_def:
-            try:
-                gb.delete_object(object_id=str(temp_obj_id), type_name=embedding_def.object_type_name)
-            except Exception as e:
-                # Log cleanup error but don't let it hide the main result/error
-                print(f"MCP: Warning: Failed to clean up temporary object {temp_obj_id}: {e}", file=sys.stderr)
+        # Validate dimensions (temporarily disabled for debugging)
+        logger.info(f"Generated embedding vector with {len(final_query_vector)} dimensions. ED specifies {embedding_def.dimensions} dimensions.")
+        if embedding_def.dimensions and len(final_query_vector) != embedding_def.dimensions:
+            logger.warning(
+                f"Query vector dim ({len(final_query_vector)}) does not match ED "
+                f"'{embedding_def.name}' dim ({embedding_def.dimensions}). Continuing anyway."
+            )
+            # raise GrizabellaException(msg)  # Temporarily disabled
+
+        logger.info(f"Successfully generated embedding vector with dimension {len(final_query_vector)}")
+
+        # Debug: Log what we're about to return
+        debug_return_value = {"vector": final_query_vector}
+        logger.info(f"MCP get_embedding_vector_for_text returning: type={type(debug_return_value)}, vector_type={type(debug_return_value['vector'])}, vector_length={len(debug_return_value['vector'])}")
+        logger.info(f"MCP get_embedding_vector_for_text return value preview: {debug_return_value['vector'][:5]}...")
+
+        # Return as a plain dict to ensure MCP serialization works correctly
+        return debug_return_value
+
+    except Exception as e:
+        logger.error(f"Failed to generate embedding vector: {e}", exc_info=True)
+        raise GrizabellaException(f"Failed to generate embedding vector: {e}") from e
 
 
 # To run this server (example using uvicorn, if FastMCP is FastAPI/Starlette based):

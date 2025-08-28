@@ -1,0 +1,155 @@
+{
+  "name": "grizabella-typescript-api",
+  "version": "1.0.0",
+  "description": "TypeScript API client for Grizabella multi-database knowledge graph operations through MCP communication",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    },
+    "./examples": {
+      "types": "./examples/index.d.ts",
+      "import": "./examples/index.js",
+      "require": "./examples/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "build:docs": "npm run build && npm run docs:generate",
+    "start": "node dist/index.js",
+    "dev": "nodemon --exec ts-node src/index.ts",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:coverage:report": "jest --coverage --coverage-reporter=html",
+    "test:unit": "jest tests/unit",
+    "test:integration": "jest tests/integration",
+    "test:e2e": "jest tests/e2e",
+    "test:performance": "jest tests/performance",
+    "test:examples": "ts-node examples/index.ts quickstart",
+    "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
+    "test:ci": "jest --coverage --watchAll=false --passWithNoTests",
+    "test:types": "tsc --noEmit --project tsconfig.test.json",
+    "lint": "eslint src/**/*.ts examples/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts examples/**/*.ts --fix",
+    "lint:tests": "eslint tests/**/*.ts",
+    "lint:tests:fix": "eslint tests/**/*.ts --fix",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf dist coverage docs/api",
+    "clean:tests": "rimraf coverage .jest",
+    "prebuild": "npm run clean",
+    "prepare": "npm run build",
+    "docs:generate": "ts-node scripts/generate-docs.ts",
+    "docs:serve": "npx http-server docs -p 3001",
+    "examples:run": "ts-node examples/index.ts run",
+    "examples:list": "ts-node examples/index.ts list",
+    "perf:test": "ts-node scripts/performance-test.ts",
+    "validate": "npm run lint && npm run typecheck && npm run test",
+    "validate:ci": "npm run lint && npm run test:types && npm run test:ci",
+    "prepublishOnly": "npm run validate:ci"
+  },
+  "keywords": [
+    "grizabella",
+    "api",
+    "typescript",
+    "mcp",
+    "model-context-protocol",
+    "knowledge-graph",
+    "multi-database",
+    "graph-database",
+    "vector-search",
+    "embedding",
+    "semantic-search",
+    "type-safe",
+    "database-client"
+  ],
+  "author": "Grizabella Team",
+  "license": "MIT",
+  "contributors": [
+    {
+      "name": "Grizabella Team",
+      "email": "team@grizabella.dev",
+      "url": "https://grizabella.dev"
+    }
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "decimal.js": "^10.4.0",
+    "reflect-metadata": "^0.2.2",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.0.0",
+    "@types/uuid": "^10.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.0.0",
+    "http-server": "^14.1.0",
+    "jest": "^29.0.0",
+    "nodemon": "^3.0.0",
+    "rimraf": "^5.0.0",
+    "ts-jest": "^29.4.1",
+    "ts-node": "^10.0.0",
+    "typedoc": "^0.25.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/grizabella.git",
+    "directory": "typescript"
+  },
+  "bugs": {
+    "url": "https://github.com/your-org/grizabella/issues",
+    "email": "support@grizabella.dev"
+  },
+  "homepage": "https://grizabella.dev/typescript-api",
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/grizabella"
+  },
+  "files": [
+    "dist",
+    "examples",
+    "docs",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "directories": {
+    "doc": "docs",
+    "example": "examples",
+    "lib": "dist"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "sideEffects": false,
+  "type": "module",
+  "bin": {
+    "grizabella-typescript": "./dist/cli.js"
+  },
+  "man": [
+    "./docs/man/grizabella-typescript.1"
+  ],
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ]
+}
