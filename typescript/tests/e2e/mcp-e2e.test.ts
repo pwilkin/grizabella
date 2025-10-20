@@ -57,7 +57,7 @@ describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
     client = new GrizabellaClient({
       dbNameOrPath: dbPath,
       createIfNotExists: true,
-      debug: true
+      debug: false
     });
 
     // Connect to client
@@ -139,7 +139,7 @@ describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
       source_property_name: 'abstract',
       embedding_model: 'mixedbread-ai/mxbai-embed-large-v1',
       description: 'Embedding for the abstract of papers.',
-      dimensions: 512
+      dimensions: 1024
     };
 
     process.stdout.write('Creating embedding definition...\n');
@@ -783,7 +783,7 @@ describe('Grizabella TypeScript MCP API - End-to-End Scenario', () => {
   function assertResults(queryResult: QueryResult, expectedIds: string[], description: string) {
     expect(queryResult).toBeDefined();
     if (queryResult.errors && queryResult.errors.length > 0) {
-      fail(`Query '${description}' failed with errors: ${queryResult.errors.join(', ')}`);
+      throw new Error(`Query '${description}' failed with errors: ${queryResult.errors.join(', ')}`);
     }
 
     expect(Array.isArray(queryResult.object_instances)).toBe(true);

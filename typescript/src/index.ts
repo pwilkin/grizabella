@@ -8,6 +8,9 @@
 // Export version information
 export const VERSION = '1.0.0';
 
+// Export Decimal for use in examples
+export { Decimal } from 'decimal.js';
+
 // ===== TYPE DEFINITIONS =====
 export * from './types/index';
 
@@ -166,8 +169,8 @@ export {
   PerformanceMeasurement,
 } from './utils/dev';
 
-// Export main components (to be implemented)
-// export { GrizabellaClient } from './client';
+// Export main components
+export { GrizabellaClient, GrizabellaClientConfig, ClientConnectionState } from './client/GrizabellaClient';
 // export { MCPIntegration } from './mcp';
 
 // Main initialization function (to be implemented)

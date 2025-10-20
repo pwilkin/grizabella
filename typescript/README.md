@@ -39,6 +39,12 @@ yarn add grizabella-typescript-api
 
 ## 🏁 Quick Start
 
+### 🎯 **New to Grizabella?** Start Here!
+
+**📖 [Quick Start Guide](docs/quickstart.md)** - Complete step-by-step tutorial for beginners
+
+**💻 Working Example**: [`examples/basic-usage-working.ts`](examples/basic-usage-working.ts) - Compilable code you can run immediately
+
 ### Basic Connection
 
 ```typescript
@@ -47,7 +53,6 @@ import { GrizabellaClient } from 'grizabella-typescript-api';
 // Create and connect to a database
 await using client = await GrizabellaClient.connect({
   dbNameOrPath: 'my-knowledge-base',
-  serverUrl: 'http://localhost:8000/mcp',
   createIfNotExists: true,
   debug: true,
 });
@@ -447,11 +452,23 @@ typescript/
 
 ## 📖 Documentation
 
-- [API Reference](./docs/api-reference.md)
-- [Migration Guide](./docs/migration-guide.md)
-- [Best Practices](./docs/best-practices.md)
-- [Troubleshooting](./docs/troubleshooting.md)
-- [Examples](./examples/)
+### 🚀 **Getting Started**
+- [**Quick Start Guide**](./docs/quickstart.md) ⭐ *New comprehensive tutorial*
+- [Examples Guide](./docs/examples-guide.md) 📚 *Overview of all examples*
+- [Setup Guide](./docs/setup-guide.md) 🔧 *Installation and configuration*
+
+### 📚 **Reference Documentation**
+- [API Reference](./docs/api-reference.md) 📖 *Complete API documentation*
+- [Best Practices](./docs/best-practices.md) ✨ *Production-ready patterns*
+- [Error Handling](./docs/error-handling.md) 🛡️ *Comprehensive error management*
+
+### 🔄 **Migration & Advanced**
+- [Migration Guide](./docs/migration-guide.md) 🔄 *Python to TypeScript*
+- [Troubleshooting](./docs/troubleshooting.md) 🔧 *Common issues and solutions*
+
+### 💻 **Examples**
+- [Working Basic Example](./examples/basic-usage-working.ts) ✅ *Compilable and tested*
+- [Examples Index](./examples/) 📁 *All example files*
 
 ## 🤝 Support
 

@@ -133,36 +133,35 @@ import { GrizabellaClient } from 'grizabella-typescript-api';
 **Problem:**
 ```typescript
 await client.connect();
-// Error: Connection refused
+// Error: Failed to connect to Grizabella database
 ```
 
 **Solutions:**
 
-1. **Server Not Running:**
+1. **Grizabella Not Installed:**
    ```bash
-   # Start Grizabella MCP server
-   python -m grizabella.mcp.server --port 8000 --host localhost
+   # Install Grizabella Python package
+   pip install grizabella
    ```
 
-2. **Wrong Server URL:**
+2. **Python Path Issues:**
    ```typescript
-   // Check server URL
+   // The client looks for Python at: /devel/alt/grizabella/.venv/bin/python
+   // Ensure this path exists or use custom server command
    const client = new GrizabellaClient({
-     serverUrl: 'http://localhost:8000/mcp', // Correct
-     // serverUrl: 'http://localhost:8000',  // Wrong - missing /mcp
+     dbNameOrPath: 'my-db',
+     serverCommand: '/path/to/your/python',
+     serverArgs: ['-m', 'grizabella.mcp.server', '--db-path', './data/my-db'],
    });
    ```
 
-3. **Firewall Blocking:**
-   ```bash
-   # Check if port is open
-   curl http://localhost:8000/mcp
-
-   # On Windows
-   Test-NetConnection -ComputerName localhost -Port 8000
-
-   # On Linux/Mac
-   nc -zv localhost 8000
+3. **Database Path Issues:**
+   ```typescript
+   // Ensure database directory exists
+   const client = new GrizabellaClient({
+     dbNameOrPath: './data/my-database', // Make sure this directory is writable
+     createIfNotExists: true,
+   });
    ```
 
 ### Connection Timeout
@@ -178,25 +177,28 @@ await client.connect();
 1. **Increase Timeout:**
    ```typescript
    const client = new GrizabellaClient({
-     serverUrl: 'http://localhost:8000/mcp',
+     dbNameOrPath: 'my-db',
      timeout: 60000, // 60 seconds
      requestTimeout: 60000,
    });
    ```
 
-2. **Check Server Health:**
+2. **Check Python Environment:**
    ```bash
-   # Test server response time
-   curl -w "@curl-format.txt" http://localhost:8000/mcp
+   # Test if Grizabella MCP server starts manually
+   python -m grizabella.mcp.server --help
+   
+   # Check if virtual environment is active
+   which python
+   python --version
    ```
 
-3. **Network Issues:**
-   ```bash
-   # Check network connectivity
-   ping localhost
-
-   # Test with different network interface
-   serverUrl: 'http://127.0.0.1:8000/mcp'
+3. **Debug Mode:**
+   ```typescript
+   const client = new GrizabellaClient({
+     dbNameOrPath: 'my-db',
+     debug: true, // Enable debug logging to see detailed connection process
+   });
    ```
 
 ### Authentication Issues

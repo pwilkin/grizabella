@@ -1,6 +1,6 @@
 {
   "name": "grizabella-typescript-api",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "TypeScript API client for Grizabella multi-database knowledge graph operations through MCP communication",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -33,10 +33,10 @@
     "test:debug": "node --inspect-brk node_modules/.bin/jest --runInBand",
     "test:ci": "jest --coverage --watchAll=false --passWithNoTests",
     "test:types": "tsc --noEmit --project tsconfig.test.json",
-    "lint": "eslint src/**/*.ts examples/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts examples/**/*.ts --fix",
-    "lint:tests": "eslint tests/**/*.ts",
-    "lint:tests:fix": "eslint tests/**/*.ts --fix",
+    "lint": "eslint -c eslint.config.js src/**/*.ts examples/**/*.ts",
+    "lint:fix": "eslint -c eslint.config.js src/**/*.ts examples/**/*.ts --fix",
+    "lint:tests": "eslint -c eslint.config.js tests/**/*.ts",
+    "lint:tests:fix": "eslint -c eslint.config.js tests/**/*.ts --fix",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist coverage docs/api",
     "clean:tests": "rimraf coverage .jest",
@@ -87,15 +87,18 @@
     "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
-    "eslint": "^8.0.0",
+    "eslint": "^8.57.1",
+    "globals": "^16.3.0",
     "http-server": "^14.1.0",
     "jest": "^29.0.0",
+    "jiti": "^2.5.1",
     "nodemon": "^3.0.0",
     "rimraf": "^5.0.0",
     "ts-jest": "^29.4.1",
     "ts-node": "^10.0.0",
     "typedoc": "^0.25.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.41.0"
   },
   "peerDependencies": {
     "typescript": ">=5.0.0"
@@ -151,5 +154,6 @@
   "cpu": [
     "x64",
     "arm64"
-  ]
+  ],
+  "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"
 }

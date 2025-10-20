@@ -60,20 +60,22 @@ import { GrizabellaClient } from 'grizabella-typescript-api';
 // Context manager (recommended)
 await using client = await GrizabellaClient.connect({
   dbNameOrPath: 'my-db',
-  serverUrl: 'http://localhost:8000/mcp',
   createIfNotExists: true,
+  debug: true,
 });
 
 // Manual management
 const client = new GrizabellaClient({
   dbNameOrPath: 'my-db',
-  serverUrl: 'http://localhost:8000/mcp',
   createIfNotExists: true,
+  debug: true,
 });
 
 await client.connect();
 // ... use client
 await client.close();
+
+// Note: TypeScript client uses stdio transport and automatically manages MCP server
 ```
 
 ### Schema Definition
@@ -488,8 +490,8 @@ interface User {
 async function main() {
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: 'my-app-db',
-    serverUrl: 'http://localhost:8000/mcp',
     createIfNotExists: true,
+    debug: true,
   });
 
   // Create schema with full type safety

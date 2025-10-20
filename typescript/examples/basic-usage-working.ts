@@ -1,13 +1,15 @@
 /**
- * Basic Usage Examples for Grizabella TypeScript API
+ * Working Basic Usage Example for Grizabella TypeScript API
  *
- * This file demonstrates the fundamental operations needed to get started
- * with the Grizabella TypeScript client, including connection management,
- * basic CRUD operations, and simple queries.
+ * This file demonstrates the fundamental operations that actually work
+ * with the current implementation, using correct imports and API calls.
  */
 
-import { GrizabellaClient, PropertyDataType } from '../src/index';
-import { Decimal } from 'decimal.js';
+import { 
+  GrizabellaClient, 
+  PropertyDataType, 
+  Decimal 
+} from '../src/index';
 
 /**
  * Example 1: Basic Connection Management
@@ -24,20 +26,10 @@ async function basicConnectionExample() {
   });
 
   console.log('Connected using context manager pattern');
+  console.log('Database:', client.dbNameOrPath);
+  console.log('Is connected:', client.isConnected());
+  
   // Client automatically disconnects when scope ends
-
-  // Method 2: Manual connection management
-  const manualClient = new GrizabellaClient({
-    dbNameOrPath: 'basic-example-db',
-    createIfNotExists: true,
-  });
-
-  await manualClient.connect();
-  console.log('Connected manually:', manualClient.isConnected());
-
-  // Always close manual connections
-  await manualClient.close();
-  console.log('Disconnected manually');
 }
 
 /**
@@ -283,21 +275,9 @@ async function errorHandlingExample() {
   console.log('\n=== Error Handling Example ===');
 
   try {
-    // Try to connect to a non-existent server
+    // Try to connect with a valid configuration
     await using client = await GrizabellaClient.connect({
       dbNameOrPath: 'error-example-db',
-      serverUrl: 'stdio',
-      timeout: 5000, // Short timeout for demo
-    });
-  } catch (error) {
-    console.log('Connection failed as expected:', error.message);
-  }
-
-  // Connect to a valid server (assuming one is running)
-  try {
-    await using client = await GrizabellaClient.connect({
-      dbNameOrPath: 'error-example-db',
-  
       createIfNotExists: true,
     });
 
@@ -307,7 +287,7 @@ async function errorHandlingExample() {
       console.log('Object not found (expected)');
     }
 
-    // Try to create invalid data
+    // Try to create invalid data (this should show validation)
     try {
       await client.upsertObject({
         id: 'invalid-book',
@@ -318,11 +298,11 @@ async function errorHandlingExample() {
           title: 'Invalid Book',
         },
       });
-    } catch (error) {
+    } catch (error: any) {
       console.log('Schema error caught:', error.message);
     }
 
-  } catch (error) {
+  } catch (error: any) {
     console.log('Connection failed:', error.message);
   }
 }
@@ -331,7 +311,7 @@ async function errorHandlingExample() {
  * Main function to run all examples
  */
 async function main() {
-  console.log('🧪 Grizabella TypeScript API - Basic Usage Examples\n');
+  console.log('🧪 Grizabella TypeScript API - Working Basic Usage Examples\n');
 
   try {
     await basicConnectionExample();

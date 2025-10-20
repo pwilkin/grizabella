@@ -39,11 +39,12 @@ Creates a new Grizabella client instance.
 ```typescript
 const client = new GrizabellaClient({
   dbNameOrPath: 'my-database',
-  serverUrl: 'http://localhost:8000/mcp',
   createIfNotExists: true,
   debug: true,
 });
 ```
+
+**Note:** The client uses stdio transport by default and automatically starts the MCP server. The `serverUrl` parameter is optional and defaults to 'stdio'.
 
 ### Static Methods
 
@@ -68,9 +69,12 @@ Factory method that creates and connects a client (context manager pattern).
 ```typescript
 await using client = await GrizabellaClient.connect({
   dbNameOrPath: 'my-database',
-  serverUrl: 'http://localhost:8000/mcp',
+  createIfNotExists: true,
+  debug: true,
 });
 ```
+
+**Note:** The static `connect()` method creates a client and automatically connects it. This is the recommended approach for TypeScript 5.2+ context manager pattern.
 
 ## Connection Management
 

@@ -52,18 +52,17 @@ Complete setup and installation guide for the Grizabella TypeScript API across d
 
 ### Grizabella Server
 
-Before using the TypeScript API, you need a running Grizabella MCP server:
+Before using the TypeScript API, you need to have Grizabella installed. The TypeScript client automatically starts the MCP server using stdio transport, so you don't need to manually start a server.
 
 ```bash
-# Install Grizabella Python package
+# Install Grizabella Python package (required for MCP server)
 pip install grizabella
 
-# Start MCP server (default port 8000)
-python -m grizabella.mcp.server
-
-# Or start with custom configuration
-python -m grizabella.mcp.server --port 3000 --host 0.0.0.0
+# The TypeScript client will automatically start the server
+# No manual server startup needed
 ```
+
+**Important:** The TypeScript client uses stdio transport by default and automatically manages the MCP server lifecycle. You don't need to start a separate server process.
 
 ## Installation
 
@@ -76,7 +75,7 @@ cd my-grizabella-app
 npm init -y
 
 # Install the Grizabella TypeScript API
-npm install grizabella-typescript-api
+npm install grizabella-typescript-api decimal.js
 
 # Install development dependencies
 npm install -D typescript @types/node ts-node
@@ -106,7 +105,7 @@ npm link
 yarn init -y
 
 # Install the package
-yarn add grizabella-typescript-api
+yarn add grizabella-typescript-api decimal.js
 
 # Install development dependencies
 yarn add -D typescript @types/node ts-node
@@ -271,7 +270,8 @@ main().catch(console.error);
     "clean": "rimraf dist"
   },
   "dependencies": {
-    "grizabella-typescript-api": "^1.0.0"
+    "grizabella-typescript-api": "^1.0.0",
+    "decimal.js": "^10.4.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -299,9 +299,6 @@ const basicConfig: GrizabellaClientConfig = {
   dbNameOrPath: './data/my-database',
   createIfNotExists: true,
 
-  // Server configuration
-  serverUrl: 'http://localhost:8000/mcp',
-
   // Connection settings
   timeout: 30000,
   debug: false,
@@ -310,6 +307,8 @@ const basicConfig: GrizabellaClientConfig = {
   reconnectDelay: 1000,
   requestTimeout: 30000,
 };
+
+// Note: serverUrl defaults to 'stdio' and the client automatically starts the MCP server
 ```
 
 ### Environment-Based Configuration
@@ -335,7 +334,6 @@ const config = buildConfig({
 const advancedConfig: GrizabellaClientConfig = {
   dbNameOrPath: './data/my-database',
   createIfNotExists: true,
-  serverUrl: 'http://localhost:8000/mcp',
 
   // Advanced connection settings
   timeout: 30000,
@@ -347,12 +345,15 @@ const advancedConfig: GrizabellaClientConfig = {
 
   // Custom retry configuration
   retryConfig: {
-    maxAttempts: 3,
+    maxRetries: 3,
     baseDelay: 1000,
     maxDelay: 5000,
-    backoffFactor: 2,
+    backoffMultiplier: 2,
+    jitter: true,
   },
 };
+
+// Note: The client uses stdio transport by default and manages the MCP server automatically
 ```
 
 ## Verification
@@ -382,7 +383,6 @@ async function testConnection() {
   try {
     await using client = await GrizabellaClient.connect({
       dbNameOrPath: './data/test-db',
-      serverUrl: 'http://localhost:8000/mcp',
       createIfNotExists: true,
       debug: true,
     });
@@ -421,7 +421,6 @@ import { GrizabellaClient, PropertyDataType } from 'grizabella-typescript-api';
 async function testWithData() {
   await using client = await GrizabellaClient.connect({
     dbNameOrPath: './data/test-db',
-    serverUrl: 'http://localhost:8000/mcp',
     createIfNotExists: true,
   });
 

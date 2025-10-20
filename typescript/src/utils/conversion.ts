@@ -483,7 +483,7 @@ export function objectInstanceToJSON(objInstance: ObjectInstance): Record<string
       json['properties'][key] = dateToISOString(value);
     } else if (value instanceof Uint8Array) {
       // Convert Uint8Array to base64
-      const binaryString = String.fromCharCode(...value);
+      const binaryString = Array.from(value, byte => String.fromCharCode(byte)).join('');
       json['properties'][key] = btoa(binaryString);
     } else {
       json['properties'][key] = value;

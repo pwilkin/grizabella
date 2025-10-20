@@ -1,53 +1,40 @@
 /**
  * Schema Management Examples for Grizabella TypeScript API
  *
- * This file demonstrates advanced schema management operations including
- * object type definitions, relation type definitions, embedding definitions,
- * and schema validation patterns.
+ * This file demonstrates basic schema management operations including
+ * object type definitions, relation type definitions, and basic schema patterns.
  */
 
-import {
-  GrizabellaClient,
-  PropertyDataType,
-  ObjectTypeDefinition,
-  RelationTypeDefinition,
-  EmbeddingDefinition,
-  validateObjectTypeDefinition,
-  validateRelationTypeDefinition,
-  validateObjectInstance,
-  createObjectType,
-  PROPERTY_TEMPLATES,
-} from '../src/index';
+import { GrizabellaClient, PropertyDataType } from '../src/index';
+import { Decimal } from 'decimal.js';
 
 /**
- * Example 1: Creating Complex Object Types
- * Shows how to create sophisticated object schemas with constraints
+ * Example 1: Creating Object Types
+ * Shows how to create different types of object schemas
  */
-async function complexObjectTypesExample() {
-  console.log('=== Complex Object Types Example ===');
+async function createObjectTypesExample() {
+  console.log('=== Creating Object Types Example ===');
 
   await using client = await GrizabellaClient.connect({
-    dbNameOrPath: 'schema-management-db',
+    dbNameOrPath: 'schema-example-db',
     createIfNotExists: true,
   });
 
-  // Create a comprehensive Person object type
-  const personType: ObjectTypeDefinition = {
+  // Create a simple Person object type
+  await client.createObjectType({
     name: 'Person',
-    description: 'A detailed person profile with various attributes',
+    description: 'A person in the system',
     properties: [
       {
         name: 'first_name',
         data_type: PropertyDataType.TEXT,
         is_nullable: false,
-        is_indexed: true,
         description: 'First name of the person',
       },
       {
         name: 'last_name',
         data_type: PropertyDataType.TEXT,
         is_nullable: false,
-        is_indexed: true,
         description: 'Last name of the person',
       },
       {
@@ -55,439 +42,380 @@ async function complexObjectTypesExample() {
         data_type: PropertyDataType.TEXT,
         is_nullable: false,
         is_unique: true,
-        is_indexed: true,
-        description: 'Email address (must be unique)',
-      },
-      {
-        name: 'phone',
-        data_type: PropertyDataType.TEXT,
-        is_nullable: true,
-        description: 'Phone number',
-      },
-      {
-        name: 'date_of_birth',
-        data_type: PropertyDataType.DATETIME,
-        is_nullable: true,
-        description: 'Date of birth',
+        description: 'Unique email address',
       },
       {
         name: 'age',
         data_type: PropertyDataType.INTEGER,
         is_nullable: true,
-        is_indexed: true,
-        description: 'Current age in years',
-      },
-      {
-        name: 'salary',
-        data_type: PropertyDataType.FLOAT,
-        is_nullable: true,
-        description: 'Annual salary',
+        description: 'Age in years',
       },
       {
         name: 'is_active',
         data_type: PropertyDataType.BOOLEAN,
         is_nullable: false,
-        description: 'Whether the person is currently active',
-      },
-      {
-        name: 'metadata',
-        data_type: PropertyDataType.JSON,
-        is_nullable: true,
-        description: 'Additional metadata as JSON',
-      },
-      {
-        name: 'profile_picture',
-        data_type: PropertyDataType.BLOB,
-        is_nullable: true,
-        description: 'Profile picture as binary data',
+        description: 'Whether the person is active',
       },
     ],
-  };
+  });
 
-  // Validate the object type definition before creating
-  const validationResult = validateObjectTypeDefinition(personType);
-  if (!validationResult.isValid) {
-    console.error('Person type validation failed:', validationResult.errors);
-    return;
-  }
+  console.log('✅ Created Person object type');
 
-  await client.createObjectType(personType);
-  console.log('✅ Created complex Person object type');
-
-  // Create a Company object type
-  const companyType: ObjectTypeDefinition = {
-    name: 'Company',
-    description: 'A business organization',
+  // Create a Product object type with different property types
+  await client.createObjectType({
+    name: 'Product',
+    description: 'A product in inventory',
     properties: [
       {
         name: 'name',
         data_type: PropertyDataType.TEXT,
         is_nullable: false,
-        is_unique: true,
         is_indexed: true,
-        description: 'Company name',
+        description: 'Product name',
       },
       {
-        name: 'industry',
+        name: 'description',
         data_type: PropertyDataType.TEXT,
         is_nullable: true,
-        is_indexed: true,
-        description: 'Industry sector',
+        description: 'Product description',
       },
       {
-        name: 'founded_year',
-        data_type: PropertyDataType.INTEGER,
-        is_nullable: true,
-        description: 'Year the company was founded',
-      },
-      {
-        name: 'employee_count',
-        data_type: PropertyDataType.INTEGER,
-        is_nullable: true,
-        description: 'Number of employees',
-      },
-      {
-        name: 'headquarters',
-        data_type: PropertyDataType.TEXT,
-        is_nullable: true,
-        description: 'Headquarters location',
-      },
-    ],
-  };
-
-  await client.createObjectType(companyType);
-  console.log('✅ Created Company object type');
-}
-
-/**
- * Example 2: Creating Complex Relation Types
- * Shows how to create relationships with properties
- */
-async function complexRelationTypesExample() {
-  console.log('\n=== Complex Relation Types Example ===');
-
-  await using client = await GrizabellaClient.connect({
-    dbNameOrPath: 'schema-management-db',
-
-  });
-
-  // Employment relationship with detailed properties
-  const employmentRelation: RelationTypeDefinition = {
-    name: 'WORKS_FOR',
-    description: 'Employment relationship between Person and Company',
-    source_object_type_names: ['Person'],
-    target_object_type_names: ['Company'],
-    properties: [
-      {
-        name: 'job_title',
-        data_type: PropertyDataType.TEXT,
-        is_nullable: false,
-        is_indexed: true,
-        description: 'Job title or position',
-      },
-      {
-        name: 'department',
-        data_type: PropertyDataType.TEXT,
-        is_nullable: true,
-        description: 'Department within the company',
-      },
-      {
-        name: 'start_date',
-        data_type: PropertyDataType.DATETIME,
-        is_nullable: false,
-        is_indexed: true,
-        description: 'Employment start date',
-      },
-      {
-        name: 'end_date',
-        data_type: PropertyDataType.DATETIME,
-        is_nullable: true,
-        description: 'Employment end date (null if current)',
-      },
-      {
-        name: 'salary',
+        name: 'price',
         data_type: PropertyDataType.FLOAT,
-        is_nullable: true,
-        description: 'Salary for this position',
-      },
-      {
-        name: 'is_manager',
-        data_type: PropertyDataType.BOOLEAN,
         is_nullable: false,
-        description: 'Whether this is a management position',
-      },
-    ],
-  };
-
-  // Validate relation type definition
-  const validationResult = validateRelationTypeDefinition(employmentRelation);
-  if (!validationResult.isValid) {
-    console.error('Employment relation validation failed:', validationResult.errors);
-    return;
-  }
-
-  await client.createRelationType(employmentRelation);
-  console.log('✅ Created complex WORKS_FOR relation type');
-
-  // Friendship relationship
-  const friendshipRelation: RelationTypeDefinition = {
-    name: 'IS_FRIENDS_WITH',
-    description: 'Friendship relationship between two people',
-    source_object_type_names: ['Person'],
-    target_object_type_names: ['Person'],
-    properties: [
-      {
-        name: 'friendship_level',
-        data_type: PropertyDataType.TEXT,
-        is_nullable: true,
-        description: 'Level of friendship (close, casual, acquaintance)',
+        description: 'Product price',
       },
       {
-        name: 'met_through',
-        data_type: PropertyDataType.TEXT,
-        is_nullable: true,
-        description: 'How they met (work, school, mutual friends, etc.)',
-      },
-      {
-        name: 'years_known',
-        data_type: PropertyDataType.INTEGER,
-        is_nullable: true,
-        description: 'Number of years they have known each other',
-      },
-    ],
-  };
-
-  await client.createRelationType(friendshipRelation);
-  console.log('✅ Created IS_FRIENDS_WITH relation type');
-}
-
-/**
- * Example 3: Embedding Definitions for Semantic Search
- * Shows how to set up embeddings for vector similarity search
- */
-async function embeddingDefinitionsExample() {
-  console.log('\n=== Embedding Definitions Example ===');
-
-  await using client = await GrizabellaClient.connect({
-    dbNameOrPath: 'schema-management-db',
-  });
-
-  // Create embedding for person biographies
-  const personBioEmbedding: EmbeddingDefinition = {
-    name: 'person_biography_embedding',
-    object_type_name: 'Person',
-    source_property_name: 'biography', // Assuming we add this property
-    embedding_model: 'text-embedding-ada-002',
-    dimensions: 1536,
-    description: 'Semantic embedding for person biography text',
-  };
-
-  await client.createEmbeddingDefinition(personBioEmbedding);
-  console.log('✅ Created person biography embedding definition');
-
-  // Create embedding for company descriptions
-  const companyDescEmbedding: EmbeddingDefinition = {
-    name: 'company_description_embedding',
-    object_type_name: 'Company',
-    source_property_name: 'description', // Assuming we add this property
-    embedding_model: 'text-embedding-ada-002',
-    dimensions: 1536,
-    description: 'Semantic embedding for company descriptions',
-  };
-
-  await client.createEmbeddingDefinition(companyDescEmbedding);
-  console.log('✅ Created company description embedding definition');
-
-  // List all embedding definitions
-  const embeddings = await client.listEmbeddingDefinitions();
-  console.log(`📊 Total embedding definitions: ${embeddings.length}`);
-
-  embeddings.forEach(embedding => {
-    console.log(`  - ${embedding.name}: ${embedding.description}`);
-  });
-}
-
-/**
- * Example 4: Using Helper Functions for Schema Creation
- * Shows how to use utility functions to create schemas more efficiently
- */
-async function schemaHelpersExample() {
-  console.log('\n=== Schema Helpers Example ===');
-
-  await using client = await GrizabellaClient.connect({
-    dbNameOrPath: 'helpers-example-db',
-    createIfNotExists: true,
-  });
-
-  // Use createObjectType helper to create a document type
-  const documentType = createObjectType({
-    name: 'Document',
-    description: 'A document with content and metadata',
-    properties: [
-      {
-        name: 'title',
+        name: 'category',
         data_type: PropertyDataType.TEXT,
         is_nullable: false,
         is_indexed: true,
+        description: 'Product category',
       },
       {
-        name: 'content',
-        data_type: PropertyDataType.TEXT,
-        is_nullable: false,
-      },
-      {
-        name: 'author',
-        data_type: PropertyDataType.TEXT,
-        is_nullable: true,
-      },
-      {
-        name: 'tags',
-        data_type: PropertyDataType.JSON,
-        is_nullable: true,
-      },
-      {
-        name: 'word_count',
+        name: 'in_stock',
         data_type: PropertyDataType.INTEGER,
-        is_nullable: true,
+        is_nullable: false,
+        description: 'Number of items in stock',
+      },
+      {
+        name: 'created_date',
+        data_type: PropertyDataType.DATETIME,
+        is_nullable: false,
+        description: 'When the product was created',
       },
     ],
   });
 
-  await client.createObjectType(documentType);
-  console.log('✅ Created Document object type using helper');
+  console.log('✅ Created Product object type');
 
-  // Create a project type using property templates
-  const projectType = createObjectType({
-    name: 'Project',
-    description: 'A project with standard properties',
+  // Create an Order object type
+  await client.createObjectType({
+    name: 'Order',
+    description: 'A customer order',
     properties: [
-      PROPERTY_TEMPLATES.name, // Predefined name property
-      PROPERTY_TEMPLATES.description, // Predefined description property
+      {
+        name: 'order_number',
+        data_type: PropertyDataType.TEXT,
+        is_nullable: false,
+        is_unique: true,
+        description: 'Unique order number',
+      },
+      {
+        name: 'customer_email',
+        data_type: PropertyDataType.TEXT,
+        is_nullable: false,
+        description: 'Customer email address',
+      },
+      {
+        name: 'total_amount',
+        data_type: PropertyDataType.FLOAT,
+        is_nullable: false,
+        description: 'Total order amount',
+      },
       {
         name: 'status',
         data_type: PropertyDataType.TEXT,
         is_nullable: false,
-        description: 'Project status (active, completed, on-hold)',
+        description: 'Order status (pending, shipped, delivered)',
       },
       {
-        name: 'budget',
-        data_type: PropertyDataType.FLOAT,
-        is_nullable: true,
-        description: 'Project budget',
-      },
-      {
-        name: 'deadline',
+        name: 'order_date',
         data_type: PropertyDataType.DATETIME,
-        is_nullable: true,
-        description: 'Project deadline',
+        is_nullable: false,
+        description: 'When the order was placed',
       },
     ],
   });
 
-  await client.createObjectType(projectType);
-  console.log('✅ Created Project object type with templates');
+  console.log('✅ Created Order object type');
 }
 
 /**
- * Example 5: Schema Validation and Inspection
- * Shows how to validate schemas and inspect existing definitions
+ * Example 2: Creating Relation Types
+ * Shows how to create relationships between object types
  */
-async function schemaValidationExample() {
-  console.log('\n=== Schema Validation and Inspection Example ===');
+async function createRelationTypesExample() {
+  console.log('\n=== Creating Relation Types Example ===');
 
   await using client = await GrizabellaClient.connect({
-    dbNameOrPath: 'schema-management-db',
+    dbNameOrPath: 'schema-example-db',
+    createIfNotExists: true,
+  });
 
+  // Create a simple relation between Person and Product
+  await client.createRelationType({
+    name: 'OWNS',
+    description: 'Person owns a product',
+    source_object_type_names: ['Person'],
+    target_object_type_names: ['Product'],
+    properties: [
+      {
+        name: 'purchase_date',
+        data_type: PropertyDataType.DATETIME,
+        is_nullable: false,
+        description: 'When the product was purchased',
+      },
+      {
+        name: 'purchase_price',
+        data_type: PropertyDataType.FLOAT,
+        is_nullable: true,
+        description: 'Price at time of purchase',
+      },
+    ],
+  });
+
+  console.log('✅ Created OWNS relation type');
+
+  // Create a relation between Person and Order
+  await client.createRelationType({
+    name: 'PLACED_ORDER',
+    description: 'Person placed an order',
+    source_object_type_names: ['Person'],
+    target_object_type_names: ['Order'],
+    properties: [
+      {
+        name: 'placement_date',
+        data_type: PropertyDataType.DATETIME,
+        is_nullable: false,
+        description: 'When the order was placed',
+      },
+    ],
+  });
+
+  console.log('✅ Created PLACED_ORDER relation type');
+
+  // Create a relation between Order and Product
+  await client.createRelationType({
+    name: 'CONTAINS',
+    description: 'Order contains products',
+    source_object_type_names: ['Order'],
+    target_object_type_names: ['Product'],
+    properties: [
+      {
+        name: 'quantity',
+        data_type: PropertyDataType.INTEGER,
+        is_nullable: false,
+        description: 'Quantity of product in order',
+      },
+      {
+        name: 'unit_price',
+        data_type: PropertyDataType.FLOAT,
+        is_nullable: false,
+        description: 'Price per unit at time of order',
+      },
+    ],
+  });
+
+  console.log('✅ Created CONTAINS relation type');
+}
+
+/**
+ * Example 3: Managing Schema
+ * Shows how to list, retrieve, and delete schema elements
+ */
+async function manageSchemaExample() {
+  console.log('\n=== Managing Schema Example ===');
+
+  await using client = await GrizabellaClient.connect({
+    dbNameOrPath: 'schema-example-db',
+    createIfNotExists: true,
   });
 
   // List all object types
   const objectTypes = await client.listObjectTypes();
-  console.log(`📋 Object Types (${objectTypes.length}):`);
+  console.log('✅ Found object types:', objectTypes.map(t => t.name).join(', '));
 
-  objectTypes.forEach(type => {
-    console.log(`  • ${type.name}: ${type.description || 'No description'}`);
-    console.log(`    Properties: ${type.properties.length}`);
-  });
+  // Get a specific object type
+  const personType = await client.getObjectType('Person');
+  if (personType) {
+    console.log('✅ Retrieved Person type with', personType.properties.length, 'properties');
+    console.log('   Properties:', personType.properties.map(p => p.name).join(', '));
+  }
 
   // List all relation types
   const relationTypes = await client.listRelationTypes();
-  console.log(`\n🔗 Relation Types (${relationTypes.length}):`);
+  console.log('✅ Found relation types:', relationTypes.map(t => t.name).join(', '));
 
-  relationTypes.forEach(type => {
-    console.log(`  • ${type.name}: ${type.description || 'No description'}`);
-    console.log(`    Source: [${type.source_object_type_names.join(', ')}]`);
-    console.log(`    Target: [${type.target_object_type_names.join(', ')}]`);
-  });
-
-  // Inspect specific object type
-  const personType = await client.getObjectType('Person');
-  if (personType) {
-    console.log('\n👤 Person Type Details:');
-    console.log(`  Description: ${personType.description}`);
-    console.log('  Properties:');
-
-    personType.properties.forEach(prop => {
-      const constraints = [];
-      if (prop.is_primary_key) constraints.push('PRIMARY KEY');
-      if (prop.is_nullable === false) constraints.push('NOT NULL');
-      if (prop.is_unique) constraints.push('UNIQUE');
-      if (prop.is_indexed) constraints.push('INDEXED');
-
-      console.log(`    - ${prop.name} (${prop.data_type}) ${constraints.join(', ')}`);
-      if (prop.description) {
-        console.log(`      └─ ${prop.description}`);
-      }
-    });
-  }
-
-  // Validate an object instance against the schema
-  const testPerson = {
-    id: 'test-person-123',
-    object_type_name: 'Person',
-    weight: 1.0,
-    upsert_date: new Date(),
-    properties: {
-      first_name: 'John',
-      last_name: 'Doe',
-      email: 'john.doe@example.com',
-      is_active: true,
-      // Missing required fields to test validation
-    },
-  };
-
-  const instanceValidation = validateObjectInstance(testPerson, personType!);
-  if (!instanceValidation.isValid) {
-    console.log('\n❌ Instance validation errors:');
-    instanceValidation.errors.forEach(error => {
-      console.log(`  - ${error}`);
-    });
+  // Get a specific relation type
+  const ownsRelation = await client.getRelationType('OWNS');
+  if (ownsRelation) {
+    console.log('✅ Retrieved OWNS relation type');
+    console.log('   Source types:', ownsRelation.source_object_type_names.join(', '));
+    console.log('   Target types:', ownsRelation.target_object_type_names.join(', '));
   }
 }
 
 /**
- * Main function to run all schema management examples
+ * Example 4: Schema Evolution
+ * Shows how to handle schema changes and migrations
  */
+async function schemaEvolutionExample() {
+  console.log('\n=== Schema Evolution Example ===');
+
+  await using client = await GrizabellaClient.connect({
+    dbNameOrPath: 'schema-evolution-db',
+    createIfNotExists: true,
+  });
+
+  // Create initial version of User type
+  await client.createObjectType({
+    name: 'User',
+    description: 'A user account',
+    properties: [
+      {
+        name: 'username',
+        data_type: PropertyDataType.TEXT,
+        is_nullable: false,
+        is_unique: true,
+        description: 'Unique username',
+      },
+      {
+        name: 'email',
+        data_type: PropertyDataType.TEXT,
+        is_nullable: false,
+        is_unique: true,
+        description: 'Unique email address',
+      },
+      {
+        name: 'created_at',
+        data_type: PropertyDataType.DATETIME,
+        is_nullable: false,
+        description: 'Account creation date',
+      },
+    ],
+  });
+
+  console.log('✅ Created initial User type');
+
+  // Create some users with the initial schema
+  const user1 = await client.upsertObject({
+    id: 'user-1',
+    object_type_name: 'User',
+    weight: new Decimal('1.0'),
+    upsert_date: new Date(),
+    properties: {
+      username: 'alice',
+      email: 'alice@example.com',
+      created_at: new Date('2023-01-01'),
+    },
+  });
+
+  console.log('✅ Created user with initial schema:', user1.properties.username);
+
+  // Note: In a real scenario, you would need to handle schema migration
+  // This example shows the pattern, but actual schema modification
+  // would depend on the specific database capabilities
+
+  // For now, let's create a new type that extends the concept
+  await client.createObjectType({
+    name: 'ExtendedUser',
+    description: 'An extended user profile',
+    properties: [
+      {
+        name: 'username',
+        data_type: PropertyDataType.TEXT,
+        is_nullable: false,
+        is_unique: true,
+        description: 'Unique username',
+      },
+      {
+        name: 'email',
+        data_type: PropertyDataType.TEXT,
+        is_nullable: false,
+        is_unique: true,
+        description: 'Unique email address',
+      },
+      {
+        name: 'created_at',
+        data_type: PropertyDataType.DATETIME,
+        is_nullable: false,
+        description: 'Account creation date',
+      },
+      {
+        name: 'profile_picture',
+        data_type: PropertyDataType.TEXT,
+        is_nullable: true,
+        description: 'URL to profile picture',
+      },
+      {
+        name: 'bio',
+        data_type: PropertyDataType.TEXT,
+        is_nullable: true,
+        description: 'User biography',
+      },
+      {
+        name: 'is_verified',
+        data_type: PropertyDataType.BOOLEAN,
+        is_nullable: false,
+        description: 'Whether the user is verified',
+      },
+    ],
+  });
+
+  console.log('✅ Created ExtendedUser type with additional properties');
+
+  // Create an extended user
+  const extendedUser = await client.upsertObject({
+    id: 'extended-user-1',
+    object_type_name: 'ExtendedUser',
+    weight: new Decimal('1.0'),
+    upsert_date: new Date(),
+    properties: {
+      username: 'bob',
+      email: 'bob@example.com',
+      created_at: new Date('2023-02-01'),
+      profile_picture: 'https://example.com/bob.jpg',
+      bio: 'Software developer who loves TypeScript',
+      is_verified: true,
+    },
+  });
+
+  console.log('✅ Created extended user:', extendedUser.properties.username);
+}
+
+// Run all examples
 async function main() {
-  console.log('🏗️ Grizabella TypeScript API - Schema Management Examples\n');
-
   try {
-    await complexObjectTypesExample();
-    await complexRelationTypesExample();
-    await embeddingDefinitionsExample();
-    await schemaHelpersExample();
-    await schemaValidationExample();
-
-    console.log('\n✅ All schema management examples completed successfully!');
+    await createObjectTypesExample();
+    await createRelationTypesExample();
+    await manageSchemaExample();
+    await schemaEvolutionExample();
+    console.log('\n🎉 All schema management examples completed successfully!');
   } catch (error) {
-    console.error('\n❌ Error running examples:', error);
+    console.error('❌ Example failed:', error);
     process.exit(1);
   }
 }
 
+// Run if this file is executed directly
+if (require.main === module) {
+  main();
+}
+
 export {
-  complexObjectTypesExample,
-  complexRelationTypesExample,
-  embeddingDefinitionsExample,
-  schemaHelpersExample,
-  schemaValidationExample,
+  createObjectTypesExample,
+  createRelationTypesExample,
+  manageSchemaExample,
+  schemaEvolutionExample,
 };

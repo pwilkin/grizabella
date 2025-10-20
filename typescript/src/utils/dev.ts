@@ -58,9 +58,9 @@ export function parseConnectionString(connectionString: string): ConnectionInfo 
     }
 
     // Parse query parameters
-    for (const [key, value] of url.searchParams) {
+    url.searchParams.forEach((value, key) => {
       info.params[key] = value;
-    }
+    });
 
     return info;
   } catch (error) {
