@@ -143,7 +143,7 @@ export interface BaseErrorContext {
   /** Timestamp when the error occurred */
   timestamp: Date;
   /** Additional contextual information */
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   /** Stack trace if available */
   stack?: string;
   /** Operation that was being performed when error occurred */
@@ -185,7 +185,7 @@ export interface SchemaErrorContext extends BaseErrorContext {
   /** Validation rule that was violated */
   violatedRule?: string;
   /** Schema definition that was being validated */
-  schemaDefinition?: Record<string, any>;
+  schemaDefinition?: Record<string, unknown>;
 }
 
 /**
@@ -197,11 +197,11 @@ export interface ValidationErrorContext extends BaseErrorContext {
   /** Expected value format or pattern */
   expectedFormat?: string;
   /** Actual value that caused validation failure */
-  actualValue?: any;
+  actualValue?: unknown;
   /** Validation rule that was violated */
   violatedRule?: string;
   /** Constraints that were checked */
-  constraints?: Record<string, any>;
+  constraints?: Record<string, unknown>;
 }
 
 /**
@@ -219,7 +219,7 @@ export interface EmbeddingErrorContext extends BaseErrorContext {
   /** Actual embedding dimension */
   actualDimension?: number;
   /** Embedding generation parameters */
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
 }
 
 /**
@@ -229,7 +229,7 @@ export interface QueryErrorContext extends BaseErrorContext {
   /** Query that was being executed */
   query?: string;
   /** Query parameters */
-  parameters?: Record<string, any>;
+  parameters?: Record<string, unknown>;
   /** Query execution time before timeout */
   executionTime?: number;
   /** Database or backend that was queried */
@@ -249,7 +249,7 @@ export interface McpErrorContext extends BaseErrorContext {
   /** MCP server URL or identifier */
   serverUrl?: string;
   /** Raw MCP response if available */
-  rawResponse?: any;
+  rawResponse?: unknown;
   /** HTTP status code if applicable */
   httpStatusCode?: number;
 }
@@ -313,7 +313,7 @@ export class GrizabellaError extends Error {
   /**
    * Convert error to a plain object for logging or serialization.
    */
-  public toJSON(): Record<string, any> {
+  public toJSON(): Record<string, unknown> {
     return {
       name: this.name,
       message: this.message,
@@ -520,7 +520,7 @@ export interface McpErrorResponse {
   /** Error message */
   message: string;
   /** Additional error data */
-  data?: any;
+  data?: unknown;
 }
 
 /**
@@ -726,13 +726,13 @@ export function handleErrors(
   } = {}
 ) {
   return function (
-    _target: any,
+    _target: unknown,
     propertyKey: string,
     descriptor: PropertyDescriptor
   ) {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function (...args: any[]) {
+    descriptor.value = async function (...args: unknown[]) {
       const operation = () => originalMethod.apply(this, args);
 
       try {
@@ -871,7 +871,7 @@ export function logError(error: GrizabellaError): void {
 /**
  * Type guard to check if an error is a GrizabellaError.
  */
-export function isGrizabellaError(error: any): error is GrizabellaError {
+export function isGrizabellaError(error: unknown): error is GrizabellaError {
   return error instanceof GrizabellaError;
 }
 
@@ -879,8 +879,8 @@ export function isGrizabellaError(error: any): error is GrizabellaError {
  * Type guard to check if an error is a specific error type.
  */
 export function isErrorType<T extends GrizabellaError>(
-  error: any,
-  ErrorClass: new (...args: any[]) => T
+  error: unknown,
+  ErrorClass: new (...args: unknown[]) => T
 ): error is T {
   return error instanceof ErrorClass;
 }
@@ -890,14 +890,14 @@ export function isErrorType<T extends GrizabellaError>(
  */
 export function createErrorMessage(
   baseMessage: string,
-  context?: Record<string, any>
+  context?: Record<string, unknown>
 ): string {
   if (!context) {
     return baseMessage;
   }
 
   const contextParts = Object.entries(context)
-    .filter(([_, value]) => value !== undefined && value !== null)
+    .filter(([, value]) => value !== undefined && value !== null)
     .map(([key, value]) => `${key}: ${value}`)
     .join(', ');
 

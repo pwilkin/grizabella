@@ -102,7 +102,7 @@ export type ObjectProperties<T> = T extends { properties: infer P } ? P : never;
  * Utility type for creating a new object type with specific properties.
  * Useful for defining strongly-typed property bags.
  */
-export type PropertyBag<T = any> = Record<string, T>;
+export type PropertyBag<T = unknown> = Record<string, T>;
 
 /**
  * Utility type representing a UUID string.
@@ -114,7 +114,7 @@ export type UUID = string;
  * Utility type for database operation results that may contain errors.
  * Common pattern in the Grizabella API.
  */
-export interface OperationResult<T = any> {
+export interface OperationResult<T = unknown> {
   /** The result data if the operation was successful. */
   data?: T;
 

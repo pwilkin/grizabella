@@ -298,12 +298,12 @@ async function errorHandlingExample() {
           title: 'Invalid Book',
         },
       });
-    } catch (error: any) {
-      console.log('Schema error caught:', error.message);
+    } catch (error: unknown) {
+      console.log('Schema error caught:', error instanceof Error ? error.message : String(error));
     }
 
-  } catch (error: any) {
-    console.log('Connection failed:', error.message);
+  } catch (error: unknown) {
+    console.log('Connection failed:', error instanceof Error ? error.message : String(error));
   }
 }
 

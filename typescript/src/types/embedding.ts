@@ -82,7 +82,7 @@ export interface GetEmbeddingVectorForTextParams {
 /** Result type for embedding-based similarity searches. */
 export interface EmbeddingSimilarityResult {
   /** The object instance that was found to be similar. */
-  object_instance: any; // Using 'any' to avoid circular imports, should be ObjectInstance
+  object_instance: unknown; // Using 'unknown' to avoid circular imports, should be ObjectInstance
 
   /** The similarity score (distance or cosine similarity). */
   score: number;

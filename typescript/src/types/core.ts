@@ -55,7 +55,7 @@ export interface ObjectInstance extends MemoryInstance {
   object_type_name: string;
 
   /** A dictionary containing the actual data for the instance, mapping property names to their corresponding values. */
-  properties: Record<string, any>;
+  properties: Record<string, unknown>;
 }
 
 /**
@@ -97,7 +97,7 @@ export interface RelationInstance extends MemoryInstance {
   target_object_instance_id: string;
 
   /** A dictionary containing the actual data for the relation's own properties (edge properties), if any are defined. */
-  properties?: Record<string, any>;
+  properties?: Record<string, unknown>;
 }
 
 /**
@@ -187,7 +187,7 @@ export interface DeleteObjectParams {
 /** Parameters for finding objects with filters. */
 export interface FindObjectsParams {
   type_name: string;
-  filter_criteria?: Record<string, any>;
+  filter_criteria?: Record<string, unknown>;
   limit?: number;
 }
 
@@ -214,7 +214,7 @@ export interface QueryRelationsParams {
   relation_type_name?: string;
   source_object_instance_id?: string;
   target_object_instance_id?: string;
-  properties_query?: Record<string, any>;
+  properties_query?: Record<string, unknown>;
   limit?: number;
 }
 
@@ -238,7 +238,7 @@ export interface GetIncomingRelationsParams {
 
 /** Parameters for executing complex queries. */
 export interface ExecuteComplexQueryParams {
-  query: any; // ComplexQuery type will be defined elsewhere
+  query: unknown; // ComplexQuery type will be defined elsewhere
   limit?: number;
   offset?: number;
 }
@@ -264,7 +264,7 @@ export interface SimilaritySearchResult {
   object_id: string;
   object_type_name: string;
   score: number;
-  properties: Record<string, any>;
+  properties: Record<string, unknown>;
 }
 
 /**

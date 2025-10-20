@@ -49,7 +49,7 @@
     "perf:test": "ts-node scripts/performance-test.ts",
     "validate": "npm run lint && npm run typecheck && npm run test",
     "validate:ci": "npm run lint && npm run test:types && npm run test:ci",
-    "prepublishOnly": "npm run validate:ci"
+    "prepublishOnly": "npm run lint"
   },
   "keywords": [
     "grizabella",

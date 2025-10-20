@@ -71,7 +71,7 @@ export function normalizeUUID(value: string, fieldName: string = 'uuid'): string
  * Validates a value against a specific PropertyDataType.
  */
 export function validatePropertyDataType(
-  value: any,
+  value: unknown,
   dataType: PropertyDataType,
   fieldName: string = 'property'
 ): void {

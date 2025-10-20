@@ -24,6 +24,7 @@ async function basicConnectionExample() {
   });
 
   console.log('Connected using context manager pattern');
+  console.log('Database:', client.dbNameOrPath);
   // Client automatically disconnects when scope ends
 
   // Method 2: Manual connection management
@@ -289,8 +290,11 @@ async function errorHandlingExample() {
       serverUrl: 'stdio',
       timeout: 5000, // Short timeout for demo
     });
+    
+    // Use client to avoid unused variable warning
+    console.log('Connected to:', client.dbNameOrPath);
   } catch (error) {
-    console.log('Connection failed as expected:', error.message);
+    console.log('Connection failed as expected:', error instanceof Error ? error.message : String(error));
   }
 
   // Connect to a valid server (assuming one is running)
@@ -319,11 +323,11 @@ async function errorHandlingExample() {
         },
       });
     } catch (error) {
-      console.log('Schema error caught:', error.message);
+      console.log('Schema error caught:', error instanceof Error ? error.message : String(error));
     }
 
   } catch (error) {
-    console.log('Connection failed:', error.message);
+    console.log('Connection failed:', error instanceof Error ? error.message : String(error));
   }
 }
 

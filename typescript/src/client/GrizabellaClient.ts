@@ -34,6 +34,11 @@ import type {
   SimilaritySearchResult,
   RelationInstanceList,
   QueryRelationsParams,
+  // Parameter types
+  FindObjectsParams,
+  GetOutgoingRelationsParams,
+  SearchSimilarObjectsParams,
+  SearchSimilarObjectsWithEmbeddingsParams,
 } from '../types/index.js';
 
 /**
@@ -830,13 +835,13 @@ export class GrizabellaClient {
    */
   async findObjects(
     typeName: string,
-    filterCriteria?: Record<string, any>,
+    filterCriteria?: Record<string, unknown>,
     limit?: number
   ): Promise<ObjectInstance[]> {
     this.ensureConnected();
     
     // Build params object conditionally to avoid passing undefined values
-    const params: any = {
+    const params: FindObjectsParams = {
       type_name: typeName
     };
     
@@ -988,7 +993,7 @@ export class GrizabellaClient {
       'queryRelations method not yet implemented in MCP client wrapper. Use getOutgoingRelations, getIncomingRelations, or getRelation instead.',
       {
         operation: 'queryRelations',
-        parameters: params,
+        parameters: params as Record<string, unknown>,
       }
     );
   }
@@ -1027,7 +1032,7 @@ export class GrizabellaClient {
     this.ensureConnected();
     
     // Build params object conditionally to avoid passing undefined values
-    const params: any = {
+    const params: GetOutgoingRelationsParams = {
       object_id: objectId,
       type_name: typeName
     };
@@ -1073,7 +1078,7 @@ export class GrizabellaClient {
     this.ensureConnected();
     
     // Build params object conditionally to avoid passing undefined values
-    const params: any = {
+    const params: GetOutgoingRelationsParams = {
       object_id: objectId,
       type_name: typeName
     };
@@ -1126,7 +1131,7 @@ export class GrizabellaClient {
     this.ensureConnected();
     
     // Build params object conditionally to avoid passing undefined values
-    const params: any = {
+    const params: SearchSimilarObjectsParams = {
       object_id: objectId,
       type_name: typeName
     };
@@ -1199,7 +1204,7 @@ export class GrizabellaClient {
 
     // Call the MCP client method that handles the complex workflow
     // Build params object conditionally to avoid passing undefined values
-    const params: any = {
+    const params: SearchSimilarObjectsWithEmbeddingsParams = {
       text: queryText,
       embedding_definition_name: embeddingName
     };

@@ -268,7 +268,7 @@ export class MCPClient {
   /**
    * Makes a tool call with error handling and retries.
     */
-   private async callTool<T>(toolName: string, args: Record<string, any> = {}): Promise<T> {
+   private async callTool<T>(toolName: string, args: Record<string, unknown> = {}): Promise<T> {
      this.ensureConnected();
 
      const operation = async (): Promise<T> => {
@@ -293,9 +293,9 @@ export class MCPClient {
             // Try to parse as MCP error response
             let mcpError;
             try {
-              mcpError = JSON.parse((result['error'] as any).message);
+              mcpError = JSON.parse((result['error'] as { message: string }).message);
             } catch {
-              mcpError = { code: -1, message: (result['error'] as any).message };
+              mcpError = { code: -1, message: (result['error'] as { message: string }).message };
             }
             console.log(`Parsed MCP error for ${toolName}:`, mcpError);
             throw mapMcpError(mcpError, toolName);
@@ -316,7 +316,7 @@ export class MCPClient {
             try {
               const parsedData = JSON.parse(content.text);
               return parsedData;
-            } catch (parseError) {
+            } catch (_parseError) {
               if (this.config.debug) {
                 console.log(`Failed to parse MCP text content for ${toolName}:`, content.text);
               }
@@ -362,7 +362,7 @@ export class MCPClient {
           if (typeof finalResult === 'object' && finalResult !== null) {
             console.log(`Final result has vector property: ${'vector' in finalResult}`);
             if ('vector' in finalResult) {
-              const vectorValue = (finalResult as any).vector;
+              const vectorValue = (finalResult as { vector?: unknown }).vector;
               console.log(`Vector value type: ${typeof vectorValue}, isArray: ${Array.isArray(vectorValue)}, length: ${Array.isArray(vectorValue) ? vectorValue.length : 'N/A'}`);
             }
           }
@@ -491,7 +491,7 @@ export class MCPClient {
    * Retrieves an object instance by ID and type.
    */
    async getObjectById(params: GetObjectByIdParams): Promise<ObjectInstance | null> {
-     const rawResult = await this.callTool<any>('get_object_by_id', {
+     const rawResult = await this.callTool<unknown>('get_object_by_id', {
        object_id: params.object_id,
        type_name: params.type_name,
      });
@@ -509,7 +509,7 @@ export class MCPClient {
        try {
          const parsedData = JSON.parse(rawResult[0].text);
          result = parsedData;
-       } catch (parseError) {
+       } catch (_parseError) {
          throw new Error(`Failed to parse MCP text response: ${rawResult[0].text}`);
        }
      } else if (rawResult && typeof rawResult === 'object') {
@@ -530,7 +530,7 @@ export class MCPClient {
   /**
    * Deserializes properties, converting datetime strings to Date objects.
    */
-  private deserializeProperties(properties: Record<string, any>): Record<string, any> {
+  private deserializeProperties(properties: Record<string, unknown>): Record<string, unknown> {
     const deserialized = { ...properties };
 
     for (const [key, value] of Object.entries(deserialized)) {
@@ -590,7 +590,7 @@ export class MCPClient {
    * Retrieves relations between objects.
    */
   async getRelation(params: GetRelationParams): Promise<RelationInstanceList> {
-    const rawResult = await this.callTool<any>('get_relation', {
+    const rawResult = await this.callTool<unknown>('get_relation', {
       from_object_id: params.from_object_id,
       to_object_id: params.to_object_id,
       relation_type_name: params.relation_type_name,
@@ -609,7 +609,7 @@ export class MCPClient {
       try {
         const parsedData = JSON.parse(rawResult[0].text);
         result = parsedData;
-      } catch (parseError) {
+      } catch (_parseError) {
         throw new Error(`Failed to parse MCP text response: ${rawResult[0].text}`);
       }
     } else if (rawResult && typeof rawResult === 'object') {
@@ -714,12 +714,12 @@ export class MCPClient {
       try {
         const parsedData = JSON.parse(rawResult[0].text);
         vector = parsedData.vector;
-      } catch (parseError) {
+      } catch (_parseError) {
         throw new Error(`Failed to parse MCP text response: ${rawResult[0].text}`);
       }
-    } else if ((rawResult as any).vector) {
+    } else if ((rawResult as { vector?: unknown }).vector) {
       // Direct format: {"vector": [numbers]}
-      vector = (rawResult as any).vector;
+      vector = (rawResult as { vector: number[] }).vector;
     } else {
       throw new Error(`Invalid embedding vector response format: ${JSON.stringify(rawResult)}`);
     }
@@ -762,7 +762,7 @@ export class MCPClient {
         process.stdout.write('MCPClient.executeComplexQuery called with:' + JSON.stringify(params, null, 2) + '\n');
       }
 
-      const rawResult = await this.callTool<any>('execute_complex_query', {
+      const rawResult = await this.callTool<unknown>('execute_complex_query', {
         query: params.query,
       });
 
@@ -779,7 +779,7 @@ export class MCPClient {
         try {
           const parsedData = JSON.parse(rawResult[0].text);
           result = parsedData;
-        } catch (parseError) {
+        } catch (_parseError) {
           throw new Error(`Failed to parse MCP text response: ${rawResult[0].text}`);
         }
       } else if (rawResult && typeof rawResult === 'object') {
@@ -839,7 +839,7 @@ export class MCPClient {
             ],
           },
         });
-      } catch (error) {
+      } catch (_error) {
         // Object type might already exist, continue
       }
 
