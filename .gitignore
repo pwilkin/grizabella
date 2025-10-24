@@ -12,3 +12,5 @@ memory_profile.log
 .vscode/settings.json
 /*.log
 typescript/test-embedding-*
+ctx_test_db/
+test_db/

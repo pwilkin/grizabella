@@ -33,7 +33,12 @@ class TestMCPClientRequests(unittest.TestCase):
         test_db = Path(TEST_DB_PATH)
         if test_db.exists():
             for f in test_db.glob("*"):
-                f.unlink()
+                if f.is_file():
+                    f.unlink()
+                elif f.is_dir():
+                    # Recursively remove directory and its contents
+                    import shutil
+                    shutil.rmtree(f)
             test_db.rmdir()
 
     async def run_client_test(self):

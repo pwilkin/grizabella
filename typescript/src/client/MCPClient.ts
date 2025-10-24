@@ -121,6 +121,12 @@ export class MCPClient {
   private config: Required<MCPClientConfig>;
   private connectionState: ConnectionState = ConnectionState.DISCONNECTED;
   private reconnectTimer: NodeJS.Timeout | null = null;
+ private reconnectAttempts: number = 0;
+ private maxReconnectAttempts: number = 5;
+  private reconnectDelay: number = 1000; // in ms
+  private reconnectPromise: Promise<void> | null = null;
+  private reconnectResolve: (() => void) | null = null;
+  private reconnectReject: ((error: Error) => void) | null = null;
 
   /**
    * Creates a new MCP client instance.
@@ -140,6 +146,10 @@ export class MCPClient {
       ...config,
     } as Required<MCPClientConfig>;
 
+    // Initialize reconnect configuration
+    this.maxReconnectAttempts = this.config.maxReconnectAttempts;
+    this.reconnectDelay = this.config.reconnectDelay;
+
     process.stdout.write('MCPClient final config debug=' + this.config.debug + '\n');
     if (this.config.debug) {
       process.stdout.write('MCPClient created with debug enabled, config:' + JSON.stringify(this.config, null, 2) + '\n');
@@ -157,6 +167,11 @@ export class MCPClient {
   async connect(): Promise<void> {
     if (this.connectionState === ConnectionState.CONNECTED) {
       return;
+    }
+
+    // If we're already trying to reconnect, return the existing promise
+    if (this.reconnectPromise) {
+      return this.reconnectPromise;
     }
 
     this.connectionState = ConnectionState.CONNECTING;
@@ -189,9 +204,12 @@ export class MCPClient {
         }
       );
 
+      // Add event listeners for connection events
+      this.setupConnectionEventListeners();
+
       await this.client.connect(this.transport);
       this.connectionState = ConnectionState.CONNECTED;
-      // this.reconnectAttempts = 0; // This property doesn't exist
+      this.reconnectAttempts = 0; // Reset reconnect attempts on successful connection
 
       if (this.config.debug) {
         console.log('Connected to MCP server');
@@ -214,6 +232,14 @@ export class MCPClient {
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
+    }
+
+    // Reject any pending reconnection promise
+    if (this.reconnectReject) {
+      this.reconnectReject(new Error('Client disconnected'));
+      this.reconnectPromise = null;
+      this.reconnectResolve = null;
+      this.reconnectReject = null;
     }
 
     if (this.client) {
@@ -252,6 +278,127 @@ export class MCPClient {
   isConnected(): boolean {
     return this.connectionState === ConnectionState.CONNECTED;
   }
+
+  // ===== CONNECTION EVENT HANDLERS =====
+  
+  /**
+   * Sets up event listeners for connection events to handle reconnection.
+   */
+  private setupConnectionEventListeners(): void {
+    if (!this.client || !this.transport) {
+      return;
+    }
+
+    // For stdio transport, we need to handle process events
+    // Since transport is an abstract class, we need to check the underlying process
+    // Access the transport's process if it's a stdio transport
+    const transportAny: any = this.transport;
+    if (transportAny.process) {
+      // This is likely a stdio transport
+      transportAny.process.on('exit', (code: number, signal: string) => {
+        if (this.config.debug) {
+          console.log(`Transport process exited with code ${code}, signal ${signal}`);
+        }
+        this.handleTransportDisconnect();
+      });
+      
+      transportAny.process.on('error', (error: Error) => {
+        if (this.config.debug) {
+          console.log(`Transport process error:`, error);
+        }
+        this.handleTransportDisconnect();
+      });
+    }
+ }
+
+  /**
+   * Handles transport disconnection events.
+   */
+  private async handleTransportDisconnect(): Promise<void> {
+    if (this.config.debug) {
+      console.log('Transport disconnected, attempting reconnection...');
+    }
+    
+    this.connectionState = ConnectionState.ERROR;
+    
+    if (this.config.autoReconnect) {
+      await this.attemptReconnect();
+    }
+  }
+
+  /**
+   * Attempts to reconnect to the MCP server with exponential backoff.
+   */
+  private async attemptReconnect(): Promise<void> {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      if (this.config.debug) {
+        console.log(`Max reconnection attempts (${this.maxReconnectAttempts}) reached. Giving up.`);
+      }
+      return;
+    }
+
+    this.connectionState = ConnectionState.RECONNECTING;
+    
+    if (this.config.debug) {
+      console.log(`Attempting reconnection (${this.reconnectAttempts + 1}/${this.maxReconnectAttempts}) in ${this.reconnectDelay}ms...`);
+    }
+
+    // Create a promise for the reconnection attempt
+    this.reconnectPromise = new Promise((resolve, reject) => {
+      this.reconnectResolve = resolve;
+      this.reconnectReject = reject;
+    });
+
+    // Wait for the delay before attempting to reconnect
+    await new Promise(resolve => setTimeout(resolve, this.reconnectDelay));
+
+    try {
+      // Disconnect any existing client/transport
+      if (this.client) {
+        try {
+          await this.client.close();
+        } catch (error) {
+          if (this.config.debug) {
+            console.warn('Error closing existing client during reconnection:', error);
+          }
+        }
+      }
+      
+      this.client = null;
+      this.transport = null;
+
+      // Attempt to reconnect
+      await this.connect();
+      
+      if (this.config.debug) {
+        console.log('Reconnection successful!');
+      }
+      
+      this.reconnectAttempts = 0; // Reset on successful reconnection
+      
+      if (this.reconnectResolve) {
+        this.reconnectResolve();
+        this.reconnectPromise = null;
+        this.reconnectResolve = null;
+        this.reconnectReject = null;
+      }
+    } catch (error) {
+      if (this.config.debug) {
+        console.log(`Reconnection attempt failed:`, error);
+      }
+      
+      this.reconnectAttempts++;
+      
+      // Calculate exponential backoff delay (with max delay)
+      const maxDelay = this.config.reconnectDelay * 10; // Max 10x the original delay
+      const nextDelay = Math.min(this.reconnectDelay * Math.pow(2, this.reconnectAttempts), maxDelay);
+      
+      // Set up the next reconnection attempt
+      this.reconnectTimer = setTimeout(async () => {
+        await this.attemptReconnect();
+      }, nextDelay);
+    }
+ }
 
   // ===== PRIVATE HELPER METHODS =====
 

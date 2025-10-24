@@ -38,6 +38,9 @@ from grizabella.core.models import (
     RelationTypeDefinition,
 )
 from grizabella.core.query_models import ComplexQuery, EmbeddingVector, QueryResult
+from grizabella.core.db_manager_factory import cleanup_all_managers
+from grizabella.core.resource_monitor import stop_global_monitoring
+from grizabella.core.connection_pool import ConnectionPoolManager
 
 # Set up logging configuration
 logging.basicConfig(
@@ -876,11 +879,51 @@ async def mcp_get_embedding_vector_for_text(args: GetEmbeddingVectorForTextArgs)
 # `python -m fastmcp grizabella.mcp.server:app`
 # or similar, depending on FastMCP's conventions.
 
+def cleanup_resources():
+    """Perform cleanup of all resources."""
+    logger.info("Starting resource cleanup...")
+    
+    # Clean up database connections
+    try:
+        pool_manager = ConnectionPoolManager()
+        pool_manager.close_all_pools()
+        logger.info("Connection pools closed")
+    except Exception as e:
+        logger.error(f"Error closing connection pools: {e}")
+    
+    # Clean up DB managers
+    try:
+        cleanup_all_managers()
+        logger.info("DB managers cleaned up")
+    except Exception as e:
+        logger.error(f"Error cleaning up DB managers: {e}")
+    
+    # Stop monitoring
+    try:
+        stop_global_monitoring()
+        logger.info("Resource monitoring stopped")
+    except Exception as e:
+        logger.error(f"Error stopping resource monitoring: {e}")
+    
+    # Force garbage collection
+    try:
+        import gc
+        collected = gc.collect()
+        logger.info(f"Garbage collector cleaned up {collected} objects")
+    except Exception as e:
+        logger.error(f"Error during garbage collection: {e}")
+    
+    logger.info("Resource cleanup completed")
+
+
 def shutdown_handler(signum, frame):
     """Handle shutdown signals gracefully."""
     print(f"Received signal {signum}, shutting down...", file=sys.stderr)
     logger.info(f"Received signal {signum}, shutting down...")
-    # Perform any cleanup here if needed
+    
+    # Perform cleanup
+    cleanup_resources()
+    
     sys.exit(0)
 
 def main():
@@ -902,10 +945,12 @@ def main():
             app.run(show_banner=False)
     except Exception as e:
         print(f"Server error: {e}", file=sys.stderr)
+        logger.error(f"Server error: {e}", exc_info=True)
         sys.exit(1)
     finally:
         # Ensure clean termination
         grizabella_client_instance = None
+        cleanup_resources()
         print("Server terminated cleanly", file=sys.stderr)
         
         sys.exit(0)

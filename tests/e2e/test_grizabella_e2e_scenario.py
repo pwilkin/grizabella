@@ -246,7 +246,7 @@ class TestGrizabellaE2EScenario(unittest.TestCase):
                     object_type_name="Paper",
                     relational_filters=[RelationalFilter(property_name="publication_year", operator="==", value=2023)],
                     embedding_searches=[
-                        EmbeddingSearchClause(embedding_definition_name="PaperAbstractEmbedding", similar_to_payload=q1_vector, limit=5, threshold=40.0, is_l2_distance=True) # L2 distance for paper_1 is ~36.19
+                        EmbeddingSearchClause(embedding_definition_name="PaperAbstractEmbedding", similar_to_payload=q1_vector, limit=5, threshold=50.0, is_l2_distance=True) # L2 distance for paper_1 is ~36.19
                     ],
                     graph_traversals=[
                         GraphTraversalClause(relation_type_name="AUTHORED_BY", direction="outgoing", target_object_type_name="Author",

@@ -75,3 +75,78 @@ This section provides solutions to common problems and answers to frequently ask
 
 * **Q: Where can I report bugs or ask for help?**
   * A: Please report bugs, suggest features, or ask for help by creating an issue on our GitHub repository: [`https://github.com/pwilkin/grizabella/issues`](https://github.com/pwilkin/grizabella/issues) (Note: This is a placeholder URL).
+
+
+## Connection Management Best Practices
+
+### Resource Management
+
+* **Always use context managers or proper cleanup:**
+  * When using the Python API, use the `with` statement or explicitly call cleanup methods to ensure resources are properly released:
+    ```python
+    from grizabella.api.client import Grizabella
+    
+    # Recommended approach using context manager
+    with Grizabella(db_name_or_path="my_db") as client:
+        # Perform operations
+        client.create_object_type(...)
+        # Resources automatically cleaned up when exiting the context
+    ```
+  * For long-running applications, ensure to call cleanup methods explicitly when shutting down.
+
+* **Connection pooling:**
+  * Grizabella implements connection pooling to efficiently manage database connections.
+  * The connection pool automatically manages idle connections and cleans them up after a configurable timeout period.
+  * Connection pools are shared across managers for the same database type and path.
+
+* **Singleton pattern for DB managers:**
+  * DB managers are implemented using a singleton pattern with reference counting.
+  * Multiple requests for the same database path will return the same manager instance.
+  * Managers are automatically cleaned up when all references are released.
+
+### Memory Management
+
+* **Preventing memory leaks:**
+  * Always release DB managers when no longer needed by calling the appropriate cleanup methods.
+  * The system implements automatic cleanup on process shutdown, but explicit cleanup is recommended.
+ * Monitor memory usage during long-running operations to detect potential leaks early.
+
+* **Resource monitoring:**
+  * Grizabella includes a resource monitoring dashboard accessible via the web interface for real-time monitoring of CPU, memory, connections, and threads.
+  * Use the monitoring tools to track resource usage patterns and identify potential issues.
+
+### Threading and Concurrency
+
+* **Thread-safe operations:**
+  * Database adapters are designed to be thread-safe, with separate connections per thread for Kùzu adapter.
+ * Avoid sharing connection objects across threads directly; use the provided connection management instead.
+
+* **Concurrent access patterns:**
+  * Multiple threads can safely access the same database through the connection pool.
+  * The system handles concurrent access efficiently while maintaining data integrity.
+
+### Connection Lifecycle
+
+* **Proper initialization:**
+  * Always initialize the client with appropriate configuration including timeouts and retry settings.
+  * Use the factory pattern to create and manage DB managers properly.
+
+* **Graceful shutdown:**
+  * Implement proper shutdown handlers that clean up all resources.
+ * The system includes signal handlers for SIGINT and SIGTERM to ensure graceful shutdown.
+  * All connections and resources are automatically cleaned up during shutdown.
+
+### Troubleshooting Connection Issues
+
+* **Connection timeouts:**
+  * If experiencing connection timeouts, increase the timeout values in the configuration.
+  * Check if the database files are accessible and not locked by another process.
+
+* **Too many open files:**
+  * This error indicates that too many connections are being held open simultaneously.
+  * Ensure that connections are being properly returned to the pool or closed after use.
+  * Consider adjusting the maximum connection pool size if needed for your use case.
+
+* **Database locking issues:**
+  * SQLite databases can experience locking issues with high concurrent write operations.
+  * Consider using appropriate transaction management and connection pooling to reduce lock contention.

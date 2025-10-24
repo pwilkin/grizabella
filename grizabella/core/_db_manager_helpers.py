@@ -104,11 +104,12 @@ class _ConnectionHelper:  # pylint: disable=R0902
                 "_ConnectionHelper: Connecting SQLiteAdapter to %s",
                 self.sqlite_db_file_path,
             )
-            # SQLiteAdapter's __init__ calls _connect which establishes the connection.
+            # ThreadSafeSQLiteAdapter's __init__ calls _connect which establishes the connection.
             # We'll add logging there.
-            self._sqlite_adapter_instance = SQLiteAdapter(
+            from grizabella.db_layers.sqlite.thread_safe_sqlite_adapter import ThreadSafeSQLiteAdapter
+            self._sqlite_adapter_instance = ThreadSafeSQLiteAdapter(
                 db_path=self.sqlite_db_file_path,
-            ) # Logging for connection creation will be in SQLiteAdapter
+            ) # Logging for connection creation will be in ThreadSafeSQLiteAdapter
             self._logger.info("_ConnectionHelper: SQLiteAdapter initialized (object created).")
 
             self._logger.info(
@@ -120,7 +121,8 @@ class _ConnectionHelper:  # pylint: disable=R0902
             self._logger.info(
                 "_ConnectionHelper: Connecting KuzuAdapter to %s", self.kuzu_path,
             )
-            self._kuzu_adapter_instance = KuzuAdapter(db_path=self.kuzu_path)
+            from grizabella.db_layers.kuzu.thread_safe_kuzu_adapter import ThreadSafeKuzuAdapter
+            self._kuzu_adapter_instance = ThreadSafeKuzuAdapter(db_path=self.kuzu_path)
             self._logger.info("_ConnectionHelper: KuzuAdapter initialized.")
             self._adapters_are_connected = True
             self._logger.info("_ConnectionHelper: All adapters connected successfully.")
@@ -1055,7 +1057,7 @@ class _InstanceManager:
             # Kuzu deletion
             try:
                 deleted_kuzu = self._conn_helper.kuzu_adapter.delete_object_instance(
-                    object_type_name, instance_id,
+                    object_type_name, UUID(instance_id) if isinstance(instance_id, str) else instance_id,
                 )
                 if deleted_kuzu:
                     self._logger.info(
@@ -1081,7 +1083,7 @@ class _InstanceManager:
             # SQLite deletion (master record) - do this last as it's the primary store
             try:
                 deleted_sqlite = self._conn_helper.sqlite_adapter.delete_object_instance(
-                    object_type_name, instance_id,
+                    object_type_name, UUID(instance_id) if isinstance(instance_id, str) else instance_id,
                 )
                 if deleted_sqlite:
                     self._logger.debug(
