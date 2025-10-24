@@ -1,0 +1,2150 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://pwilkin.github.io/grizabella/mcp_server_api_guide/">
+      
+      
+        <link rel="prev" href="../python_api_detailed/">
+      
+      
+        <link rel="next" href="../pyside6_ui_guide/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>MCP Server API Guide - Grizabella</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#grizabella-mcp-server-api-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Grizabella" class="md-header__button md-logo" aria-label="Grizabella" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Grizabella
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              MCP Server API Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pwilkin/grizabella" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pwilkin/grizabella
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Grizabella" class="md-nav__button md-logo" aria-label="Grizabella" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Grizabella
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pwilkin/grizabella" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pwilkin/grizabella
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core_concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core Concepts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python_api_detailed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Python API Detailed Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    MCP Server API Guide
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Server API Guide
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#launching-the-mcp-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      Launching the MCP Server
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mcp-tools-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      MCP Tools / Operations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MCP Tools / Operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Handling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-create_object_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. create_object_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-get_object_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. get_object_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-delete_object_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. delete_object_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-create_relation_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. create_relation_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-get_relation_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. get_relation_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-delete_relation_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. delete_relation_type
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#object-instance-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Object Instance Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Object Instance Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#7-upsert_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. upsert_object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-get_object_by_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. get_object_by_id
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-delete_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. delete_object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-find_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. find_objects
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relation-instance-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relation Instance Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Relation Instance Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-add_relation" class="md-nav__link">
+    <span class="md-ellipsis">
+      11. add_relation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-get_relation" class="md-nav__link">
+    <span class="md-ellipsis">
+      12. get_relation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-delete_relation" class="md-nav__link">
+    <span class="md-ellipsis">
+      13. delete_relation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14-get_outgoing_relations" class="md-nav__link">
+    <span class="md-ellipsis">
+      14. get_outgoing_relations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#15-get_incoming_relations" class="md-nav__link">
+    <span class="md-ellipsis">
+      15. get_incoming_relations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#querying" class="md-nav__link">
+    <span class="md-ellipsis">
+      Querying
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Querying">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#16-search_similar_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      16. search_similar_objects
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#17-execute_complex_query" class="md-nav__link">
+    <span class="md-ellipsis">
+      17. execute_complex_query
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-curl-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example curl Requests
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example curl Requests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-create-an-object-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Create an Object Type**
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1-create-an-object-type-simpler-post" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Create an Object Type (Simpler POST)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-upsert-an-object-instance" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Upsert an Object Instance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-get-an-object-by-id" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Get an Object by ID
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-execute-a-complex-query-payload-can-be-large" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Execute a Complex Query (Payload can be large)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyside6_ui_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PySide6 UI Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/core_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/query_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Query Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/mcp_server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Server
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting_faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting & FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#launching-the-mcp-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      Launching the MCP Server
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mcp-tools-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      MCP Tools / Operations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MCP Tools / Operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Handling
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#schema-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-create_object_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. create_object_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-get_object_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. get_object_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-delete_object_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. delete_object_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-create_relation_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. create_relation_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-get_relation_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      5. get_relation_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-delete_relation_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      6. delete_relation_type
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#object-instance-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Object Instance Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Object Instance Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#7-upsert_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      7. upsert_object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#8-get_object_by_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      8. get_object_by_id
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#9-delete_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      9. delete_object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#10-find_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      10. find_objects
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relation-instance-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relation Instance Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Relation Instance Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-add_relation" class="md-nav__link">
+    <span class="md-ellipsis">
+      11. add_relation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-get_relation" class="md-nav__link">
+    <span class="md-ellipsis">
+      12. get_relation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-delete_relation" class="md-nav__link">
+    <span class="md-ellipsis">
+      13. delete_relation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14-get_outgoing_relations" class="md-nav__link">
+    <span class="md-ellipsis">
+      14. get_outgoing_relations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#15-get_incoming_relations" class="md-nav__link">
+    <span class="md-ellipsis">
+      15. get_incoming_relations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#querying" class="md-nav__link">
+    <span class="md-ellipsis">
+      Querying
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Querying">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#16-search_similar_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      16. search_similar_objects
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#17-execute_complex_query" class="md-nav__link">
+    <span class="md-ellipsis">
+      17. execute_complex_query
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-curl-requests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example curl Requests
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example curl Requests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-create-an-object-type" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Create an Object Type**
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1-create-an-object-type-simpler-post" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Create an Object Type (Simpler POST)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-upsert-an-object-instance" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Upsert an Object Instance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-get-an-object-by-id" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Get an Object by ID
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-execute-a-complex-query-payload-can-be-large" class="md-nav__link">
+    <span class="md-ellipsis">
+      4. Execute a Complex Query (Payload can be large)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="grizabella-mcp-server-api-guide">Grizabella MCP Server API Guide</h1>
+<p>This guide provides detailed information about the Grizabella Model Context Protocol (MCP) server API. The MCP server exposes Grizabella's core functionalities as tools that can be accessed remotely.</p>
+<h2 id="launching-the-mcp-server">Launching the MCP Server</h2>
+<p>To launch the Grizabella MCP server, navigate to the root directory of the Grizabella project and run the following command:</p>
+<pre><code class="language-bash">poetry run grizabella-mcp
+</code></pre>
+<p>This command starts the MCP server, making its tools available for interaction. The server typically runs using <code>fastmcp</code>, which might be based on FastAPI/Starlette.</p>
+<h2 id="database-configuration">Database Configuration</h2>
+<p>The Grizabella MCP server requires a database to store its data. The path to this database can be configured using the <code>GRIZABELLA_DB_PATH</code> environment variable.</p>
+<ul>
+<li><strong>Environment Variable:</strong> <code>GRIZABELLA_DB_PATH</code></li>
+<li><strong>Default Value:</strong> If the environment variable is not set, the server will use <code>grizabella_mcp_db</code> (relative to where the server is run) as the database path.</li>
+</ul>
+<p><strong>Example:</strong></p>
+<p>To set a custom database path (e.g., <code>/opt/grizabella_data/my_db</code>):</p>
+<pre><code class="language-bash">export GRIZABELLA_DB_PATH=&quot;/opt/grizabella_data/my_db&quot;
+poetry run grizabella-mcp
+</code></pre>
+<p>If the specified database file or directory doesn't exist, Grizabella will attempt to create it.</p>
+<h2 id="mcp-tools-operations">MCP Tools / Operations</h2>
+<p>The Grizabella MCP server exposes several tools, each corresponding to an operation on the Grizabella data store. These tools are defined in <a class="autorefs autorefs-internal" href="../api/mcp_server/#grizabella.mcp.server"><code>grizabella.mcp.server</code></a> and map to methods of the <code>Grizabella</code> API client.</p>
+<p>Requests to these tools are typically JSON-RPC style, where the MCP client sends a JSON payload specifying the tool name and its arguments. Responses are also in JSON format.</p>
+<h3 id="error-handling">Error Handling</h3>
+<p>Errors are generally reported as a JSON response containing an error message. This might be a standard FastAPI/FastMCP error structure, often including a "detail" field or an "error" field. For Grizabella-specific errors, the message will typically be prefixed with "Grizabella API Error:".</p>
+<hr />
+<h3 id="schema-management">Schema Management</h3>
+<h4 id="1-create_object_type">1. <code>create_object_type</code></h4>
+<ul>
+<li><strong>Description:</strong> Creates a new object type definition (e.g., a table schema or a node type in a graph).</li>
+<li><strong>Input Parameters (JSON):</strong></li>
+<li><code>object_type_def</code> (object, required): The definition of the object type. This structure is based on the <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models.ObjectTypeDefinition"><code>ObjectTypeDefinition</code></a> Pydantic model.<ul>
+<li><code>name</code> (string, required): Unique name for the object type (e.g., "Document", "Person"). Convention: PascalCase.</li>
+<li><code>description</code> (string, optional): Optional description of the object type.</li>
+<li><code>properties</code> (array, required): List of property definitions for this object type. Each property definition is an object:</li>
+<li><code>name</code> (string, required): Name of the property (e.g., "title", "age").</li>
+<li><code>data_type</code> (string, required): Data type of the property. Must be one of the values from <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models.PropertyDataType"><code>PropertyDataType</code></a> (e.g., "TEXT", "INTEGER", "FLOAT", "BOOLEAN", "DATETIME", "BLOB", "JSON", "UUID").</li>
+<li><code>is_primary_key</code> (boolean, optional, default: <code>false</code>): Is this property a primary key?</li>
+<li><code>is_nullable</code> (boolean, optional, default: <code>true</code>): Can this property be null?</li>
+<li><code>is_indexed</code> (boolean, optional, default: <code>false</code>): Should this property be indexed?</li>
+<li><code>is_unique</code> (boolean, optional, default: <code>false</code>): Does this property require unique values?</li>
+<li><code>description</code> (string, optional): Optional description of the property.</li>
+</ul>
+</li>
+<li>
+<p><strong>Example Input (JSON):</strong></p>
+<p><code>json
+{
+    "object_type_def": {
+        "name": "Document",
+        "description": "Represents a text document.",
+        "properties": [
+            {
+                "name": "title",
+                "data_type": "TEXT",
+                "is_indexed": true
+            },
+            {
+                "name": "content",
+                "data_type": "TEXT"
+            },
+            {
+                "name": "published_date",
+                "data_type": "DATETIME",
+                "is_nullable": true
+            }
+        ]
+    }
+}</code></p>
+</li>
+<li>
+<p><strong>Output Parameters (JSON):</strong></p>
+</li>
+<li>
+<p>Returns <code>null</code> or a success message upon successful creation.</p>
+</li>
+<li>
+<p><strong>Example Output (JSON):</strong></p>
+<p><code>json
+null</code></p>
+<p>(Or potentially a success object depending on FastMCP's conventions for void returns)</p>
+</li>
+</ul>
+<h4 id="2-get_object_type">2. <code>get_object_type</code></h4>
+<ul>
+<li><strong>Description:</strong> Retrieves the definition of a specific object type.</li>
+<li><strong>Input Parameters (JSON):</strong></li>
+<li><code>type_name</code> (string, required): The name of the object type to retrieve.</li>
+<li>
+<p><strong>Example Input (JSON):</strong></p>
+<p><code>json
+{
+    "type_name": "Document"
+}</code></p>
+</li>
+<li>
+<p><strong>Output Parameters (JSON):</strong></p>
+</li>
+<li>
+<p>Returns an <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models.ObjectTypeDefinition"><code>ObjectTypeDefinition</code></a> object if found, or <code>null</code> if not found. The structure is the same as the <code>object_type_def</code> input for <code>create_object_type</code>.</p>
+</li>
+<li>
+<p><strong>Example Output (JSON):</strong></p>
+<p><code>json
+{
+    "name": "Document",
+    "description": "Represents a text document.",
+    "properties": [
+        {
+            "name": "title",
+            "data_type": "TEXT",
+            "is_primary_key": false,
+            "is_nullable": true,
+            "is_indexed": true,
+            "is_unique": false,
+            "description": null
+        },
+        {
+            "name": "content",
+            "data_type": "TEXT",
+            "is_primary_key": false,
+            "is_nullable": true,
+            "is_indexed": false,
+            "is_unique": false,
+            "description": null
+        },
+        {
+            "name": "published_date",
+            "data_type": "DATETIME",
+            "is_primary_key": false,
+            "is_nullable": true,
+            "is_indexed": false,
+            "is_unique": false,
+            "description": null
+        }
+    ]
+}</code></p>
+</li>
+</ul>
+<h4 id="3-delete_object_type">3. <code>delete_object_type</code></h4>
+<ul>
+<li><strong>Description:</strong> Deletes an object type definition.</li>
+<li><strong>Input Parameters (JSON):</strong></li>
+<li><code>type_name</code> (string, required): The name of the object type to delete.</li>
+<li>
+<p><strong>Example Input (JSON):</strong></p>
+<p><code>json
+{
+    "type_name": "Document"
+}</code></p>
+</li>
+<li>
+<p><strong>Output Parameters (JSON):</strong></p>
+</li>
+<li>
+<p>Returns <code>null</code> or a success message upon successful deletion.</p>
+</li>
+<li>
+<p><strong>Example Output (JSON):</strong></p>
+<p><code>json
+null</code></p>
+</li>
+</ul>
+<h4 id="4-create_relation_type">4. <code>create_relation_type</code></h4>
+<ul>
+<li><strong>Description:</strong> Creates a new relation type definition.</li>
+<li><strong>Input Parameters (JSON):</strong></li>
+<li><code>relation_type_def</code> (object, required): The definition of the relation type. This structure is based on the <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models.RelationTypeDefinition"><code>RelationTypeDefinition</code></a> Pydantic model.<ul>
+<li><code>name</code> (string, required): Unique name for the relation type (e.g., "HAS_AUTHOR"). Convention: UPPER_SNAKE_CASE.</li>
+<li><code>description</code> (string, optional): Optional description of the relation type.</li>
+<li><code>source_object_type_names</code> (array of strings, required): List of names of allowed source <code>ObjectTypeDefinition</code>s.</li>
+<li><code>target_object_type_names</code> (array of strings, required): List of names of allowed target <code>ObjectTypeDefinition</code>s.</li>
+<li><code>properties</code> (array, optional, default: <code>[]</code>): List of property definitions for the relation itself (edge properties). Structure is the same as for <code>ObjectTypeDefinition</code> properties.</li>
+</ul>
+</li>
+<li>
+<p><strong>Example Input (JSON):</strong></p>
+<p><code>json
+{
+    "relation_type_def": {
+        "name": "AUTHORED_BY",
+        "description": "Indicates authorship of a document by a person.",
+        "source_object_type_names": ["Document"],
+        "target_object_type_names": ["Person"],
+        "properties": [
+            {
+                "name": "role",
+                "data_type": "TEXT",
+                "is_nullable": true
+            }
+        ]
+    }
+}</code></p>
+</li>
+<li>
+<p><strong>Output Parameters (JSON):</strong></p>
+</li>
+<li>
+<p>Returns <code>null</code> or a success message.</p>
+</li>
+<li>
+<p><strong>Example Output (JSON):</strong></p>
+<p><code>json
+null</code></p>
+</li>
+</ul>
+<h4 id="5-get_relation_type">5. <code>get_relation_type</code></h4>
+<ul>
+<li><strong>Description:</strong> Retrieves the definition of a specific relation type.</li>
+<li><strong>Input Parameters (JSON):</strong></li>
+<li><code>type_name</code> (string, required): The name of the relation type to retrieve.</li>
+<li>
+<p><strong>Example Input (JSON):</strong></p>
+<p><code>json
+{
+    "type_name": "AUTHORED_BY"
+}</code></p>
+</li>
+<li>
+<p><strong>Output Parameters (JSON):</strong></p>
+</li>
+<li>
+<p>Returns a <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models.RelationTypeDefinition"><code>RelationTypeDefinition</code></a> object if found, or <code>null</code> if not found. The structure is the same as the <code>relation_type_def</code> input for <code>create_relation_type</code>.</p>
+</li>
+<li>
+<p><strong>Example Output (JSON):</strong></p>
+<p><code>json
+{
+    "name": "AUTHORED_BY",
+    "description": "Indicates authorship of a document by a person.",
+    "source_object_type_names": ["Document"],
+    "target_object_type_names": ["Person"],
+    "properties": [
+        {
+            "name": "role",
+            "data_type": "TEXT",
+            "is_primary_key": false,
+            "is_nullable": true,
+            "is_indexed": false,
+            "is_unique": false,
+            "description": null
+        }
+    ]
+}</code></p>
+</li>
+</ul>
+<h4 id="6-delete_relation_type">6. <code>delete_relation_type</code></h4>
+<ul>
+<li><strong>Description:</strong> Deletes a relation type definition.</li>
+<li><strong>Input Parameters (JSON):</strong></li>
+<li><code>type_name</code> (string, required): The name of the relation type to delete.</li>
+<li>
+<p><strong>Example Input (JSON):</strong></p>
+<p><code>json
+{
+    "type_name": "AUTHORED_BY"
+}</code></p>
+</li>
+<li>
+<p><strong>Output Parameters (JSON):</strong></p>
+</li>
+<li>
+<p>Returns <code>null</code> or a success message.</p>
+</li>
+<li>
+<p><strong>Example Output (JSON):</strong></p>
+<p><code>json
+null</code></p>
+</li>
+</ul>
+<hr />
+<h3 id="object-instance-management">Object Instance Management</h3>
+<h4 id="7-upsert_object">7. <code>upsert_object</code></h4>
+<ul>
+<li><strong>Description:</strong> Creates a new object instance or updates an existing one if an object with the same ID already exists.</li>
+<li><strong>Input Parameters (JSON):</strong></li>
+<li><code>obj</code> (object, required): The object instance to create or update. This structure is based on the <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models.ObjectInstance"><code>ObjectInstance</code></a> Pydantic model.<ul>
+<li><code>id</code> (string, optional, UUID format): Unique identifier for the object. If not provided, a new UUID will be generated. If provided and an object with this ID exists, it will be updated.</li>
+<li><code>weight</code> (number, optional, default: <code>1.0</code>): A decimal value (0-10) for ranking/relevance.</li>
+<li><code>upsert_date</code> (string, optional, ISO 8601 datetime format): Timestamp of last update. Automatically set if not provided.</li>
+<li><code>object_type_name</code> (string, required): Name of the <code>ObjectTypeDefinition</code> this instance conforms to.</li>
+<li><code>properties</code> (object, required): Key-value pairs representing the actual data for the instance, where keys are property names.</li>
+</ul>
+</li>
+<li>
+<p><strong>Example Input (JSON):</strong></p>
+<p><code>json
+{
+    "obj": {
+        "object_type_name": "Document",
+        "properties": {
+            "title": "My First Document",
+            "content": "This is the content of my first document.",
+            "published_date": "2024-01-15T10:00:00Z"
+        }
+    }
+}</code></p>
+</li>
+<li>
+<p><strong>Output Parameters (JSON):</strong></p>
+</li>
+<li>
+<p>Returns the created or updated <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models.ObjectInstance"><code>ObjectInstance</code></a> object, including its <code>id</code> and <code>upsert_date</code>.</p>
+</li>
+<li>
+<p><strong>Example Output (JSON):</strong></p>
+<p><code>json
+{
+    "id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+    "weight": 1.0,
+    "upsert_date": "2024-06-04T19:55:00.123456Z",
+    "object_type_name": "Document",
+    "properties": {
+        "title": "My First Document",
+        "content": "This is the content of my first document.",
+        "published_date": "2024-01-15T10:00:00Z"
+    }
+}</code></p>
+</li>
+</ul>
+<h4 id="8-get_object_by_id">8. <code>get_object_by_id</code></h4>
+<ul>
+<li><strong>Description:</strong> Retrieves a specific object instance by its ID and type name.</li>
+<li><strong>Input Parameters (JSON):</strong></li>
+<li><code>object_id</code> (string, required, UUID format): The ID of the object to retrieve.</li>
+<li><code>type_name</code> (string, required): The name of the object type.</li>
+<li>
+<p><strong>Example Input (JSON):</strong></p>
+<p><code>json
+{
+    "object_id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+    "type_name": "Document"
+}</code></p>
+</li>
+<li>
+<p><strong>Output Parameters (JSON):</strong></p>
+</li>
+<li>
+<p>Returns the <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models.ObjectInstance"><code>ObjectInstance</code></a> object if found, or <code>null</code> if not found.</p>
+</li>
+<li>
+<p><strong>Example Output (JSON):</strong> (Same structure as <code>upsert_object</code> output)</p>
+</li>
+</ul>
+<h4 id="9-delete_object">9. <code>delete_object</code></h4>
+<ul>
+<li><strong>Description:</strong> Deletes an object instance by its ID and type name.</li>
+<li><strong>Input Parameters (JSON):</strong></li>
+<li><code>object_id</code> (string, required, UUID format): The ID of the object to delete.</li>
+<li><code>type_name</code> (string, required): The name of the object type.</li>
+<li>
+<p><strong>Example Input (JSON):</strong></p>
+<p><code>json
+{
+    "object_id": "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+    "type_name": "Document"
+}</code></p>
+</li>
+<li>
+<p><strong>Output Parameters (JSON):</strong></p>
+</li>
+<li>
+<p>Returns <code>true</code> if deletion was successful, <code>false</code> otherwise (e.g., if the object was not found).</p>
+</li>
+<li>
+<p><strong>Example Output (JSON):</strong></p>
+<p><code>json
+true</code></p>
+</li>
+</ul>
+<h4 id="10-find_objects">10. <code>find_objects</code></h4>
+<ul>
+<li><strong>Description:</strong> Finds object instances of a given type, optionally matching filter criteria.</li>
+<li><strong>Input Parameters (JSON):</strong></li>
+<li><code>type_name</code> (string, required): The name of the object type to search for.</li>
+<li><code>filter_criteria</code> (object, optional): A dictionary of property names to values for exact matching.</li>
+<li><code>limit</code> (integer, optional): Maximum number of objects to return.</li>
+<li>
+<p><strong>Example Input (JSON):</strong></p>
+<p><code>json
+{
+    "type_name": "Document",
+    "filter_criteria": {
+        "author_id": "person_xyz"
+    },
+    "limit": 10
+}</code></p>
+</li>
+<li>
+<p><strong>Output Parameters (JSON):</strong></p>
+</li>
+<li>
+<p>Returns a list of <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models.ObjectInstance"><code>ObjectInstance</code></a> objects that match the criteria.</p>
+</li>
+<li>
+<p><strong>Example Output (JSON):</strong></p>
+<p><code>json
+[
+    {
+        "id": "doc1-uuid",
+        "weight": 1.0,
+        "upsert_date": "2024-06-04T20:10:00Z",
+        "object_type_name": "Document",
+        "properties": { "title": "Doc One", "author_id": "person_xyz" }
+    },
+    {
+        "id": "doc2-uuid",
+        "weight": 1.0,
+        "upsert_date": "2024-06-04T20:11:00Z",
+        "object_type_name": "Document",
+        "properties": { "title": "Doc Two", "author_id": "person_xyz" }
+    }
+]</code></p>
+</li>
+</ul>
+<hr />
+<h3 id="relation-instance-management">Relation Instance Management</h3>
+<h4 id="11-add_relation">11. <code>add_relation</code></h4>
+<ul>
+<li><strong>Description:</strong> Adds a new relation instance between two objects.</li>
+<li><strong>Input Parameters (JSON):</strong></li>
+<li><code>relation</code> (object, required): The relation instance to add. This structure is based on the <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models.RelationInstance"><code>RelationInstance</code></a> Pydantic model.<ul>
+<li><code>id</code> (string, optional, UUID format): Unique ID for the relation. Auto-generated if not provided.</li>
+<li><code>weight</code> (number, optional, default: <code>1.0</code>): Relevance weight.</li>
+<li><code>upsert_date</code> (string, optional, ISO 8601 datetime): Auto-set if not provided.</li>
+<li><code>relation_type_name</code> (string, required): Name of the <code>RelationTypeDefinition</code>.</li>
+<li><code>source_object_instance_id</code> (string, required, UUID format): ID of the source object.</li>
+<li><code>target_object_instance_id</code> (string, required, UUID format): ID of the target object.</li>
+<li><code>properties</code> (object, optional, default: <code>{}</code>): Key-value pairs for relation properties.</li>
+</ul>
+</li>
+<li>
+<p><strong>Example Input (JSON):</strong></p>
+<p><code>json
+{
+    "relation": {
+        "relation_type_name": "AUTHORED_BY",
+        "source_object_instance_id": "doc1-uuid",
+        "target_object_instance_id": "person_xyz-uuid",
+        "properties": {
+            "role": "Primary Author"
+        }
+    }
+}</code></p>
+</li>
+<li>
+<p><strong>Output Parameters (JSON):</strong></p>
+</li>
+<li>
+<p>Returns the created <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models.RelationInstance"><code>RelationInstance</code></a> object.</p>
+</li>
+<li>
+<p><strong>Example Output (JSON):</strong></p>
+<p><code>json
+{
+    "id": "rel1-uuid",
+    "weight": 1.0,
+    "upsert_date": "2024-06-04T20:15:00Z",
+    "relation_type_name": "AUTHORED_BY",
+    "source_object_instance_id": "doc1-uuid",
+    "target_object_instance_id": "person_xyz-uuid",
+    "properties": {
+        "role": "Primary Author"
+    }
+}</code></p>
+</li>
+</ul>
+<h4 id="12-get_relation">12. <code>get_relation</code></h4>
+<ul>
+<li><strong>Description:</strong> Retrieves a specific relation instance between two objects of a given relation type.</li>
+<li><strong>Input Parameters (JSON):</strong></li>
+<li><code>from_object_id</code> (string, required, UUID format): ID of the source object.</li>
+<li><code>to_object_id</code> (string, required, UUID format): ID of the target object.</li>
+<li><code>relation_type_name</code> (string, required): Name of the relation type.</li>
+<li>
+<p><strong>Example Input (JSON):</strong></p>
+<p><code>json
+{
+    "from_object_id": "doc1-uuid",
+    "to_object_id": "person_xyz-uuid",
+    "relation_type_name": "AUTHORED_BY"
+}</code></p>
+</li>
+<li>
+<p><strong>Output Parameters (JSON):</strong></p>
+</li>
+<li>
+<p>Returns the <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models.RelationInstance"><code>RelationInstance</code></a> object if found, or <code>null</code>.</p>
+</li>
+<li>
+<p><strong>Example Output (JSON):</strong> (Same structure as <code>add_relation</code> output)</p>
+</li>
+</ul>
+<h4 id="13-delete_relation">13. <code>delete_relation</code></h4>
+<ul>
+<li><strong>Description:</strong> Deletes a specific relation instance.</li>
+<li><strong>Input Parameters (JSON):</strong></li>
+<li><code>from_object_id</code> (string, required, UUID format): ID of the source object.</li>
+<li><code>to_object_id</code> (string, required, UUID format): ID of the target object.</li>
+<li><code>relation_type_name</code> (string, required): Name of the relation type.</li>
+<li>
+<p><strong>Example Input (JSON):</strong></p>
+<p><code>json
+{
+    "from_object_id": "doc1-uuid",
+    "to_object_id": "person_xyz-uuid",
+    "relation_type_name": "AUTHORED_BY"
+}</code></p>
+</li>
+<li>
+<p><strong>Output Parameters (JSON):</strong></p>
+</li>
+<li>
+<p>Returns <code>true</code> if deletion was successful, <code>false</code> otherwise.</p>
+</li>
+<li>
+<p><strong>Example Output (JSON):</strong></p>
+<p><code>json
+true</code></p>
+</li>
+</ul>
+<h4 id="14-get_outgoing_relations">14. <code>get_outgoing_relations</code></h4>
+<ul>
+<li><strong>Description:</strong> Retrieves all outgoing relation instances from a given object.</li>
+<li><strong>Input Parameters (JSON):</strong></li>
+<li><code>object_id</code> (string, required, UUID format): ID of the source object.</li>
+<li><code>type_name</code> (string, required): Object type name of the source object.</li>
+<li><code>relation_type_name</code> (string, optional): If provided, filters by this relation type.</li>
+<li>
+<p><strong>Example Input (JSON):</strong></p>
+<p><code>json
+{
+    "object_id": "doc1-uuid",
+    "type_name": "Document",
+    "relation_type_name": "AUTHORED_BY"
+}</code></p>
+</li>
+<li>
+<p><strong>Output Parameters (JSON):</strong></p>
+</li>
+<li>
+<p>Returns a list of <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models.RelationInstance"><code>RelationInstance</code></a> objects.</p>
+</li>
+<li>
+<p><strong>Example Output (JSON):</strong></p>
+<p><code>json
+[
+    {
+        "id": "rel1-uuid",
+        "weight": 1.0,
+        "upsert_date": "2024-06-04T20:15:00Z",
+        "relation_type_name": "AUTHORED_BY",
+        "source_object_instance_id": "doc1-uuid",
+        "target_object_instance_id": "person_xyz-uuid",
+        "properties": { "role": "Primary Author" }
+    }
+]</code></p>
+</li>
+</ul>
+<h4 id="15-get_incoming_relations">15. <code>get_incoming_relations</code></h4>
+<ul>
+<li><strong>Description:</strong> Retrieves all incoming relation instances to a given object.</li>
+<li><strong>Input Parameters (JSON):</strong></li>
+<li><code>object_id</code> (string, required, UUID format): ID of the target object.</li>
+<li><code>type_name</code> (string, required): Object type name of the target object.</li>
+<li><code>relation_type_name</code> (string, optional): If provided, filters by this relation type.</li>
+<li>
+<p><strong>Example Input (JSON):</strong></p>
+<p><code>json
+{
+    "object_id": "person_xyz-uuid",
+    "type_name": "Person",
+    "relation_type_name": "AUTHORED_BY"
+}</code></p>
+</li>
+<li>
+<p><strong>Output Parameters (JSON):</strong></p>
+</li>
+<li>
+<p>Returns a list of <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models.RelationInstance"><code>RelationInstance</code></a> objects.</p>
+</li>
+<li>
+<p><strong>Example Output (JSON):</strong> (Same structure as <code>get_outgoing_relations</code> output)</p>
+</li>
+</ul>
+<hr />
+<h3 id="querying">Querying</h3>
+<h4 id="16-search_similar_objects">16. <code>search_similar_objects</code></h4>
+<ul>
+<li><strong>Description:</strong> Searches for objects similar to a given object, typically using embeddings. (Note: The Grizabella API for this might involve providing an embedding vector directly or specifying an object whose embedding should be used. The MCP layer currently expects object ID and type name.)</li>
+<li><strong>Input Parameters (JSON):</strong></li>
+<li><code>object_id</code> (string, required, UUID format): ID of the object to find similar items for.</li>
+<li><code>type_name</code> (string, required): Object type name of the object.</li>
+<li><code>n_results</code> (integer, optional, default: <code>5</code>): Number of similar results to return.</li>
+<li><code>search_properties</code> (array of strings, optional): List of property names to consider for similarity (if applicable to the underlying embedding strategy).</li>
+<li>
+<p><strong>Example Input (JSON):</strong></p>
+<p><code>json
+{
+    "object_id": "doc1-uuid",
+    "type_name": "Document",
+    "n_results": 3
+}</code></p>
+</li>
+<li>
+<p><strong>Output Parameters (JSON):</strong></p>
+</li>
+<li>Returns a list of tuples, where each tuple contains an <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models.ObjectInstance"><code>ObjectInstance</code></a> and a float representing the similarity score.</li>
+<li>
+<p>The JSON structure will be an array of arrays/objects, e.g., <code>[[ObjectInstance, score], [ObjectInstance, score]]</code>.</p>
+</li>
+<li>
+<p><strong>Example Output (JSON):</strong></p>
+<p><code>json
+[
+    [
+        {
+            "id": "doc_similar1_uuid",
+            "weight": 1.0,
+            "upsert_date": "2024-06-01T10:00:00Z",
+            "object_type_name": "Document",
+            "properties": { "title": "A Very Similar Document" }
+        },
+        0.95
+    ],
+    [
+        {
+            "id": "doc_similar2_uuid",
+            "weight": 1.0,
+            "upsert_date": "2024-05-20T14:30:00Z",
+            "object_type_name": "Document",
+            "properties": { "title": "Another Related Article" }
+        },
+        0.88
+    ]
+]</code></p>
+</li>
+</ul>
+<h4 id="17-execute_complex_query">17. <code>execute_complex_query</code></h4>
+<ul>
+<li><strong>Description:</strong> Executes a complex query that can span multiple database layers (relational, graph, vector) and object types.</li>
+<li><strong>Input Parameters (JSON):</strong></li>
+<li><code>query</code> (object, required): The complex query definition. This structure is based on the <a class="autorefs autorefs-internal" href="../api/query_models/#grizabella.core.query_models.ComplexQuery"><code>ComplexQuery</code></a> Pydantic model.<ul>
+<li><code>description</code> (string, optional): Optional description for the query.</li>
+<li><code>components</code> (array, required): List of <code>QueryComponent</code> objects.</li>
+<li>Each <code>QueryComponent</code> (<a class="autorefs autorefs-internal" href="../api/query_models/#grizabella.core.query_models.QueryComponent"><code>QueryComponent</code></a>) has:<ul>
+<li><code>object_type_name</code> (string, required): Primary object type for this component.</li>
+<li><code>relational_filters</code> (array, optional): List of <code>RelationalFilter</code> objects.</li>
+<li>Each <code>RelationalFilter</code> (<a class="autorefs autorefs-internal" href="../api/query_models/#grizabella.core.query_models.RelationalFilter"><code>RelationalFilter</code></a>) has:<ul>
+<li><code>property_name</code> (string, required)</li>
+<li><code>operator</code> (string, required, e.g., "==", "!=", "LIKE", "IN")</li>
+<li><code>value</code> (any, required)</li>
+</ul>
+</li>
+<li><code>embedding_searches</code> (array, optional): List of <code>EmbeddingSearchClause</code> objects.</li>
+<li>Each <code>EmbeddingSearchClause</code> (<a class="autorefs autorefs-internal" href="../api/query_models/#grizabella.core.query_models.EmbeddingSearchClause"><code>EmbeddingSearchClause</code></a>) has:<ul>
+<li><code>embedding_definition_name</code> (string, required)</li>
+<li><code>similar_to_payload</code> (array of floats, required): The query vector.</li>
+<li><code>threshold</code> (float, optional)</li>
+<li><code>limit</code> (integer, optional, default: 10)</li>
+</ul>
+</li>
+<li><code>graph_traversals</code> (array, optional): List of <code>GraphTraversalClause</code> objects.</li>
+<li>Each <code>GraphTraversalClause</code> (<a class="autorefs autorefs-internal" href="../api/query_models/#grizabella.core.query_models.GraphTraversalClause"><code>GraphTraversalClause</code></a>) has:<ul>
+<li><code>relation_type_name</code> (string, required)</li>
+<li><code>direction</code> (string, optional, "outgoing" or "incoming", default: "outgoing")</li>
+<li><code>target_object_type_name</code> (string, required)</li>
+<li><code>target_object_id</code> (string, optional, UUID format)</li>
+<li><code>target_object_properties</code> (array, optional): List of <code>RelationalFilter</code> objects for the target.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>Example Input (JSON):</strong></p>
+<p><code>json
+{
+    "query": {
+        "description": "Find recent documents by 'John Doe' that mention 'AI research'.",
+        "components": [
+            {
+                "object_type_name": "Person",
+                "relational_filters": [
+                    {
+                        "property_name": "name",
+                        "operator": "==",
+                        "value": "John Doe"
+                    }
+                ]
+            },
+            {
+                "object_type_name": "Document",
+                "relational_filters": [
+                    {
+                        "property_name": "published_date",
+                        "operator": "&gt;=",
+                        "value": "2024-01-01T00:00:00Z"
+                    }
+                ],
+                "embedding_searches": [
+                    {
+                        "embedding_definition_name": "document_content_embedding",
+                        "similar_to_payload": [0.1, 0.2, ..., 0.9], // Example vector for "AI research"
+                        "limit": 5
+                    }
+                ],
+                "graph_traversals": [
+                    {
+                        "relation_type_name": "AUTHORED_BY",
+                        "direction": "incoming", // Document is target, Person is source
+                        "target_object_type_name": "Person"
+                        // Link to the "Person" component implicitly by the query engine logic
+                    }
+                ]
+            }
+        ]
+    }
+}</code></p>
+</li>
+<li>
+<p><strong>Output Parameters (JSON):</strong></p>
+</li>
+<li>
+<p>Returns a <a class="autorefs autorefs-internal" href="../api/query_models/#grizabella.core.query_models.QueryResult"><code>QueryResult</code></a> object.</p>
+<ul>
+<li><code>object_instances</code> (array): List of <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models.ObjectInstance"><code>ObjectInstance</code></a> objects that match the query.</li>
+<li><code>errors</code> (array of strings, optional): List of errors encountered, if any.</li>
+</ul>
+</li>
+<li>
+<p><strong>Example Output (JSON):</strong></p>
+<p><code>json
+{
+    "object_instances": [
+        {
+            "id": "doc_ai_1_uuid",
+            "weight": 1.0,
+            "upsert_date": "2024-03-10T12:00:00Z",
+            "object_type_name": "Document",
+            "properties": {
+                "title": "Advancements in AI Research",
+                "content": "...",
+                "published_date": "2024-03-10T12:00:00Z"
+            }
+        }
+    ],
+    "errors": null
+}</code></p>
+</li>
+</ul>
+<hr />
+<h2 id="example-curl-requests">Example <code>curl</code> Requests</h2>
+<p>Here are a few examples of how to interact with the MCP server using <code>curl</code>. Assume the server is running on <code>http://localhost:8000</code> (the default for FastAPI/Uvicorn, adjust if your FastMCP setup uses a different port). The MCP protocol usually involves a POST request with a JSON body.</p>
+<h3 id="1-create-an-object-type">1. Create an Object Type**</h3>
+<pre><code class="language-bash">curl -X POST http://localhost:8000/mcp \
+-H &quot;Content-Type: application/json&quot; \
+-d '{
+    &quot;jsonrpc&quot;: &quot;2.0&quot;,
+    &quot;method&quot;: &quot;create_object_type&quot;,
+    &quot;params&quot;: {
+        &quot;object_type_def&quot;: {
+            &quot;name&quot;: &quot;Person&quot;,
+            &quot;properties&quot;: [
+                {&quot;name&quot;: &quot;full_name&quot;, &quot;data_type&quot;: &quot;TEXT&quot;},
+                {&quot;name&quot;: &quot;email&quot;, &quot;data_type&quot;: &quot;TEXT&quot;, &quot;is_unique&quot;: true}
+            ]
+        }
+    },
+    &quot;id&quot;: 1
+}'
+</code></pre>
+<p><em>(Note: The exact JSON-RPC structure (<code>jsonrpc</code>, <code>method</code>, <code>params</code>, <code>id</code>) might vary slightly based on FastMCP's specific implementation. The <code>params</code> would contain the arguments for the tool, e.g., <code>{"object_type_def": {...}}</code> for <code>create_object_type</code>.)</em></p>
+<p>If FastMCP uses a simpler REST-like mapping where tool names are part of the URL, it might look different, e.g., <code>POST http://localhost:8000/create_object_type</code>. The examples above assume a common MCP/JSON-RPC pattern where the tool name is in the <code>method</code> field. For Grizabella's <code>FastMCP</code> usage, it's more likely that the parameters are directly passed as the JSON body for a POST request to a tool-specific endpoint (e.g. <code>POST /create_object_type</code> with the body being <code>{"object_type_def": {...}}</code>).</p>
+<p>Let's assume a simpler POST to <code>/tool_name</code> with direct parameters:</p>
+<h3 id="1-create-an-object-type-simpler-post">1. Create an Object Type (Simpler POST)</h3>
+<pre><code class="language-bash">curl -X POST http://localhost:8000/create_object_type \
+-H &quot;Content-Type: application/json&quot; \
+-d '{
+    &quot;object_type_def&quot;: {
+        &quot;name&quot;: &quot;Person&quot;,
+        &quot;description&quot;: &quot;A human being.&quot;,
+        &quot;properties&quot;: [
+            {&quot;name&quot;: &quot;full_name&quot;, &quot;data_type&quot;: &quot;TEXT&quot;, &quot;is_indexed&quot;: true},
+            {&quot;name&quot;: &quot;email&quot;, &quot;data_type&quot;: &quot;TEXT&quot;, &quot;is_unique&quot;: true, &quot;is_nullable&quot;: true},
+            {&quot;name&quot;: &quot;age&quot;, &quot;data_type&quot;: &quot;INTEGER&quot;, &quot;is_nullable&quot;: true}
+        ]
+    }
+}'
+</code></pre>
+<h3 id="2-upsert-an-object-instance">2. Upsert an Object Instance</h3>
+<pre><code class="language-bash">curl -X POST http://localhost:8000/upsert_object \
+-H &quot;Content-Type: application/json&quot; \
+-d '{
+    &quot;obj&quot;: {
+        &quot;object_type_name&quot;: &quot;Person&quot;,
+        &quot;properties&quot;: {
+            &quot;full_name&quot;: &quot;Jane Doe&quot;,
+            &quot;email&quot;: &quot;jane.doe@example.com&quot;,
+            &quot;age&quot;: 30
+        }
+    }
+}'
+</code></pre>
+<p>Response:</p>
+<pre><code class="language-json">{
+    &quot;id&quot;: &quot;generated-uuid-for-jane&quot;,
+    &quot;weight&quot;: 1.0,
+    &quot;upsert_date&quot;: &quot;YYYY-MM-DDTHH:MM:SS.ffffffZ&quot;,
+    &quot;object_type_name&quot;: &quot;Person&quot;,
+    &quot;properties&quot;: {
+        &quot;full_name&quot;: &quot;Jane Doe&quot;,
+        &quot;email&quot;: &quot;jane.doe@example.com&quot;,
+        &quot;age&quot;: 30
+    }
+}
+</code></pre>
+<h3 id="3-get-an-object-by-id">3. Get an Object by ID</h3>
+<pre><code class="language-bash">curl -X POST http://localhost:8000/get_object_by_id \
+-H &quot;Content-Type: application/json&quot; \
+-d '{
+    &quot;object_id&quot;: &quot;generated-uuid-for-jane&quot;,
+    &quot;type_name&quot;: &quot;Person&quot;
+}'
+</code></pre>
+<h3 id="4-execute-a-complex-query-payload-can-be-large">4. Execute a Complex Query (Payload can be large)</h3>
+<pre><code class="language-bash">curl -X POST http://localhost:8000/execute_complex_query \
+-H &quot;Content-Type: application/json&quot; \
+-d '{
+    &quot;query&quot;: {
+        &quot;description&quot;: &quot;Find Person named Jane Doe&quot;,
+        &quot;components&quot;: [
+            {
+                &quot;object_type_name&quot;: &quot;Person&quot;,
+                &quot;relational_filters&quot;: [
+                    {
+                        &quot;property_name&quot;: &quot;full_name&quot;,
+                        &quot;operator&quot;: &quot;==&quot;,
+                        &quot;value&quot;: &quot;Jane Doe&quot;
+                    }
+                ]
+            }
+        ]
+    }
+}'
+</code></pre>
+<p>Please consult the FastMCP documentation or observe server logs for the exact request format if these examples don't work directly. The key is that the JSON payload in the request body should match the input parameters defined for each tool.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>
