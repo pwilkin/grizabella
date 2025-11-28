@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "grizabella"
-version = "0.5.1"
+version = "0.5.2"
 description = "A tri-layer memory framework for LLM solutions."
 authors = ["Grizabella Project Contributors <contributors@example.com>"]
 readme = "README.md"

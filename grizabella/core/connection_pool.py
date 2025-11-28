@@ -297,10 +297,21 @@ class ConnectionPoolManager:
             # Run the async cleanup in a new event loop if needed
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            loop.run_until_complete(self.cleanup_all())
-            loop.close()
+            try:
+                loop.run_until_complete(self.cleanup_all())
+            finally:
+                loop.close()
         except Exception as e:
             logger.error(f"Error closing all pools: {e}")
+            # Force cleanup even if there's an error
+            try:
+                self._shutdown = True
+                if self._cleanup_thread and self._cleanup_thread.is_alive():
+                    self._cleanup_thread.join(timeout=1)
+                with self._lock:
+                    self._connection_count.clear()
+            except Exception as cleanup_error:
+                logger.error(f"Error during forced cleanup: {cleanup_error}")
             
     @asynccontextmanager
     async def get_connection_context(self, adapter_type: str, **kwargs):
@@ -358,24 +369,19 @@ def cleanup_global_connection_pool():
     """Clean up the global connection pool manager."""
     global _connection_pool_manager
     if _connection_pool_manager is not None:
-        # This should be called from an async context
-        # For now, we'll create a task to handle cleanup
         try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                # If we're in an async context, we need to handle this differently
-                # Create a task and ensure it's properly tracked
-                task = asyncio.create_task(_connection_pool_manager.cleanup_all())
-                # Add a callback to handle any exceptions
-                def handle_task_exception(task):
-                    try:
-                        task.result()
-                    except Exception as e:
-                        logger.error(f"Error in cleanup task: {e}")
-                task.add_done_callback(handle_task_exception)
-            else:
-                loop.run_until_complete(_connection_pool_manager.cleanup_all())
+            # Use the synchronous method for cleanup
+            _connection_pool_manager.close_all_pools()
         except Exception as e:
             logger.error(f"Error cleaning up global connection pool: {e}")
+            # Force cleanup even if there's an error
+            try:
+                _connection_pool_manager._shutdown = True
+                if _connection_pool_manager._cleanup_thread and _connection_pool_manager._cleanup_thread.is_alive():
+                    _connection_pool_manager._cleanup_thread.join(timeout=1)
+                with _connection_pool_manager._lock:
+                    _connection_pool_manager._connection_count.clear()
+            except Exception as force_error:
+                logger.error(f"Error during forced cleanup: {force_error}")
         finally:
             _connection_pool_manager = None

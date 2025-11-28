@@ -883,13 +883,29 @@ def cleanup_resources():
     """Perform cleanup of all resources."""
     logger.info("Starting resource cleanup...")
     
-    # Clean up database connections
+    # Clean up database connections using the global singleton
     try:
-        pool_manager = ConnectionPoolManager()
+        from grizabella.core.connection_pool import cleanup_global_connection_pool, get_connection_pool_manager
+        # First try to get the global instance and clean it up
+        pool_manager = get_connection_pool_manager()
         pool_manager.close_all_pools()
-        logger.info("Connection pools closed")
+        logger.info("Connection pools closed via global manager")
     except Exception as e:
         logger.error(f"Error closing connection pools: {e}")
+        # Try alternative approach - direct cleanup
+        try:
+            from grizabella.core.connection_pool import cleanup_global_connection_pool
+            cleanup_global_connection_pool()
+            logger.info("Connection pools cleaned up via global cleanup function")
+        except Exception as e2:
+            logger.error(f"Error with global pool cleanup: {e2}")
+            # Last resort - try creating a new instance and cleaning it up
+            try:
+                pool_manager = ConnectionPoolManager()
+                pool_manager.close_all_pools()
+                logger.info("Connection pools closed via alternative method")
+            except Exception as e3:
+                logger.error(f"Error with alternative pool cleanup: {e3}")
     
     # Clean up DB managers
     try:
@@ -924,7 +940,9 @@ def shutdown_handler(signum, frame):
     # Perform cleanup
     cleanup_resources()
     
-    sys.exit(0)
+    # Don't call sys.exit(0) as it can cause issues during interpreter shutdown
+    # Instead, let the main function handle the exit naturally
+    raise SystemExit(0)
 
 def main():
     """Initializes client and runs the FastMCP application."""
