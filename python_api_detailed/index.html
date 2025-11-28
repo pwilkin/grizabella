@@ -1,0 +1,2137 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://pwilkin.github.io/grizabella/python_api_detailed/">
+      
+      
+        <link rel="prev" href="../core_concepts/">
+      
+      
+        <link rel="next" href="../mcp_server_api_guide/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>Python API Detailed Guide - Grizabella</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#python-api-usage-detailed-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Grizabella" class="md-header__button md-logo" aria-label="Grizabella" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Grizabella
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Python API Detailed Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pwilkin/grizabella" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pwilkin/grizabella
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Grizabella" class="md-nav__button md-logo" aria-label="Grizabella" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Grizabella
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pwilkin/grizabella" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pwilkin/grizabella
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core_concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core Concepts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Python API Detailed Guide
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Python API Detailed Guide
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#connecting-to-grizabella" class="md-nav__link">
+    <span class="md-ellipsis">
+      Connecting to Grizabella
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Connecting to Grizabella">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#grizabelladb_name_or_path-unionstr-path-default-create_if_not_exists-bool-true" class="md-nav__link">
+    <span class="md-ellipsis">
+      Grizabella(db_name_or_path: Union[str, Path] = "default", create_if_not_exists: bool = True)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#object-type-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Object Type Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Object Type Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create_object_typeobject_type_def-objecttypedefinition-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      create_object_type(object_type_def: ObjectTypeDefinition) -&gt; None
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_object_type_definitiontype_name-str-optionalobjecttypedefinition" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_object_type_definition(type_name: str) -&gt; Optional[ObjectTypeDefinition]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list_object_types-listobjecttypedefinition" class="md-nav__link">
+    <span class="md-ellipsis">
+      list_object_types() -&gt; List[ObjectTypeDefinition]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_object_typetype_name-str-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_object_type(type_name: str) -&gt; None
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#embedding-definition-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Embedding Definition Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Embedding Definition Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create_embedding_definitionembedding_def-embeddingdefinition-embeddingdefinition" class="md-nav__link">
+    <span class="md-ellipsis">
+      create_embedding_definition(embedding_def: EmbeddingDefinition) -&gt; EmbeddingDefinition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_embedding_definitionname-str-optionalembeddingdefinition" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_embedding_definition(name: str) -&gt; Optional[EmbeddingDefinition]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list_embedding_definitions-listembeddingdefinition" class="md-nav__link">
+    <span class="md-ellipsis">
+      list_embedding_definitions() -&gt; List[EmbeddingDefinition]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_embedding_definitionname-str-bool" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_embedding_definition(name: str) -&gt; bool
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relation-type-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relation Type Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Relation Type Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create_relation_typerelation_type_def-relationtypedefinition-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      create_relation_type(relation_type_def: RelationTypeDefinition) -&gt; None
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_relation_typetype_name-str-optionalrelationtypedefinition" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_relation_type(type_name: str) -&gt; Optional[RelationTypeDefinition]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_relation_typetype_name-str-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_relation_type(type_name: str) -&gt; None
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#object-instance-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Object Instance Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Object Instance Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#upsert_objectobj-objectinstance-objectinstance" class="md-nav__link">
+    <span class="md-ellipsis">
+      upsert_object(obj: ObjectInstance) -&gt; ObjectInstance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_object_by_idobject_id-str-type_name-str-optionalobjectinstance" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_object_by_id(object_id: str, type_name: str) -&gt; Optional[ObjectInstance]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_objectobject_id-str-type_name-str-bool" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_object(object_id: str, type_name: str) -&gt; bool
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relation-instance-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relation Instance Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Relation Instance Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#add_relationrelation-relationinstance-relationinstance" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_relation(relation: RelationInstance) -&gt; RelationInstance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_relation-and-delete_relation" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_relation(...) and delete_relation(...)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_outgoing_relationsobject_id-str-type_name-str-relation_type_name-optionalstr-none-listrelationinstance" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_outgoing_relations(object_id: str, type_name: str, relation_type_name: Optional[str] = None) -&gt; List[RelationInstance]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_incoming_relationsobject_id-str-type_name-str-relation_type_name-optionalstr-none-listrelationinstance" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_incoming_relations(object_id: str, type_name: str, relation_type_name: Optional[str] = None) -&gt; List[RelationInstance]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#querying" class="md-nav__link">
+    <span class="md-ellipsis">
+      Querying
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Querying">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simple-object-queries-find_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      Simple Object Queries (find_objects)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp_server_api_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Server API Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyside6_ui_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PySide6 UI Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/core_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/query_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Query Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/mcp_server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Server
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting_faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting & FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#connecting-to-grizabella" class="md-nav__link">
+    <span class="md-ellipsis">
+      Connecting to Grizabella
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Connecting to Grizabella">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#grizabelladb_name_or_path-unionstr-path-default-create_if_not_exists-bool-true" class="md-nav__link">
+    <span class="md-ellipsis">
+      Grizabella(db_name_or_path: Union[str, Path] = "default", create_if_not_exists: bool = True)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#object-type-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Object Type Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Object Type Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create_object_typeobject_type_def-objecttypedefinition-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      create_object_type(object_type_def: ObjectTypeDefinition) -&gt; None
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_object_type_definitiontype_name-str-optionalobjecttypedefinition" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_object_type_definition(type_name: str) -&gt; Optional[ObjectTypeDefinition]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list_object_types-listobjecttypedefinition" class="md-nav__link">
+    <span class="md-ellipsis">
+      list_object_types() -&gt; List[ObjectTypeDefinition]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_object_typetype_name-str-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_object_type(type_name: str) -&gt; None
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#embedding-definition-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Embedding Definition Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Embedding Definition Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create_embedding_definitionembedding_def-embeddingdefinition-embeddingdefinition" class="md-nav__link">
+    <span class="md-ellipsis">
+      create_embedding_definition(embedding_def: EmbeddingDefinition) -&gt; EmbeddingDefinition
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_embedding_definitionname-str-optionalembeddingdefinition" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_embedding_definition(name: str) -&gt; Optional[EmbeddingDefinition]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list_embedding_definitions-listembeddingdefinition" class="md-nav__link">
+    <span class="md-ellipsis">
+      list_embedding_definitions() -&gt; List[EmbeddingDefinition]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_embedding_definitionname-str-bool" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_embedding_definition(name: str) -&gt; bool
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relation-type-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relation Type Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Relation Type Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create_relation_typerelation_type_def-relationtypedefinition-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      create_relation_type(relation_type_def: RelationTypeDefinition) -&gt; None
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_relation_typetype_name-str-optionalrelationtypedefinition" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_relation_type(type_name: str) -&gt; Optional[RelationTypeDefinition]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_relation_typetype_name-str-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_relation_type(type_name: str) -&gt; None
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#object-instance-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Object Instance Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Object Instance Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#upsert_objectobj-objectinstance-objectinstance" class="md-nav__link">
+    <span class="md-ellipsis">
+      upsert_object(obj: ObjectInstance) -&gt; ObjectInstance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_object_by_idobject_id-str-type_name-str-optionalobjectinstance" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_object_by_id(object_id: str, type_name: str) -&gt; Optional[ObjectInstance]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_objectobject_id-str-type_name-str-bool" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_object(object_id: str, type_name: str) -&gt; bool
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relation-instance-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relation Instance Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Relation Instance Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#add_relationrelation-relationinstance-relationinstance" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_relation(relation: RelationInstance) -&gt; RelationInstance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_relation-and-delete_relation" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_relation(...) and delete_relation(...)
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_outgoing_relationsobject_id-str-type_name-str-relation_type_name-optionalstr-none-listrelationinstance" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_outgoing_relations(object_id: str, type_name: str, relation_type_name: Optional[str] = None) -&gt; List[RelationInstance]
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_incoming_relationsobject_id-str-type_name-str-relation_type_name-optionalstr-none-listrelationinstance" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_incoming_relations(object_id: str, type_name: str, relation_type_name: Optional[str] = None) -&gt; List[RelationInstance]
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#querying" class="md-nav__link">
+    <span class="md-ellipsis">
+      Querying
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Querying">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simple-object-queries-find_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      Simple Object Queries (find_objects)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="python-api-usage-detailed-guide">Python API Usage - Detailed Guide</h1>
+<p>This guide provides a detailed walkthrough of the Grizabella Python API, covering connection management, schema definition, data manipulation, and querying.</p>
+<h2 id="connecting-to-grizabella">Connecting to Grizabella</h2>
+<p>The primary entry point to interacting with Grizabella is the <code>Grizabella</code> class from the <a class="autorefs autorefs-internal" href="../api/client/#grizabella.api.client"><code>grizabella.api.client</code></a> module.</p>
+<h3 id="grizabelladb_name_or_path-unionstr-path-default-create_if_not_exists-bool-true"><code>Grizabella(db_name_or_path: Union[str, Path] = "default", create_if_not_exists: bool = True)</code></h3>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>db_name_or_path</code> (Union[str, Path], optional):</li>
+<li>Specifies the database instance to connect to.</li>
+<li>If a string like <code>"my_db"</code> is provided, Grizabella manages it in a default location (e.g., <code>~/.grizabella/databases/my_db</code>).</li>
+<li>If a <code>pathlib.Path</code> object or a string representing a full path is provided, Grizabella uses that specific directory.</li>
+<li>Defaults to <code>"default"</code>, which uses <code>~/.grizabella/databases/default</code>.</li>
+<li><code>create_if_not_exists</code> (bool, optional):</li>
+<li>If <code>True</code> (the default), the database directory and necessary files will be created if they don't already exist.</li>
+<li>If <code>False</code> and the database does not exist, an error will likely occur upon trying to connect or perform operations.</li>
+</ul>
+<p><strong>Default Behavior:</strong></p>
+<p>Initializing <code>Grizabella()</code> without arguments connects to (or creates) a database named "default" in the standard Grizabella data directory.</p>
+<p><strong>Usage with <code>with</code> Statement:</strong></p>
+<p>The recommended way to use the <code>Grizabella</code> client is with a <code>with</code> statement. This ensures that the database connection is automatically opened when entering the block and closed when exiting, even if errors occur.</p>
+<pre><code class="language-python">from pathlib import Path
+from grizabella import Grizabella
+from grizabella.core.models import ObjectTypeDefinition, PropertyDefinition, PropertyDataType
+
+# Example using the 'with' statement for automatic connection management
+db_path = Path(&quot;./my_grizabella_db&quot;)
+
+try:
+    with Grizabella(db_name_or_path=db_path, create_if_not_exists=True) as gz:
+        # The connection is now active within this block
+        print(f&quot;Successfully connected to Grizabella database at: {gz._db_manager.db_path}&quot;)
+
+        # You can now perform operations, e.g., list object types
+        object_types = gz.list_object_types()
+        if not object_types:
+            print(&quot;No object types found yet.&quot;)
+        else:
+            print(&quot;Existing object types:&quot;)
+            for ot_def in object_types:
+                print(f&quot;- {ot_def.name}&quot;)
+
+except Exception as e:
+    print(f&quot;An error occurred: {e}&quot;)
+
+# Outside the 'with' block, the connection is automatically closed.
+</code></pre>
+<h2 id="schema-management">Schema Management</h2>
+<p>Schema management involves defining the structure of your data using Object Types, Embedding Definitions, and Relation Types.</p>
+<h3 id="object-type-management">Object Type Management</h3>
+<h4 id="create_object_typeobject_type_def-objecttypedefinition-none"><code>create_object_type(object_type_def: ObjectTypeDefinition) -&gt; None</code></h4>
+<ul>
+<li><strong>Signature:</strong> <code>def create_object_type(self, object_type_def: ObjectTypeDefinition) -&gt; None:</code></li>
+<li><strong>Purpose:</strong> Creates a new object type (e.g., a table schema or node label) in the database.</li>
+<li><strong>Example:</strong></li>
+</ul>
+<pre><code class="language-python">from grizabella import Grizabella
+from grizabella.core.models import ObjectTypeDefinition, PropertyDefinition, PropertyDataType
+
+# Define an Object Type for &quot;User&quot;
+user_type_def = ObjectTypeDefinition(
+    name=&quot;User&quot;,
+    description=&quot;Represents a user in the system.&quot;,
+    properties=[
+        PropertyDefinition(name=&quot;user_id&quot;, data_type=PropertyDataType.TEXT, is_primary_key=True, is_unique=True, is_indexed=True),
+        PropertyDefinition(name=&quot;username&quot;, data_type=PropertyDataType.TEXT, is_unique=True, is_indexed=True),
+        PropertyDefinition(name=&quot;email&quot;, data_type=PropertyDataType.TEXT, is_unique=True),
+        PropertyDefinition(name=&quot;full_name&quot;, data_type=PropertyDataType.TEXT, is_nullable=True),
+        PropertyDefinition(name=&quot;join_date&quot;, data_type=PropertyDataType.DATETIME),
+        PropertyDefinition(name=&quot;is_active&quot;, data_type=PropertyDataType.BOOLEAN, default=True) # Default not directly in model, but conceptual
+    ]
+)
+
+with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+    try:
+        gz.create_object_type(user_type_def)
+        print(f&quot;Object type '{user_type_def.name}' created successfully.&quot;)
+    except Exception as e: # Replace with specific Grizabella exceptions if available
+        print(f&quot;Error creating object type '{user_type_def.name}': {e}&quot;)
+</code></pre>
+<h4 id="get_object_type_definitiontype_name-str-optionalobjecttypedefinition"><code>get_object_type_definition(type_name: str) -&gt; Optional[ObjectTypeDefinition]</code></h4>
+<ul>
+<li><strong>Signature:</strong> <code>def get_object_type_definition(self, type_name: str) -&gt; Optional[ObjectTypeDefinition]:</code></li>
+<li><strong>Purpose:</strong> Retrieves the definition of a specific object type.</li>
+<li><strong>Example:</strong></li>
+</ul>
+<pre><code class="language-python"># Assuming 'gz' is an active Grizabella client from the previous example
+with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+    user_type_name = &quot;User&quot;
+    retrieved_def = gz.get_object_type_definition(user_type_name)
+
+    if retrieved_def:
+        print(f&quot;Retrieved definition for '{retrieved_def.name}':&quot;)
+        for prop in retrieved_def.properties:
+            print(f&quot;  - {prop.name} ({prop.data_type.value})&quot;)
+    else:
+        print(f&quot;Object type '{user_type_name}' not found.&quot;)
+</code></pre>
+<h4 id="list_object_types-listobjecttypedefinition"><code>list_object_types() -&gt; List[ObjectTypeDefinition]</code></h4>
+<ul>
+<li><strong>Signature:</strong> <code>def list_object_types(self) -&gt; List[ObjectTypeDefinition]:</code></li>
+<li><strong>Purpose:</strong> Lists all object type definitions currently in the database.</li>
+<li><strong>Example:</strong></li>
+</ul>
+<pre><code class="language-python"># Assuming 'gz' is an active Grizabella client
+with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+    all_object_types = gz.list_object_types()
+    if all_object_types:
+        print(&quot;All defined object types:&quot;)
+        for ot_def in all_object_types:
+            print(f&quot;- {ot_def.name} (Description: {ot_def.description or 'N/A'})&quot;)
+    else:
+        print(&quot;No object types are defined in the database yet.&quot;)
+</code></pre>
+<h4 id="delete_object_typetype_name-str-none"><code>delete_object_type(type_name: str) -&gt; None</code></h4>
+<ul>
+<li><strong>Signature:</strong> <code>def delete_object_type(self, type_name: str) -&gt; None:</code></li>
+<li><strong>Purpose:</strong> Deletes an object type definition from the database. <strong>Warning:</strong> This may also delete all associated object instances and relations.</li>
+<li><strong>Example:</strong></li>
+</ul>
+<pre><code class="language-python"># Assuming 'gz' is an active Grizabella client
+# with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+#     type_to_delete = &quot;TemporaryType&quot;
+#     # First, create it if it doesn't exist for the example to run
+#     if not gz.get_object_type_definition(type_to_delete):
+#         temp_type = ObjectTypeDefinition(name=type_to_delete, properties=[PropertyDefinition(name=&quot;field&quot;, data_type=PropertyDataType.TEXT)])
+#         gz.create_object_type(temp_type)
+#         print(f&quot;Created '{type_to_delete}' for deletion example.&quot;)
+#
+#     try:
+#         gz.delete_object_type(type_to_delete)
+#         print(f&quot;Object type '{type_to_delete}' deleted successfully.&quot;)
+#     except Exception as e: # Replace with specific Grizabella exceptions
+#         print(f&quot;Error deleting object type '{type_to_delete}': {e}&quot;)
+</code></pre>
+<h3 id="embedding-definition-management">Embedding Definition Management</h3>
+<h4 id="create_embedding_definitionembedding_def-embeddingdefinition-embeddingdefinition"><code>create_embedding_definition(embedding_def: EmbeddingDefinition) -&gt; EmbeddingDefinition</code></h4>
+<ul>
+<li><strong>Signature:</strong> <code>def create_embedding_definition(self, embedding_def: EmbeddingDefinition) -&gt; EmbeddingDefinition:</code></li>
+<li><strong>Purpose:</strong> Creates a new embedding definition, specifying how embeddings are generated for a particular object type and property.</li>
+<li><strong>Example:</strong></li>
+</ul>
+<pre><code class="language-python">from grizabella import Grizabella
+from grizabella.core.models import EmbeddingDefinition, ObjectTypeDefinition, PropertyDefinition, PropertyDataType
+
+# First, ensure the Object Type &quot;User&quot; exists (from previous example)
+with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+    if not gz.get_object_type_definition(&quot;User&quot;):
+        user_type_def = ObjectTypeDefinition(
+            name=&quot;User&quot;,
+            properties=[
+                PropertyDefinition(name=&quot;user_id&quot;, data_type=PropertyDataType.TEXT, is_primary_key=True),
+                PropertyDefinition(name=&quot;username&quot;, data_type=PropertyDataType.TEXT),
+                PropertyDefinition(name=&quot;profile_bio&quot;, data_type=PropertyDataType.TEXT) # Property to embed
+            ]
+        )
+        gz.create_object_type(user_type_def)
+        print(&quot;Created 'User' object type for embedding example.&quot;)
+
+
+    # Define an Embedding Definition for the &quot;profile_bio&quot; property of &quot;User&quot;
+    user_bio_embedding_def = EmbeddingDefinition(
+        name=&quot;user_profile_bio_sbert&quot;,
+        object_type_name=&quot;User&quot;,
+        source_property_name=&quot;profile_bio&quot;,
+        embedding_model=&quot;sentence-transformers/all-MiniLM-L6-v2&quot;, # Example model
+        dimensions=384, # Example dimension for the chosen model
+        description=&quot;Embeds user profile bios using Sentence-BERT for similarity search.&quot;
+    )
+
+    try:
+        created_emb_def = gz.create_embedding_definition(user_bio_embedding_def)
+        print(f&quot;Embedding definition '{created_emb_def.name}' created successfully.&quot;)
+    except Exception as e:
+        print(f&quot;Error creating embedding definition '{user_bio_embedding_def.name}': {e}&quot;)
+</code></pre>
+<h4 id="get_embedding_definitionname-str-optionalembeddingdefinition"><code>get_embedding_definition(name: str) -&gt; Optional[EmbeddingDefinition]</code></h4>
+<ul>
+<li><strong>Signature:</strong> <code>def get_embedding_definition(self, name: str) -&gt; Optional[EmbeddingDefinition]:</code></li>
+<li><strong>Purpose:</strong> Retrieves a specific embedding definition by its name.</li>
+<li><strong>Example:</strong></li>
+</ul>
+<pre><code class="language-python"># Assuming 'gz' is an active Grizabella client
+with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+    emb_def_name = &quot;user_profile_bio_sbert&quot;
+    retrieved_emb_def = gz.get_embedding_definition(emb_def_name)
+
+    if retrieved_emb_def:
+        print(f&quot;Retrieved embedding definition '{retrieved_emb_def.name}':&quot;)
+        print(f&quot;  - Object Type: {retrieved_emb_def.object_type_name}&quot;)
+        print(f&quot;  - Source Property: {retrieved_emb_def.source_property_name}&quot;)
+        print(f&quot;  - Model: {retrieved_emb_def.embedding_model}&quot;)
+    else:
+        print(f&quot;Embedding definition '{emb_def_name}' not found.&quot;)
+</code></pre>
+<h4 id="list_embedding_definitions-listembeddingdefinition"><code>list_embedding_definitions() -&gt; List[EmbeddingDefinition]</code></h4>
+<ul>
+<li><strong>Signature:</strong> <code>def list_embedding_definitions(self) -&gt; List[EmbeddingDefinition]:</code></li>
+<li><strong>Purpose:</strong> Lists all embedding definitions in the database.</li>
+<li><strong>Example:</strong></li>
+</ul>
+<pre><code class="language-python"># Assuming 'gz' is an active Grizabella client
+with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+    all_emb_defs = gz.list_embedding_definitions()
+    if all_emb_defs:
+        print(&quot;All defined embedding definitions:&quot;)
+        for emb_def in all_emb_defs:
+            print(f&quot;- {emb_def.name} (Model: {emb_def.embedding_model})&quot;)
+    else:
+        print(&quot;No embedding definitions are defined yet.&quot;)
+</code></pre>
+<h4 id="delete_embedding_definitionname-str-bool"><code>delete_embedding_definition(name: str) -&gt; bool</code></h4>
+<ul>
+<li><strong>Signature:</strong> <code>def delete_embedding_definition(self, name: str) -&gt; bool:</code></li>
+<li><strong>Purpose:</strong> Deletes an embedding definition. May also delete associated embedding vectors.</li>
+<li><strong>Example:</strong></li>
+</ul>
+<pre><code class="language-python"># Assuming 'gz' is an active Grizabella client
+# with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+#     emb_def_to_delete = &quot;temp_embedding_def&quot;
+#     # Create it first for the example
+#     if not gz.get_object_type_definition(&quot;TempObj&quot;):
+#         gz.create_object_type(ObjectTypeDefinition(name=&quot;TempObj&quot;, properties=[PropertyDefinition(name=&quot;text&quot;, data_type=PropertyDataType.TEXT)]))
+#     if not gz.get_embedding_definition(emb_def_to_delete):
+#         temp_emb_def = EmbeddingDefinition(name=emb_def_to_delete, object_type_name=&quot;TempObj&quot;, source_property_name=&quot;text&quot;, embedding_model=&quot;test-model&quot;)
+#         gz.create_embedding_definition(temp_emb_def)
+#         print(f&quot;Created '{emb_def_to_delete}' for deletion example.&quot;)
+#
+#     try:
+#         deleted = gz.delete_embedding_definition(emb_def_to_delete)
+#         if deleted:
+#             print(f&quot;Embedding definition '{emb_def_to_delete}' deleted successfully.&quot;)
+#         else:
+#             print(f&quot;Embedding definition '{emb_def_to_delete}' not found or not deleted.&quot;)
+#     except Exception as e:
+#         print(f&quot;Error deleting embedding definition '{emb_def_to_delete}': {e}&quot;)
+</code></pre>
+<h3 id="relation-type-management">Relation Type Management</h3>
+<h4 id="create_relation_typerelation_type_def-relationtypedefinition-none"><code>create_relation_type(relation_type_def: RelationTypeDefinition) -&gt; None</code></h4>
+<ul>
+<li><strong>Signature:</strong> <code>def create_relation_type(self, relation_type_def: RelationTypeDefinition) -&gt; None:</code></li>
+<li><strong>Purpose:</strong> Creates a new relation type, defining the schema for relationships between objects.</li>
+<li><strong>Example:</strong></li>
+</ul>
+<pre><code class="language-python">from grizabella import Grizabella
+from grizabella.core.models import RelationTypeDefinition, PropertyDefinition, PropertyDataType, ObjectTypeDefinition
+
+# Ensure source and target Object Types exist (e.g., &quot;User&quot; and &quot;Post&quot;)
+with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+    if not gz.get_object_type_definition(&quot;User&quot;):
+        user_type_def = ObjectTypeDefinition(name=&quot;User&quot;, properties=[PropertyDefinition(name=&quot;user_id&quot;, data_type=PropertyDataType.TEXT, is_primary_key=True)])
+        gz.create_object_type(user_type_def)
+    if not gz.get_object_type_definition(&quot;Post&quot;):
+        post_type_def = ObjectTypeDefinition(name=&quot;Post&quot;, properties=[PropertyDefinition(name=&quot;post_id&quot;, data_type=PropertyDataType.TEXT, is_primary_key=True)])
+        gz.create_object_type(post_type_def)
+    print(&quot;Ensured 'User' and 'Post' object types exist for relation example.&quot;)
+
+    # Define a Relation Type &quot;AUTHORED&quot;
+    authored_relation_def = RelationTypeDefinition(
+        name=&quot;AUTHORED&quot;,
+        description=&quot;Indicates that a User authored a Post.&quot;,
+        source_object_type_names=[&quot;User&quot;],
+        target_object_type_names=[&quot;Post&quot;],
+        properties=[
+            PropertyDefinition(name=&quot;authored_date&quot;, data_type=PropertyDataType.DATETIME),
+            PropertyDefinition(name=&quot;is_primary_author&quot;, data_type=PropertyDataType.BOOLEAN, default=True)
+        ]
+    )
+
+    try:
+        gz.create_relation_type(authored_relation_def)
+        print(f&quot;Relation type '{authored_relation_def.name}' created successfully.&quot;)
+    except Exception as e:
+        print(f&quot;Error creating relation type '{authored_relation_def.name}': {e}&quot;)
+</code></pre>
+<h4 id="get_relation_typetype_name-str-optionalrelationtypedefinition"><code>get_relation_type(type_name: str) -&gt; Optional[RelationTypeDefinition]</code></h4>
+<ul>
+<li><strong>Signature:</strong> <code>def get_relation_type(self, type_name: str) -&gt; Optional[RelationTypeDefinition]:</code></li>
+<li><strong>Purpose:</strong> Retrieves the definition of a specific relation type.</li>
+<li><strong>Example:</strong></li>
+</ul>
+<pre><code class="language-python"># Assuming 'gz' is an active Grizabella client
+with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+    relation_type_name = &quot;AUTHORED&quot;
+    retrieved_rel_def = gz.get_relation_type(relation_type_name)
+
+    if retrieved_rel_def:
+        print(f&quot;Retrieved definition for relation type '{retrieved_rel_def.name}':&quot;)
+        print(f&quot;  - Source Types: {retrieved_rel_def.source_object_type_names}&quot;)
+        print(f&quot;  - Target Types: {retrieved_rel_def.target_object_type_names}&quot;)
+        if retrieved_rel_def.properties:
+            print(&quot;  - Properties:&quot;)
+            for prop in retrieved_rel_def.properties:
+                print(f&quot;    - {prop.name} ({prop.data_type.value})&quot;)
+    else:
+        print(f&quot;Relation type '{relation_type_name}' not found.&quot;)
+</code></pre>
+<h4 id="delete_relation_typetype_name-str-none"><code>delete_relation_type(type_name: str) -&gt; None</code></h4>
+<ul>
+<li><strong>Signature:</strong> <code>def delete_relation_type(self, type_name: str) -&gt; None:</code></li>
+<li><strong>Purpose:</strong> Deletes a relation type definition. <strong>Warning:</strong> May also delete associated relation instances.</li>
+<li><strong>Example:</strong></li>
+</ul>
+<pre><code class="language-python"># Assuming 'gz' is an active Grizabella client
+# with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+#     rel_type_to_delete = &quot;TEMP_RELATION&quot;
+#     # Create it first for the example
+#     if not gz.get_object_type_definition(&quot;ObjA&quot;): gz.create_object_type(ObjectTypeDefinition(name=&quot;ObjA&quot;, properties=[]))
+#     if not gz.get_object_type_definition(&quot;ObjB&quot;): gz.create_object_type(ObjectTypeDefinition(name=&quot;ObjB&quot;, properties=[]))
+#
+#     if not gz.get_relation_type(rel_type_to_delete):
+#         temp_rel_def = RelationTypeDefinition(name=rel_type_to_delete, source_object_type_names=[&quot;ObjA&quot;], target_object_type_names=[&quot;ObjB&quot;])
+#         gz.create_relation_type(temp_rel_def)
+#         print(f&quot;Created '{rel_type_to_delete}' for deletion example.&quot;)
+#
+#     try:
+#         gz.delete_relation_type(rel_type_to_delete)
+#         print(f&quot;Relation type '{rel_type_to_delete}' deleted successfully.&quot;)
+#     except Exception as e:
+#         print(f&quot;Error deleting relation type '{rel_type_to_delete}': {e}&quot;)
+</code></pre>
+<h2 id="data-management">Data Management</h2>
+<p>Data management involves creating, retrieving, updating, and deleting instances of your defined schemas (Objects and Relations).</p>
+<h3 id="object-instance-management">Object Instance Management</h3>
+<h4 id="upsert_objectobj-objectinstance-objectinstance"><code>upsert_object(obj: ObjectInstance) -&gt; ObjectInstance</code></h4>
+<ul>
+<li><strong>Signature:</strong> <code>def upsert_object(self, obj: ObjectInstance) -&gt; ObjectInstance:</code></li>
+<li><strong>Purpose:</strong> Creates a new object instance or updates an existing one if an object with the same <code>id</code> already exists. The <code>upsert_date</code> metadata field is automatically updated. The <code>weight</code> field can be set or defaults to 1.0.</li>
+<li><strong>Example:</strong></li>
+</ul>
+<pre><code class="language-python">import uuid
+from datetime import datetime, timezone
+from grizabella import Grizabella
+from grizabella.core.models import ObjectInstance, ObjectTypeDefinition, PropertyDefinition, PropertyDataType
+
+# Ensure &quot;User&quot; ObjectType exists
+with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+    if not gz.get_object_type_definition(&quot;User&quot;):
+        user_type_def = ObjectTypeDefinition(
+            name=&quot;User&quot;,
+            properties=[
+                PropertyDefinition(name=&quot;user_id&quot;, data_type=PropertyDataType.TEXT, is_primary_key=True),
+                PropertyDefinition(name=&quot;username&quot;, data_type=PropertyDataType.TEXT),
+                PropertyDefinition(name=&quot;email&quot;, data_type=PropertyDataType.TEXT),
+                PropertyDefinition(name=&quot;join_date&quot;, data_type=PropertyDataType.DATETIME),
+                PropertyDefinition(name=&quot;profile_bio&quot;, data_type=PropertyDataType.TEXT, is_nullable=True),
+            ]
+        )
+        gz.create_object_type(user_type_def)
+        print(&quot;Created 'User' object type for upsert example.&quot;)
+
+    # Create a new user object
+    new_user_data = {
+        &quot;user_id&quot;: &quot;usr_&quot; + uuid.uuid4().hex[:8], # Domain-specific ID
+        &quot;username&quot;: &quot;jdoe&quot;,
+        &quot;email&quot;: &quot;jdoe@example.com&quot;,
+        &quot;join_date&quot;: datetime.now(timezone.utc),
+        &quot;profile_bio&quot;: &quot;Loves hiking and coding.&quot;
+    }
+    new_user_instance = ObjectInstance(
+        object_type_name=&quot;User&quot;,
+        properties=new_user_data,
+        weight=5.0 # Custom weight
+    )
+
+    try:
+        created_user = gz.upsert_object(new_user_instance)
+        print(f&quot;User '{created_user.properties['username']}' (ID: {created_user.id}) upserted successfully.&quot;)
+        print(f&quot;  Upsert Date: {created_user.upsert_date}, Weight: {created_user.weight}&quot;)
+
+        # Update the user's email (upsert again using the system ID)
+        created_user.properties[&quot;email&quot;] = &quot;john.doe.updated@example.com&quot;
+        created_user.weight = 5.5 # Update weight
+        # Note: upsert_date will be updated automatically by the system on upsert
+
+        updated_user = gz.upsert_object(created_user) # Pass the whole instance with its ID
+        print(f&quot;User '{updated_user.properties['username']}' (ID: {updated_user.id}) updated successfully.&quot;)
+        print(f&quot;  New Email: {updated_user.properties['email']}&quot;)
+        print(f&quot;  Updated Upsert Date: {updated_user.upsert_date}, New Weight: {updated_user.weight}&quot;)
+
+    except Exception as e:
+        print(f&quot;Error upserting user: {e}&quot;)
+</code></pre>
+<h4 id="get_object_by_idobject_id-str-type_name-str-optionalobjectinstance"><code>get_object_by_id(object_id: str, type_name: str) -&gt; Optional[ObjectInstance]</code></h4>
+<ul>
+<li><strong>Signature:</strong> <code>def get_object_by_id(self, object_id: str, type_name: str) -&gt; Optional[ObjectInstance]:</code></li>
+<li><strong>Purpose:</strong> Retrieves a specific object instance by its system-generated <code>id</code> and its type name.</li>
+<li><strong>Example:</strong></li>
+</ul>
+<pre><code class="language-python"># Assuming 'gz' is an active Grizabella client and 'created_user' from previous example
+# For this example, let's re-fetch the user created above.
+with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+    # First, let's find an existing user to get its ID
+    users = gz.find_objects(type_name=&quot;User&quot;, filter_criteria={&quot;username&quot;: &quot;jdoe&quot;}, limit=1)
+    if users:
+        user_to_get_id = users[0].id
+        user_type_name = &quot;User&quot;
+
+        retrieved_object = gz.get_object_by_id(object_id=str(user_to_get_id), type_name=user_type_name)
+        if retrieved_object:
+            print(f&quot;Retrieved object by ID '{user_to_get_id}':&quot;)
+            print(f&quot;  Type: {retrieved_object.object_type_name}&quot;)
+            print(f&quot;  Properties: {retrieved_object.properties}&quot;)
+            print(f&quot;  Weight: {retrieved_object.weight}, Upsert Date: {retrieved_object.upsert_date}&quot;)
+        else:
+            print(f&quot;Object with ID '{user_to_get_id}' of type '{user_type_name}' not found.&quot;)
+    else:
+        print(&quot;No user 'jdoe' found to get ID for example.&quot;)
+
+</code></pre>
+<h4 id="delete_objectobject_id-str-type_name-str-bool"><code>delete_object(object_id: str, type_name: str) -&gt; bool</code></h4>
+<ul>
+<li><strong>Signature:</strong> <code>def delete_object(self, object_id: str, type_name: str) -&gt; bool:</code></li>
+<li><strong>Purpose:</strong> Deletes an object instance by its system-generated <code>id</code> and type name.</li>
+<li><strong>Example:</strong></li>
+</ul>
+<pre><code class="language-python"># Assuming 'gz' is an active Grizabella client
+# Let's create a temporary object to delete
+with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+    temp_obj_props = {&quot;user_id&quot;: &quot;temp_del_user&quot;, &quot;username&quot;: &quot;tempdelete&quot;}
+    temp_obj = ObjectInstance(object_type_name=&quot;User&quot;, properties=temp_obj_props)
+    created_temp_obj = gz.upsert_object(temp_obj)
+    print(f&quot;Created temporary object with ID '{created_temp_obj.id}' for deletion.&quot;)
+
+    object_to_delete_id = str(created_temp_obj.id)
+    object_type_name = &quot;User&quot;
+
+    try:
+        deleted = gz.delete_object(object_id=object_to_delete_id, type_name=object_type_name)
+        if deleted:
+            print(f&quot;Object with ID '{object_to_delete_id}' of type '{object_type_name}' deleted successfully.&quot;)
+        else:
+            print(f&quot;Object with ID '{object_to_delete_id}' not found or not deleted.&quot;)
+    except Exception as e:
+        print(f&quot;Error deleting object: {e}&quot;)
+</code></pre>
+<h3 id="relation-instance-management">Relation Instance Management</h3>
+<h4 id="add_relationrelation-relationinstance-relationinstance"><code>add_relation(relation: RelationInstance) -&gt; RelationInstance</code></h4>
+<ul>
+<li><strong>Signature:</strong> <code>def add_relation(self, relation: RelationInstance) -&gt; RelationInstance:</code></li>
+<li><strong>Purpose:</strong> Adds a new relation instance or updates an existing one if the provided <code>RelationInstance</code> object includes an <code>id</code> that matches an existing relation. The <code>upsert_date</code> metadata field is automatically updated upon creation or update. The <code>weight</code> field can be set or defaults to 1.0. This method effectively performs an "upsert" operation for relations.</li>
+<li><strong>Example:</strong></li>
+</ul>
+<pre><code class="language-python">import uuid
+from datetime import datetime, timezone
+from grizabella import Grizabella
+from grizabella.core.models import (
+    ObjectInstance, RelationInstance,
+    ObjectTypeDefinition, RelationTypeDefinition,
+    PropertyDefinition, PropertyDataType
+)
+
+with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+    # 1. Ensure Object Types (&quot;User&quot;, &quot;Post&quot;) and Relation Type (&quot;AUTHORED&quot;) exist
+    if not gz.get_object_type_definition(&quot;User&quot;):
+        gz.create_object_type(ObjectTypeDefinition(name=&quot;User&quot;, properties=[PropertyDefinition(name=&quot;user_id&quot;, data_type=PropertyDataType.TEXT, is_primary_key=True)]))
+    if not gz.get_object_type_definition(&quot;Post&quot;):
+        gz.create_object_type(ObjectTypeDefinition(name=&quot;Post&quot;, properties=[PropertyDefinition(name=&quot;post_id&quot;, data_type=PropertyDataType.TEXT, is_primary_key=True), PropertyDefinition(name=&quot;title&quot;, data_type=PropertyDataType.TEXT)]))
+    if not gz.get_relation_type(&quot;AUTHORED&quot;):
+        gz.create_relation_type(RelationTypeDefinition(name=&quot;AUTHORED&quot;, source_object_type_names=[&quot;User&quot;], target_object_type_names=[&quot;Post&quot;], properties=[PropertyDefinition(name=&quot;authored_date&quot;, data_type=PropertyDataType.DATETIME)]))
+    print(&quot;Ensured types for relation example.&quot;)
+
+    # 2. Create source and target ObjectInstances
+    author_obj = gz.upsert_object(ObjectInstance(object_type_name=&quot;User&quot;, properties={&quot;user_id&quot;: &quot;author_&quot; + uuid.uuid4().hex[:4]}))
+    post_obj = gz.upsert_object(ObjectInstance(object_type_name=&quot;Post&quot;, properties={&quot;post_id&quot;: &quot;post_&quot; + uuid.uuid4().hex[:4], &quot;title&quot;: &quot;My First Post&quot;}))
+    print(f&quot;Created author (ID: {author_obj.id}) and post (ID: {post_obj.id}).&quot;)
+
+    # 3. Create the RelationInstance
+    authored_relation = RelationInstance(
+        relation_type_name=&quot;AUTHORED&quot;,
+        source_object_instance_id=author_obj.id,
+        target_object_instance_id=post_obj.id,
+        properties={&quot;authored_date&quot;: datetime.now(timezone.utc)},
+        weight=2.5 # Custom weight for the relation
+    )
+
+    try:
+        created_relation = gz.add_relation(authored_relation)
+        print(f&quot;Relation '{created_relation.relation_type_name}' (ID: {created_relation.id}) added successfully.&quot;)
+        print(f&quot;  From: {created_relation.source_object_instance_id}&quot;)
+        print(f&quot;  To:   {created_relation.target_object_instance_id}&quot;)
+        print(f&quot;  Properties: {created_relation.properties}&quot;)
+        print(f&quot;  Weight: {created_relation.weight}, Upsert Date: {created_relation.upsert_date}&quot;)
+    except Exception as e:
+        print(f&quot;Error adding relation: {e}&quot;)
+</code></pre>
+<h4 id="get_relation-and-delete_relation"><code>get_relation(...)</code> and <code>delete_relation(...)</code></h4>
+<ul>
+<li><strong>Note:</strong> As per the <a class="autorefs autorefs-internal" href="../api/client/#grizabella.api.client"><code>grizabella.api.client</code></a> source, <code>get_relation</code> and <code>delete_relation</code> methods that take <code>from_object_id</code>, <code>to_object_id</code>, and <code>relation_type_name</code> are currently marked as <code>NotImplementedError</code>. The underlying DB manager expects a <code>relation_id</code>.
+    For now, to manage relations by ID, you would typically:<ol>
+<li>Find relations using <code>get_outgoing_relations</code> or <code>get_incoming_relations</code>.</li>
+<li>Identify the specific <code>RelationInstance</code> and use its <code>id</code> with the underlying <code>_db_manager</code> methods (though direct <code>_db_manager</code> access is not the public API).
+This section will be updated if the public API for <code>get_relation</code> and <code>delete_relation</code> by ID or by source/target/type is fully implemented.</li>
+</ol>
+</li>
+</ul>
+<h4 id="get_outgoing_relationsobject_id-str-type_name-str-relation_type_name-optionalstr-none-listrelationinstance"><code>get_outgoing_relations(object_id: str, type_name: str, relation_type_name: Optional[str] = None) -&gt; List[RelationInstance]</code></h4>
+<ul>
+<li><strong>Signature:</strong> <code>def get_outgoing_relations(self, object_id: str, type_name: str, relation_type_name: Optional[str] = None) -&gt; List[RelationInstance]:</code></li>
+<li><strong>Purpose:</strong> Retrieves all outgoing relations from a given object.</li>
+<li><strong>Example:</strong></li>
+</ul>
+<pre><code class="language-python"># Assuming 'gz' is an active Grizabella client and 'author_obj' from previous example
+with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+    # Find an author to get their outgoing relations
+    authors = gz.find_objects(type_name=&quot;User&quot;, limit=1) # Get any user
+    if authors:
+        author_to_query_id = str(authors[0].id)
+        author_type_name = &quot;User&quot; # Type name of the source object
+
+        outgoing_relations = gz.get_outgoing_relations(
+            object_id=author_to_query_id,
+            type_name=author_type_name, # type_name of the source object_id
+            relation_type_name=&quot;AUTHORED&quot; # Optional: filter by relation type
+        )
+
+        if outgoing_relations:
+            print(f&quot;Outgoing 'AUTHORED' relations for object ID '{author_to_query_id}':&quot;)
+            for rel in outgoing_relations:
+                print(f&quot;  - Relation ID: {rel.id}, Target ID: {rel.target_object_instance_id}, Props: {rel.properties}&quot;)
+        else:
+            print(f&quot;No outgoing 'AUTHORED' relations found for object ID '{author_to_query_id}'.&quot;)
+    else:
+        print(&quot;No author found to query outgoing relations.&quot;)
+</code></pre>
+<h4 id="get_incoming_relationsobject_id-str-type_name-str-relation_type_name-optionalstr-none-listrelationinstance"><code>get_incoming_relations(object_id: str, type_name: str, relation_type_name: Optional[str] = None) -&gt; List[RelationInstance]</code></h4>
+<ul>
+<li><strong>Signature:</strong> <code>def get_incoming_relations(self, object_id: str, type_name: str, relation_type_name: Optional[str] = None) -&gt; List[RelationInstance]:</code></li>
+<li><strong>Purpose:</strong> Retrieves all incoming relations to a given object.</li>
+<li><strong>Example:</strong></li>
+</ul>
+<pre><code class="language-python"># Assuming 'gz' is an active Grizabella client and 'post_obj' from a previous example
+with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+    # Find a post to get its incoming relations
+    posts = gz.find_objects(type_name=&quot;Post&quot;, limit=1) # Get any post
+    if posts:
+        post_to_query_id = str(posts[0].id)
+        post_type_name = &quot;Post&quot; # Type name of the target object
+
+        incoming_relations = gz.get_incoming_relations(
+            object_id=post_to_query_id,
+            type_name=post_type_name, # type_name of the target object_id
+            relation_type_name=&quot;AUTHORED&quot; # Optional: filter by relation type
+        )
+
+        if incoming_relations:
+            print(f&quot;Incoming 'AUTHORED' relations for object ID '{post_to_query_id}':&quot;)
+            for rel in incoming_relations:
+                print(f&quot;  - Relation ID: {rel.id}, Source ID: {rel.source_object_instance_id}, Props: {rel.properties}&quot;)
+        else:
+            print(f&quot;No incoming 'AUTHORED' relations found for object ID '{post_to_query_id}'.&quot;)
+    else:
+        print(&quot;No post found to query incoming relations.&quot;)
+
+</code></pre>
+<h2 id="querying">Querying</h2>
+<p>Grizabella provides several ways to query your data, from simple object lookups to complex multi-faceted queries.</p>
+<h3 id="simple-object-queries-find_objects">Simple Object Queries (<code>find_objects</code>)</h3>
+<ul>
+<li><strong>Signature:</strong> <code>def find_objects(self, type_name: str, filter_criteria: Optional[Dict[str, Any]] = None, limit: Optional[int] = None) -&gt; List[ObjectInstance]:</code></li>
+<li>Note: The client API uses <code>find_objects</code>. The prompt mentioned <code>query_objects</code>. We'll document <code>find_objects</code> as it's in the client.</li>
+<li><strong>Purpose:</strong> Finds objects of a given type, optionally matching filter criteria on their properties.</li>
+<li>
+<p><strong>Examples:</strong></p>
+</li>
+<li>
+<p><strong>Filtering with simple equality:</strong></p>
+<p>```python</p>
+<h1 id="assuming-gz-is-an-active-grizabella-client">Assuming 'gz' is an active Grizabella client</h1>
+<p>with Grizabella(db_name_or_path="user_guide_db") as gz:
+    # Find all active users named "jdoe"
+    active_jdoes = gz.find_objects(
+        type_name="User",
+        filter_criteria={"username": "jdoe", "is_active": True} # Assuming 'is_active' property exists
+    )
+    if active_jdoes:
+        print(f"Found {len(active_jdoes)} active user(s) named 'jdoe':")
+        for user in active_jdoes:
+            print(f"  - ID: {user.id}, Email: {user.properties.get('email')}")
+    else:
+        print("No active users named 'jdoe' found.")
+```</p>
+</li>
+<li>
+<p><strong>Using <code>limit</code>:</strong> (Offset is not directly supported by <code>find_objects</code>, but by <code>query_object_instances</code> in DBManager)</p>
+<p>```python</p>
+<h1 id="assuming-gz-is-an-active-grizabella-client_1">Assuming 'gz' is an active Grizabella client</h1>
+<p>with Grizabella(db_name_or_path="user_guide_db") as gz:
+    # Get up to 5 posts (any posts)
+    latest_posts = gz.find_objects(type_name="Post", limit=5)
+    if latest_posts:
+        print(f"Found {len(latest_posts)} post(s) (limit 5):")
+        for post in latest_posts:
+            print(f"  - ID: {post.id}, Title: {post.properties.get('title')}")
+    else:
+        print("No posts found.")
+```</p>
+</li>
+<li>
+<p>The <code>filter_criteria</code> currently supports exact matches. For more complex conditions (e.g., &gt;, &lt;, LIKE), you would typically use the <code>execute_complex_query</code> method or if the underlying <code>query_object_instances</code> in <code>DBManager</code> evolves to support richer conditions directly through <code>find_objects</code>.</p>
+</li>
+</ul>
+<h3 id="embedding-similarity-search-search_similar_objects">Embedding Similarity Search (<code>search_similar_objects</code>)</h3>
+<ul>
+<li><strong>Signature:</strong> <code>def search_similar_objects(self, object_id: str, type_name: str, n_results: int = 5, search_properties: Optional[List[str]] = None) -&gt; List[Tuple[ObjectInstance, float]]:</code></li>
+<li><strong>Purpose:</strong> Searches for objects similar to a given object, typically using embeddings.</li>
+<li>
+<p><strong>Note:</strong> The client API's <code>search_similar_objects</code> is currently marked as <code>NotImplementedError</code> because its signature (taking <code>object_id</code>, <code>type_name</code>) differs from the underlying DBManager's <code>find_similar_objects_by_embedding</code> which expects an <code>embedding_definition_name</code> and a <code>query_vector</code> or <code>query_text</code>.
+    The examples below are <em>conceptual</em> for how a fully implemented <code>find_similar</code> (as requested in the prompt) might work, assuming it maps to the DBManager's capabilities.</p>
+<p><strong>Conceptual <code>find_similar</code> (if it were implemented to match DBManager):</strong></p>
+<p>Let's assume a hypothetical <code>find_similar_by_definition</code> method in the client:
+<code>def find_similar_by_definition(self, embedding_definition_name: str, query_text: Optional[str] = None, query_vector: Optional[List[float]] = None, limit: int = 5, filter_condition: Optional[Dict[str, Any]] = None, retrieve_full_objects: bool = True) -&gt; List[Tuple[ObjectInstance, float]]:</code></p>
+</li>
+<li>
+<p><strong>Example using <code>query_text</code> (Conceptual):</strong></p>
+</li>
+</ul>
+<pre><code class="language-python">        # CONCEPTUAL EXAMPLE - Method does not exist with this signature in current client
+        # Assuming 'gz' is an active Grizabella client and &quot;user_profile_bio_sbert&quot; embedding def exists
+        # with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+        #     search_text = &quot;Looking for software engineers passionate about Python.&quot;
+        #     try:
+        #         similar_users = gz.find_similar_by_definition( # Hypothetical method
+        #             embedding_definition_name=&quot;user_profile_bio_sbert&quot;,
+        #             query_text=search_text,
+        #             limit=3
+        #         )
+        #         if similar_users:
+        #             print(f&quot;Users with bios similar to '{search_text}':&quot;)
+        #             for user, score in similar_users:
+        #                 print(f&quot;  - ID: {user.id}, Username: {user.properties.get('username')}, Score: {score:.4f}&quot;)
+        #                 print(f&quot;    Bio: {user.properties.get('profile_bio')[:100]}...&quot;) # Show part of bio
+        #         else:
+        #             print(&quot;No similar users found.&quot;)
+        #     except Exception as e:
+        #         print(f&quot;Error during conceptual similarity search: {e}&quot;)
+</code></pre>
+<ul>
+<li><strong>Example using <code>query_vector</code> (Conceptual):</strong></li>
+</ul>
+<pre><code class="language-python">        # CONCEPTUAL EXAMPLE
+        # import numpy as np # For generating a dummy vector
+        # with Grizabella(db_name_or_path=&quot;user_guide_db&quot;) as gz:
+        #     # Assume 'user_profile_bio_sbert' has dimensions 384
+        #     dummy_vector = np.random.rand(384).tolist()
+        #     try:
+        #         similar_users_by_vector = gz.find_similar_by_definition( # Hypothetical method
+        #             embedding_definition_name=&quot;user_profile_bio_sbert&quot;,
+        #             query_vector=dummy_vector,
+        #             limit=2
+        #         )
+        #         if similar_users_by_vector:
+        #             print(&quot;Users similar to the provided vector:&quot;)
+        #             for user, score in similar_users_by_vector:
+        #                 print(f&quot;  - ID: {user.id}, Score: {score:.4f}&quot;)
+        #         else:
+        #             print(&quot;No users found similar to the vector.&quot;)
+        #     except Exception as e:
+        #         print(f&quot;Error during conceptual vector similarity search: {e}&quot;)
+</code></pre>
+<ul>
+<li><strong>Example with <code>limit</code> and <code>filter_condition</code> (Conceptual):</strong>
+        The <code>filter_condition</code> would likely be a dictionary similar to <code>find_objects</code>' <code>filter_criteria</code>, applied <em>after</em> the similarity search to the candidate objects, or potentially pushed down to the vector DB if supported.
+        The <code>retrieve_full_objects</code> parameter (boolean) would control whether the full <code>ObjectInstance</code> is returned or perhaps just IDs and scores.</li>
+</ul>
+<h3 id="complex-queries-execute_complex_query">Complex Queries (<code>execute_complex_query</code>)</h3>
+<ul>
+<li><strong>Signature:</strong> <code>def execute_complex_query(self, query: ComplexQuery) -&gt; QueryResult:</code></li>
+<li><strong>Purpose:</strong> Executes a sophisticated query that can combine relational filters, graph traversals, and embedding searches across multiple object types and database layers.</li>
+<li><strong>Pydantic Models:</strong> Uses <code>ComplexQuery</code>, <code>QueryComponent</code>, <code>RelationalFilter</code>, <code>EmbeddingSearchClause</code>, <code>GraphTraversalClause</code> from <a class="autorefs autorefs-internal" href="../api/query_models/#grizabella.core.query_models"><code>grizabella.core.query_models</code></a>.</li>
+<li>
+<p><strong>Example 1: Find active users who authored posts about "Python"</strong></p>
+<p>```python
+from grizabella import Grizabella
+from grizabella.core.query_models import (
+    ComplexQuery, QueryComponent, RelationalFilter, GraphTraversalClause
+)</p>
+<h1 id="assume-objecttypes-user-username-is_active-post-title-content">Assume ObjectTypes: User (username, is_active), Post (title, content)</h1>
+<h1 id="assume-relationtype-authored-user-post">Assume RelationType: AUTHORED (User -&gt; Post)</h1>
+<h1 id="assume-embeddingdefinition-post_content_embed-on-postcontent">Assume EmbeddingDefinition: post_content_embed (on Post.content)</h1>
+<h1 id="this-example-requires-an-embedding-vector-for-python">This example requires an embedding vector for "Python".</h1>
+<h1 id="in-a-real-scenario-youd-generate-this-using-the-same-model-as-post_content_embed">In a real scenario, you'd generate this using the same model as 'post_content_embed'.</h1>
+<h1 id="for-this-example-well-use-a-relational-filter-on-title-for-simplicity">For this example, we'll use a relational filter on title for simplicity,</h1>
+<h1 id="as-generating-the-vector-here-is-out-of-scope">as generating the vector here is out of scope.</h1>
+<h1 id="a-true-embedding-search-would-use-embeddingsearchclause">A true embedding search would use EmbeddingSearchClause.</h1>
+<p>with Grizabella(db_name_or_path="user_guide_db") as gz:
+    # Ensure types exist for the example
+    if not gz.get_object_type_definition("User"):
+        gz.create_object_type(ObjectTypeDefinition(name="User", properties=[
+            PropertyDefinition(name="user_id", data_type=PropertyDataType.TEXT, is_primary_key=True),
+            PropertyDefinition(name="username", data_type=PropertyDataType.TEXT),
+            PropertyDefinition(name="is_active", data_type=PropertyDataType.BOOLEAN, default=True)
+        ]))
+    if not gz.get_object_type_definition("Post"):
+        gz.create_object_type(ObjectTypeDefinition(name="Post", properties=[
+            PropertyDefinition(name="post_id", data_type=PropertyDataType.TEXT, is_primary_key=True),
+            PropertyDefinition(name="title", data_type=PropertyDataType.TEXT, is_indexed=True),
+            PropertyDefinition(name="content", data_type=PropertyDataType.TEXT)
+        ]))
+    if not gz.get_relation_type("AUTHORED"):
+        gz.create_relation_type(RelationTypeDefinition(name="AUTHORED", source_object_type_names=["User"], target_object_type_names=["Post"]))
+    print("Ensured types for complex query example 1.")</p>
+<pre><code># Create some sample data
+active_user = gz.upsert_object(ObjectInstance(object_type_name="User", properties={"user_id": "user_cq1", "username": "coder1", "is_active": True}))
+inactive_user = gz.upsert_object(ObjectInstance(object_type_name="User", properties={"user_id": "user_cq2", "username": "coder2", "is_active": False}))
+python_post = gz.upsert_object(ObjectInstance(object_type_name="Post", properties={"post_id": "post_cq1", "title": "Intro to Python", "content": "Python is great."}))
+java_post = gz.upsert_object(ObjectInstance(object_type_name="Post", properties={"post_id": "post_cq2", "title": "Java Basics", "content": "Java is also cool."}))
+
+gz.add_relation(RelationInstance(relation_type_name="AUTHORED", source_object_instance_id=active_user.id, target_object_instance_id=python_post.id))
+gz.add_relation(RelationInstance(relation_type_name="AUTHORED", source_object_instance_id=inactive_user.id, target_object_instance_id=java_post.id))
+gz.add_relation(RelationInstance(relation_type_name="AUTHORED", source_object_instance_id=active_user.id, target_object_instance_id=java_post.id)) # Active user also wrote a Java post
+print("Added sample data for complex query example 1.")
+
+complex_query_def = ComplexQuery(
+    description="Find active users who authored posts with 'Python' in the title.",
+    components=[
+        QueryComponent(
+            object_type_name="User", # Start with Users
+            relational_filters=[
+                RelationalFilter(property_name="is_active", operator="==", value=True)
+            ],
+            graph_traversals=[
+                GraphTraversalClause(
+                    relation_type_name="AUTHORED",
+                    direction="outgoing",
+                    target_object_type_name="Post",
+                    target_object_properties=[ # Filter on properties of the target "Post" objects
+                        RelationalFilter(property_name="title", operator="CONTAINS", value="Python")
+                    ]
+                )
+            ]
+        )
+    ]
+)
+
+try:
+    query_result = gz.execute_complex_query(complex_query_def)
+    if query_result.errors:
+        print(f"Errors during complex query: {query_result.errors}")
+
+    if query_result.object_instances:
+        print("Users matching the complex query:")
+        for obj_instance in query_result.object_instances:
+            # The result instances are of the primary object_type_name of the first component, "User"
+            print(f"  - User ID: {obj_instance.id}, Username: {obj_instance.properties.get('username')}")
+    else:
+        print("No users found matching the complex query.")
+except NotImplementedError:
+    print("execute_complex_query or its underlying DBManager.process_complex_query is not fully implemented.")
+except Exception as e:
+    print(f"An error occurred executing complex query: {e}")
+</code></pre>
+<p>```</p>
+</li>
+<li>
+<p><strong>Example 2: "CAR" example - Find "Car" objects that are "Red" and "LocatedIn" a "City" named "Testville" and have a "HAS_PART" relation to a "Part" object whose "part_name" is "EngineV8".</strong></p>
+<p>```python</p>
+<h1 id="assuming-objecttypes-carcolor-cityname-partpart_name">Assuming ObjectTypes: Car(color), City(name), Part(part_name)</h1>
+<h1 id="assuming-relationtypes-locatedin-car-city-has_part-car-part">Assuming RelationTypes: LocatedIn (Car -&gt; City), HAS_PART (Car -&gt; Part)</h1>
+<p>with Grizabella(db_name_or_path="user_guide_db") as gz:
+    # Setup (ensure types and some data exist)
+    for ot_name, props in [("Car", [("color", PropertyDataType.TEXT)]), ("City", [("name", PropertyDataType.TEXT)]), ("Part", [("part_name", PropertyDataType.TEXT)])]:
+        if not gz.get_object_type_definition(ot_name):
+            gz.create_object_type(ObjectTypeDefinition(name=ot_name, properties=[PropertyDefinition(name=p[0], data_type=p[1]) for p in props]))
+    for rt_name, src, tgt in [("LocatedIn", "Car", "City"), ("HAS_PART", "Car", "Part")]:
+        if not gz.get_relation_type(rt_name):
+            gz.create_relation_type(RelationTypeDefinition(name=rt_name, source_object_type_names=[src], target_object_type_names=[tgt]))
+    print("Ensured types for CAR complex query example.")</p>
+<pre><code># Sample Data
+red_car1 = gz.upsert_object(ObjectInstance(object_type_name="Car", properties={"color": "Red"}))
+blue_car = gz.upsert_object(ObjectInstance(object_type_name="Car", properties={"color": "Blue"}))
+testville = gz.upsert_object(ObjectInstance(object_type_name="City", properties={"name": "Testville"}))
+otherville = gz.upsert_object(ObjectInstance(object_type_name="City", properties={"name": "Otherville"}))
+engine_v8 = gz.upsert_object(ObjectInstance(object_type_name="Part", properties={"part_name": "EngineV8"}))
+engine_v6 = gz.upsert_object(ObjectInstance(object_type_name="Part", properties={"part_name": "EngineV6"}))
+
+gz.add_relation(RelationInstance(relation_type_name="LocatedIn", source_object_instance_id=red_car1.id, target_object_instance_id=testville.id))
+gz.add_relation(RelationInstance(relation_type_name="LocatedIn", source_object_instance_id=blue_car.id, target_object_instance_id=testville.id))
+gz.add_relation(RelationInstance(relation_type_name="HAS_PART", source_object_instance_id=red_car1.id, target_object_instance_id=engine_v8.id))
+gz.add_relation(RelationInstance(relation_type_name="HAS_PART", source_object_instance_id=blue_car.id, target_object_instance_id=engine_v6.id))
+print("Added sample data for CAR complex query example.")
+
+car_query = ComplexQuery(
+    description="Find Red Cars in Testville with a V8 Engine.",
+    components=[
+        QueryComponent(
+            object_type_name="Car",
+            relational_filters=[
+                RelationalFilter(property_name="color", operator="==", value="Red")
+            ],
+            graph_traversals=[
+                GraphTraversalClause( # Car --LocatedIn--&gt; City
+                    relation_type_name="LocatedIn",
+                    direction="outgoing",
+                    target_object_type_name="City",
+                    target_object_properties=[
+                        RelationalFilter(property_name="name", operator="==", value="Testville")
+                    ]
+                ),
+                GraphTraversalClause( # Car --HAS_PART--&gt; Part
+                    relation_type_name="HAS_PART",
+                    direction="outgoing",
+                    target_object_type_name="Part",
+                    target_object_properties=[
+                        RelationalFilter(property_name="part_name", operator="==", value="EngineV8")
+                    ]
+                )
+            ]
+        )
+    ]
+)
+try:
+    car_query_result = gz.execute_complex_query(car_query)
+    if car_query_result.errors:
+        print(f"Errors during CAR complex query: {car_query_result.errors}")
+
+    if car_query_result.object_instances:
+        print("Cars matching the CAR complex query:")
+        for car in car_query_result.object_instances:
+            print(f"  - Car ID: {car.id}, Color: {car.properties.get('color')}")
+    else:
+        print("No cars found matching the CAR complex query.")
+except NotImplementedError:
+    print("execute_complex_query or its underlying DBManager.process_complex_query is not fully implemented.")
+except Exception as e:
+    print(f"An error occurred executing CAR complex query: {e}")
+</code></pre>
+<p>```</p>
+<p><strong>Interpreting <code>QueryResult</code>:</strong>
+The <code>QueryResult</code> object contains:
+  * <code>object_instances</code>: A list of <code>ObjectInstance</code>s that match the entire complex query. These instances will be of the <code>object_type_name</code> specified in the <em>first</em> component of your <code>ComplexQuery</code> if not otherwise specified by future features like explicit return types.
+  * <code>errors</code>: A list of strings, containing any error messages encountered during query planning or execution. Check this list to debug issues.</p>
+</li>
+</ul>
+<p>This detailed guide should help you effectively use the Grizabella Python API. Remember to consult the specific docstrings in the source code for the most up-to-date details on parameters and behavior.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>

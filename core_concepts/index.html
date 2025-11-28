@@ -1,0 +1,997 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://pwilkin.github.io/grizabella/core_concepts/">
+      
+      
+        <link rel="prev" href="../getting_started/">
+      
+      
+        <link rel="next" href="../python_api_detailed/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>Core Concepts - Grizabella</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#core-concepts-in-grizabella" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Grizabella" class="md-header__button md-logo" aria-label="Grizabella" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Grizabella
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Core Concepts
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pwilkin/grizabella" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pwilkin/grizabella
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Grizabella" class="md-nav__button md-logo" aria-label="Grizabella" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Grizabella
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pwilkin/grizabella" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pwilkin/grizabella
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Core Concepts
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core Concepts
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#database-instances" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Instances
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema Definitions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema Definitions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#object-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Object Types
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#embedding-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Embedding Definitions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relation-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relation Types
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-instances" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Instances
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#memory-metadata-memoryinstance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Memory Metadata (MemoryInstance)
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python_api_detailed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Python API Detailed Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp_server_api_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Server API Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyside6_ui_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PySide6 UI Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/core_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/query_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Query Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/mcp_server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Server
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting_faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting & FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#database-instances" class="md-nav__link">
+    <span class="md-ellipsis">
+      Database Instances
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema Definitions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema Definitions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#object-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Object Types
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#embedding-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Embedding Definitions
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#relation-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relation Types
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-instances" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Instances
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#memory-metadata-memoryinstance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Memory Metadata (MemoryInstance)
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="core-concepts-in-grizabella">Core Concepts in Grizabella</h1>
+<p>This document explains the fundamental concepts in Grizabella, providing a foundation for understanding how to define schemas, manage data, and utilize the system effectively.</p>
+<h2 id="database-instances">Database Instances</h2>
+<p>A Grizabella database instance is a self-contained environment where your schema definitions and data are stored. When you initialize the Grizabella client, you specify which database instance to connect to.</p>
+<ul>
+<li><strong>Default Path:</strong> If you initialize <code>Grizabella()</code> without specifying a <code>db_name_or_path</code>, it will connect to or create a database named "default" in a standard Grizabella data directory (e.g., <code>~/.grizabella/databases/default</code>).</li>
+<li><strong>Named Instances:</strong> You can use a simple string name like <code>"my_project_db"</code>. Grizabella will manage this database within its standard data directory (e.g., <code>~/.grizabella/databases/my_project_db</code>).</li>
+<li><strong>Custom Paths:</strong> You can provide a full file system path (as a string or <code>pathlib.Path</code> object) to a directory where you want the database to be stored. This gives you full control over the location of your database files.</li>
+</ul>
+<pre><code class="language-python">from grizabella import Grizabella
+from pathlib import Path
+
+# Connect to the default database instance
+db_default = Grizabella()
+
+# Connect to a named database instance
+db_named = Grizabella(db_name_or_path=&quot;my_project_db&quot;)
+
+# Connect to a database at a custom path
+db_custom_path = Grizabella(db_name_or_path=Path(&quot;/opt/grizabella_data/my_app_db&quot;))
+</code></pre>
+<h2 id="schema-definitions">Schema Definitions</h2>
+<p>The schema in Grizabella defines the structure of your data. It consists of Object Types, Embedding Definitions, and Relation Types.</p>
+<h3 id="object-types">Object Types</h3>
+<p>Object Types define the blueprint for the kinds of entities you want to store in Grizabella. Think of them as analogous to tables in a relational database or node labels in a graph database. Each Object Type has a name and a set of properties.</p>
+<p><strong>Structure:</strong></p>
+<ul>
+<li><code>name</code>: A unique name for the object type (e.g., "Document", "User"). Conventionally, PascalCase is used.</li>
+<li><code>description</code>: An optional human-readable description.</li>
+<li><code>properties</code>: A list of <code>PropertyDefinition</code> objects that define the attributes of this object type.</li>
+</ul>
+<p><strong>Properties (<code>PropertyDefinition</code>):</strong></p>
+<ul>
+<li><code>name</code>: The name of the property (e.g., "title", "email", "creation_date").</li>
+<li><code>data_type</code>: The data type of the property, chosen from <code>PropertyDataType</code> enum (e.g., <code>TEXT</code>, <code>INTEGER</code>, <code>FLOAT</code>, <code>BOOLEAN</code>, <code>DATETIME</code>, <code>BLOB</code>, <code>JSON</code>, <code>UUID</code>).</li>
+<li><code>is_primary_key</code>: (Optional, boolean) Indicates if this property serves as a domain-specific primary key. An <code>ObjectInstance</code> always has a system-generated unique <code>id</code> (UUID). This flag is for an additional, user-defined primary key. An <code>ObjectTypeDefinition</code> can have at most one such primary key. Defaults to <code>False</code>.</li>
+<li><code>is_nullable</code>: (boolean) Can this property have a null value? Defaults to <code>True</code>.</li>
+<li><code>is_indexed</code>: (boolean) Should this property be indexed by underlying databases to speed up queries? Defaults to <code>False</code>.</li>
+<li><code>is_unique</code>: (boolean) Must values for this property be unique across all instances of this Object Type? Defaults to <code>False</code>.</li>
+<li><code>description</code>: An optional description of the property.</li>
+</ul>
+<p><strong>Conceptual Pydantic Model Example for <code>ObjectTypeDefinition</code>:</strong></p>
+<pre><code class="language-python">from typing import List, Optional
+from pydantic import BaseModel, Field
+from enum import Enum
+
+class PropertyDataType(str, Enum):
+    TEXT = &quot;TEXT&quot;
+    INTEGER = &quot;INTEGER&quot;
+    # ... other types
+
+class PropertyDefinition(BaseModel):
+    name: str
+    data_type: PropertyDataType
+    is_primary_key: bool = False
+    is_nullable: bool = True
+    is_indexed: bool = False
+    is_unique: bool = False
+    description: Optional[str] = None
+
+class ObjectTypeDefinition(BaseModel):
+    name: str = Field(description=&quot;Unique name for the object type. Convention: PascalCase.&quot;)
+    description: Optional[str] = Field(default=None, description=&quot;Optional description.&quot;)
+    properties: List[PropertyDefinition] = Field(description=&quot;List of properties.&quot;)
+
+# Example Usage (conceptual, actual usage via Grizabella client)
+# book_type = ObjectTypeDefinition(
+#     name=&quot;Book&quot;,
+#     description=&quot;Represents a book in the library.&quot;,
+#     properties=[
+#         PropertyDefinition(name=&quot;title&quot;, data_type=PropertyDataType.TEXT, is_indexed=True),
+#         PropertyDefinition(name=&quot;isbn&quot;, data_type=PropertyDataType.TEXT, is_primary_key=True, is_unique=True),
+#         PropertyDefinition(name=&quot;published_year&quot;, data_type=PropertyDataType.INTEGER),
+#         PropertyDefinition(name=&quot;pages&quot;, data_type=PropertyDataType.INTEGER, is_nullable=True),
+#     ]
+# )
+</code></pre>
+<p><em>(The actual <code>ObjectTypeDefinition</code> and <code>PropertyDefinition</code> models are available in <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models"><code>grizabella.core.models</code></a>)</em></p>
+<h3 id="embedding-definitions">Embedding Definitions</h3>
+<p>Embedding Definitions specify how vector embeddings should be generated and stored for objects of a particular type. Embeddings are numerical representations of data (often text) that capture semantic meaning, enabling similarity searches.</p>
+<p><strong>Purpose:</strong></p>
+<ul>
+<li>To configure the automatic generation of vector embeddings from specific properties of your objects.</li>
+<li>To link an object type and one ofits properties to a specific embedding model.</li>
+<li>To enable semantic search capabilities (e.g., "find documents similar to this text").</li>
+</ul>
+<p><strong>Structure (<code>EmbeddingDefinition</code>):</strong></p>
+<ul>
+<li><code>name</code>: A unique name for this embedding configuration (e.g., "product_description_embedding"). Conventionally, snake_case.</li>
+<li><code>object_type_name</code>: The name of the <code>ObjectTypeDefinition</code> this embedding applies to (e.g., "Product").</li>
+<li><code>source_property_name</code>: The name of the property within the <code>object_type_name</code> whose content will be used to generate the embedding (e.g., "description"). This property should typically be of <code>PropertyDataType.TEXT</code>.</li>
+<li><code>embedding_model</code>: An identifier for the embedding model to be used (e.g., a Hugging Face model name like "sentence-transformers/all-MiniLM-L6-v2").</li>
+<li><code>dimensions</code>: (Optional, integer) The expected dimensionality of the embedding vector. If <code>None</code>, the system may attempt to infer it from the model.</li>
+<li><code>description</code>: An optional human-readable description.</li>
+</ul>
+<p><strong>Example (conceptual):</strong></p>
+<pre><code class="language-python"># Conceptual Pydantic Model for EmbeddingDefinition
+# from pydantic import BaseModel, Field
+# from typing import Optional
+
+# class EmbeddingDefinition(BaseModel):
+#     name: str
+#     object_type_name: str
+#     source_property_name: str
+#     embedding_model: str
+#     dimensions: Optional[int] = None
+#     description: Optional[str] = None
+
+# Example Usage (conceptual, actual usage via Grizabella client)
+# article_content_embedding = EmbeddingDefinition(
+#     name=&quot;article_content_embedding_v1&quot;,
+#     object_type_name=&quot;Article&quot;, # Assumes an ObjectType &quot;Article&quot; exists
+#     source_property_name=&quot;body_text&quot;, # Assumes &quot;Article&quot; has a &quot;body_text&quot; property
+#     embedding_model=&quot;sentence-transformers/all-MiniLM-L6-v2&quot;,
+#     dimensions=384,
+#     description=&quot;Embeds the main body text of articles for similarity search.&quot;
+# )
+</code></pre>
+<p><em>(The actual <code>EmbeddingDefinition</code> model is available in <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models"><code>grizabella.core.models</code></a>)</em></p>
+<h3 id="relation-types">Relation Types</h3>
+<p>Relation Types define the schema for relationships between <code>ObjectInstance</code>s. They are analogous to edge labels in a graph database or foreign key relationships (with potential properties on the join table) in a relational database.</p>
+<p><strong>Structure (<code>RelationTypeDefinition</code>):</strong></p>
+<ul>
+<li><code>name</code>: A unique name for the relation type (e.g., "WROTE", "CONTAINS_ITEM"). Conventionally, UPPER_SNAKE_CASE.</li>
+<li><code>description</code>: An optional human-readable description.</li>
+<li><code>source_object_type_names</code>: A list of <code>ObjectTypeDefinition</code> names that are allowed as the source (or "from" side) of this relation.</li>
+<li><code>target_object_type_names</code>: A list of <code>ObjectTypeDefinition</code> names that are allowed as the target (or "to" side) of this relation.</li>
+<li><code>properties</code>: (Optional) A list of <code>PropertyDefinition</code> objects that define attributes belonging to the relation itself (often called edge properties). Defaults to an empty list.</li>
+</ul>
+<p><strong>Example (conceptual):</strong></p>
+<pre><code class="language-python"># Conceptual Pydantic Model for RelationTypeDefinition
+# from pydantic import BaseModel, Field
+# from typing import List, Optional
+# from .object_types import PropertyDefinition # Assuming PropertyDefinition is defined
+
+# class RelationTypeDefinition(BaseModel):
+#     name: str
+#     description: Optional[str] = None
+#     source_object_type_names: List[str]
+#     target_object_type_names: List[str]
+#     properties: List[PropertyDefinition] = Field(default_factory=list)
+
+# Example Usage (conceptual, actual usage via Grizabella client)
+# authored_by_relation = RelationTypeDefinition(
+#     name=&quot;AUTHORED_BY&quot;,
+#     description=&quot;Indicates that a Book was written by an Author.&quot;,
+#     source_object_type_names=[&quot;Book&quot;], # Assumes &quot;Book&quot; ObjectType exists
+#     target_object_type_names=[&quot;Author&quot;], # Assumes &quot;Author&quot; ObjectType exists
+#     properties=[
+#         PropertyDefinition(name=&quot;role&quot;, data_type=PropertyDataType.TEXT, is_nullable=True) # e.g., &quot;Primary Author&quot;, &quot;Editor&quot;
+#     ]
+# )
+</code></pre>
+<p><em>(The actual <code>RelationTypeDefinition</code> model is available in <a class="autorefs autorefs-internal" href="../api/core_models/#grizabella.core.models"><code>grizabella.core.models</code></a>)</em></p>
+<h2 id="data-instances">Data Instances</h2>
+<p>Data instances are the actual pieces of data you store in Grizabella. They conform to the schemas defined by Object Types, Embedding Definitions, and Relation Types.</p>
+<ul>
+<li><strong>Objects (<code>ObjectInstance</code>):</strong> A concrete instance of an <code>ObjectTypeDefinition</code>. It has a unique system-generated <code>id</code> (UUID), an <code>object_type_name</code> linking it to its definition, and a <code>properties</code> dictionary holding the actual data for the fields defined in the <code>ObjectTypeDefinition</code>.</li>
+<li>
+<p>Example: An <code>ObjectInstance</code> of type "Book" might have <code>properties: {"title": "The Great Gatsby", "isbn": "9780743273565", "published_year": 1925}</code>.</p>
+</li>
+<li>
+<p><strong>Relations (<code>RelationInstance</code>):</strong> A concrete instance of a <code>RelationTypeDefinition</code>. It links two <code>ObjectInstance</code>s (a source and a target) and has a <code>relation_type_name</code>. It also has a unique system-generated <code>id</code> (UUID) and can have its own <code>properties</code> if defined in the <code>RelationTypeDefinition</code>.</p>
+</li>
+<li>
+<p>Example: A <code>RelationInstance</code> of type "AUTHORED_BY" might link a "Book" object (source) to an "Author" object (target), with <code>properties: {"role": "Primary Author"}</code>.</p>
+</li>
+<li>
+<p><strong>Embeddings (<code>EmbeddingInstance</code>):</strong> A concrete instance of an embedding. It stores the vector generated from a specific property of an <code>ObjectInstance</code> according to an <code>EmbeddingDefinition</code>. It includes the <code>object_instance_id</code> it belongs to, the <code>embedding_definition_name</code> used, the <code>vector</code> itself (a list of floats), and optionally a <code>source_text_preview</code>.</p>
+</li>
+<li>Example: An <code>EmbeddingInstance</code> linked to the "Book" object for "The Great Gatsby", generated using "article_content_embedding_v1" (if applicable), would contain the actual vector.</li>
+</ul>
+<h2 id="memory-metadata-memoryinstance">Memory Metadata (<code>MemoryInstance</code>)</h2>
+<p>All core data instances in Grizabella (<code>ObjectInstance</code>, <code>RelationInstance</code>, <code>EmbeddingInstance</code>) inherit from a base model called <code>MemoryInstance</code>. This base model provides common metadata fields crucial for managing and understanding the data:</p>
+<ul>
+<li><strong><code>id</code> (UUID):</strong> A universally unique identifier automatically generated for every instance upon creation. This is the primary way to uniquely identify any piece of data within Grizabella.</li>
+<li><strong><code>weight</code> (Decimal, 0-10):</strong> A numerical value representing the importance, relevance, or confidence associated with the data instance. It defaults to <code>1.0</code>. This can be used for:</li>
+<li>Ranking search results.</li>
+<li>Prioritizing data during processing or eviction.</li>
+<li>Implementing decay functions where older or less relevant data might have its weight reduced.</li>
+<li><strong><code>upsert_date</code> (datetime):</strong> A timestamp (in UTC) indicating when the instance was last created or updated (upserted). This is automatically set by the system. It's useful for:</li>
+<li>Tracking data freshness.</li>
+<li>Implementing time-based queries or filtering.</li>
+<li>Auditing changes.</li>
+</ul>
+<p>These metadata fields provide a consistent way to manage and query your data's lifecycle and significance within Grizabella.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1152 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://pwilkin.github.io/grizabella/pyside6_ui_guide/">
+      
+      
+        <link rel="prev" href="../mcp_server_api_guide/">
+      
+      
+        <link rel="next" href="../api/core_models/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>PySide6 UI Guide - Grizabella</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#grizabella-pyside6-ui-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Grizabella" class="md-header__button md-logo" aria-label="Grizabella" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Grizabella
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              PySide6 UI Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pwilkin/grizabella" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pwilkin/grizabella
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Grizabella" class="md-nav__button md-logo" aria-label="Grizabella" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Grizabella
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pwilkin/grizabella" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pwilkin/grizabella
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core_concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core Concepts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python_api_detailed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Python API Detailed Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mcp_server_api_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Server API Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    PySide6 UI Guide
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    PySide6 UI Guide
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#launching-the-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      Launching the UI
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connection-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      Connection View
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#main-window-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      Main Window Layout
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-editor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema Editor
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema Editor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-object-types-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Object Types View
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-embedding-definitions-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Embedding Definitions View
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-relation-types-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Relation Types View
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#object-explorer-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      Object Explorer View
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#relation-explorer-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relation Explorer View
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#query-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      Query View
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Query View">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-simple-object-query" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Simple Object Query
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-embedding-similarity-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Embedding Similarity Search
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-complex-query" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Complex Query
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#general-ui-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      General UI Concepts
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/core_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/query_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Query Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/mcp_server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Server
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting_faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting & FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#launching-the-ui" class="md-nav__link">
+    <span class="md-ellipsis">
+      Launching the UI
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connection-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      Connection View
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#main-window-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      Main Window Layout
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-editor" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema Editor
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema Editor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-object-types-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Object Types View
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-embedding-definitions-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Embedding Definitions View
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-relation-types-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Relation Types View
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#object-explorer-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      Object Explorer View
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#relation-explorer-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relation Explorer View
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#query-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      Query View
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Query View">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-simple-object-query" class="md-nav__link">
+    <span class="md-ellipsis">
+      1. Simple Object Query
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-embedding-similarity-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      2. Embedding Similarity Search
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-complex-query" class="md-nav__link">
+    <span class="md-ellipsis">
+      3. Complex Query
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#general-ui-concepts" class="md-nav__link">
+    <span class="md-ellipsis">
+      General UI Concepts
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="grizabella-pyside6-ui-guide">Grizabella PySide6 UI Guide</h1>
+<p>This guide provides a comprehensive walkthrough of the Grizabella PySide6 User Interface. It will help you understand how to navigate the application, manage your graph database schema, explore data, and execute queries.</p>
+<h2 id="launching-the-ui">Launching the UI</h2>
+<p>To launch the Grizabella PySide6 UI, ensure you have Grizabella installed and your environment configured. Open your terminal and run the following command:</p>
+<pre><code class="language-bash">poetry run grizabella-ui
+</code></pre>
+<p>This will start the application and open the main window.</p>
+<h2 id="connection-view">Connection View</h2>
+<p>Upon launching, the first view you'll encounter is the <strong>Connection View</strong>. This view allows you to establish a connection to your Grizabella database.</p>
+<p>[Screenshot of Connection View]</p>
+<ul>
+<li><strong>Default Database:</strong> To connect to the default Grizabella database, simply click the "Connect" button. The application will attempt to connect to the database at the default location (<code>~/.grizabella/default_db</code>).</li>
+<li><strong>Named Database:</strong> If you have a named database (e.g., <code>my_project_db</code>), you can type its name into the "Database Name or Path" field and click "Connect". Grizabella will look for this database within its standard database directory.</li>
+<li><strong>Custom Path:</strong> To connect to a database at a specific file system path, you can either type the full path into the "Database Name or Path" field or use the "Browse" button.</li>
+<li><strong>Browse Functionality:</strong> Clicking the "Browse" button opens a file dialog, allowing you to navigate to and select your Grizabella database directory.</li>
+<li><strong>Status Bar Feedback:</strong> The status bar at the bottom of the window will provide feedback on the connection process, indicating whether the connection was successful or if any errors occurred.</li>
+</ul>
+<p>Once a successful connection is established, the UI will transition to the main application window.</p>
+<h2 id="main-window-layout">Main Window Layout</h2>
+<p>After successfully connecting to a database, the main window displays a tabbed interface, providing access to different functionalities of Grizabella.</p>
+<p>[Screenshot of Main Window with Tabs]</p>
+<p>The main components are organized into the following tabs:</p>
+<ul>
+<li><strong>Schema Editor:</strong> Manage your database schema, including Object Types, Embedding Definitions, and Relation Types.</li>
+<li><strong>Object Explorer:</strong> View, create, edit, and delete object instances.</li>
+<li><strong>Relation Explorer:</strong> View, create, edit, and delete relation instances.</li>
+<li><strong>Query View:</strong> Execute various types of queries against your database.</li>
+</ul>
+<h2 id="schema-editor">Schema Editor</h2>
+<p>The Schema Editor is a powerful tool for defining and modifying the structure of your graph database. It consists of three sub-tabs: Object Types, Embedding Definitions, and Relation Types.</p>
+<h3 id="1-object-types-view">1. Object Types View</h3>
+<p>This view allows you to manage the different types of objects (nodes) in your graph.</p>
+<p>[Screenshot of Object Types View]</p>
+<ul>
+<li><strong>Viewing Object Types:</strong> A list on the left displays all currently defined Object Types. Clicking on an Object Type in this list will show its details on the right.</li>
+<li><strong>Viewing Details:</strong> The details panel shows:</li>
+<li><strong>Name:</strong> The unique name of the Object Type.</li>
+<li><strong>Description:</strong> A user-provided description of the Object Type.</li>
+<li><strong>Properties Table:</strong> A table listing all properties defined for this Object Type, including their:<ul>
+<li>Name</li>
+<li>Data Type (e.g., <code>string</code>, <code>integer</code>, <code>float</code>, <code>boolean</code>, <code>list&lt;string&gt;</code>, <code>vector&lt;float&gt;</code>)</li>
+<li>Primary Key (PK): Indicates if the property is part of the primary key.</li>
+<li>Nullable: Indicates if the property can have null values.</li>
+<li>Default Value: The default value for the property, if any.</li>
+</ul>
+</li>
+<li><strong>"New Object Type" Button:</strong></li>
+<li>Clicking this button opens the <code>ObjectTypeDialog</code>.</li>
+<li>[Screenshot of ObjectTypeDialog]</li>
+<li><strong><code>ObjectTypeDialog</code> Fields:</strong><ul>
+<li><strong>Name:</strong> Enter a unique name for the new Object Type.</li>
+<li><strong>Description:</strong> Provide a meaningful description.</li>
+<li><strong>Properties Table:</strong></li>
+<li>Use the "Add Property" button to add a new row to the table.</li>
+<li>For each property, you can specify:<ul>
+<li><strong>Name:</strong> The property's name.</li>
+<li><strong>Data Type:</strong> Select from a dropdown of supported data types.</li>
+<li><strong>PK:</strong> Check this box if the property is a primary key.</li>
+<li><strong>Nullable:</strong> Check this box if the property can be null.</li>
+<li><strong>Default:</strong> Optionally, provide a default value.</li>
+</ul>
+</li>
+<li>Use the "Remove Selected Property" button to delete a property from the list.</li>
+</ul>
+</li>
+<li>Click "OK" to create the new Object Type or "Cancel" to discard.</li>
+<li><strong>"Edit Selected" Button:</strong> Select an Object Type from the list and click this button to open the <code>ObjectTypeDialog</code> pre-filled with its current details, allowing you to modify it.</li>
+<li><strong>"Delete Selected" Button:</strong> Select an Object Type from the list and click this button to delete it. A confirmation dialog will appear.</li>
+</ul>
+<h3 id="2-embedding-definitions-view">2. Embedding Definitions View</h3>
+<p>This view manages how embeddings are generated and stored for your objects. Embeddings are crucial for similarity searches and other machine learning tasks.</p>
+<p>[Screenshot of Embedding Definitions View]</p>
+<ul>
+<li><strong>Structure:</strong> Similar to the Object Types view, it features a list of existing Embedding Definitions on the left and a details panel on the right.</li>
+<li><strong>Details:</strong> When an Embedding Definition is selected, its details are displayed, including its name, the Object Type it applies to, the source property used for embedding, the embedding model, dimensions, and description.</li>
+<li><strong>"New Embedding Definition" Button:</strong></li>
+<li>Opens the <code>EmbeddingDefinitionDialog</code>.</li>
+<li>[Screenshot of EmbeddingDefinitionDialog]</li>
+<li><strong><code>EmbeddingDefinitionDialog</code> Fields:</strong><ul>
+<li><strong>Name:</strong> A unique name for this embedding definition.</li>
+<li><strong>Object Type:</strong> A dropdown list to select the Object Type for which this embedding will be generated.</li>
+<li><strong>Source Property:</strong> A dropdown list of properties from the selected Object Type. This list is dynamically populated based on the chosen Object Type. This property's value will be used as input to the embedding model.</li>
+<li><strong>Model:</strong> Specify the embedding model to be used (e.g., <code>all-MiniLM-L6-v2</code>).</li>
+<li><strong>Dimensions:</strong> The dimensionality of the embedding vector produced by the model.</li>
+<li><strong>Description:</strong> An optional description for this embedding definition.</li>
+</ul>
+</li>
+<li>Click "OK" to create or "Cancel" to discard.</li>
+<li><strong>"Edit Selected" Button:</strong> (Placeholder for future functionality) Currently, editing might involve deleting and recreating.</li>
+<li><strong>"Delete Selected" Button:</strong> Deletes the selected Embedding Definition after confirmation.</li>
+</ul>
+<h3 id="3-relation-types-view">3. Relation Types View</h3>
+<p>This view allows you to define the types of relationships (edges) that can exist between your objects.</p>
+<p>[Screenshot of Relation Types View]</p>
+<ul>
+<li><strong>Structure:</strong> Again, a list of Relation Types is on the left, with details appearing on the right upon selection.</li>
+<li><strong>Details:</strong> The details panel shows the Relation Type's name, description, the source Object Type, the target Object Type, and a table of any properties defined for the relation itself.</li>
+<li><strong>"New Relation Type" Button:</strong></li>
+<li>Opens the <code>RelationTypeDialog</code>.</li>
+<li>[Screenshot of RelationTypeDialog]</li>
+<li><strong><code>RelationTypeDialog</code> Fields:</strong><ul>
+<li><strong>Name:</strong> A unique name for the new Relation Type.</li>
+<li><strong>Description:</strong> A description of what this relation represents.</li>
+<li><strong>Source Object Type:</strong> A dropdown to select the Object Type from which relations of this type can originate.</li>
+<li><strong>Target Object Type:</strong> A dropdown to select the Object Type to which relations of this type can point.</li>
+<li><strong>Properties Table:</strong> Similar to the Object Type properties table, you can define properties specific to the relation itself (e.g., <code>weight</code>, <code>timestamp</code>, <code>role</code>). Use "Add Property" and "Remove Selected Property" to manage these.</li>
+</ul>
+</li>
+<li>Click "OK" to create or "Cancel" to discard.</li>
+<li><strong>"Edit Selected" Button:</strong> (Placeholder for future functionality)</li>
+<li><strong>"Delete Selected" Button:</strong> Deletes the selected Relation Type after confirmation.</li>
+</ul>
+<h2 id="object-explorer-view">Object Explorer View</h2>
+<p>The Object Explorer allows you to browse, create, modify, and delete instances of your defined Object Types.</p>
+<p>[Screenshot of Object Explorer View]</p>
+<ul>
+<li><strong>Select Object Type:</strong> Use the dropdown menu at the top to choose the Object Type whose instances you want to view.</li>
+<li><strong>Instances Table:</strong> Once an Object Type is selected, the table below will populate with its instances.</li>
+<li>The columns in this table are dynamically generated based on the properties of the selected Object Type.</li>
+<li><strong>"New Object" Button:</strong></li>
+<li>Opens the <code>ObjectInstanceDialog</code>.</li>
+<li>[Screenshot of ObjectInstanceDialog for a sample Object Type]</li>
+<li><strong><code>ObjectInstanceDialog</code>:</strong> This dialog presents a form that is dynamically generated based on the properties of the Object Type selected in the explorer.<ul>
+<li>For each property, an appropriate input field is provided (e.g., line edit for strings, spin box for integers).</li>
+<li>A special <code>weight</code> field might be present for certain configurations, typically used in graph algorithms.</li>
+</ul>
+</li>
+<li>Fill in the property values and click "OK" to create the new object instance.</li>
+<li><strong>"View/Edit Selected" Button:</strong> Select an object instance from the table and click this button. The <code>ObjectInstanceDialog</code> will open, pre-filled with the selected object's data, allowing you to view or modify its properties.</li>
+<li><strong>"Delete Selected" Button:</strong> Select an object instance and click this button to delete it after confirmation.</li>
+<li><strong>"Refresh List" Button:</strong> Click this to reload the list of object instances from the database, reflecting any recent changes.</li>
+</ul>
+<h2 id="relation-explorer-view">Relation Explorer View</h2>
+<p>The Relation Explorer is used to manage instances of the relationships defined in your schema.</p>
+<p>[Screenshot of Relation Explorer View]</p>
+<ul>
+<li><strong>Select Relation Type:</strong> Choose a Relation Type from the dropdown menu to view its instances.</li>
+<li><strong>Optional Filters:</strong></li>
+<li><strong>Source Object ID:</strong> You can filter relations by the ID of their source object.</li>
+<li><strong>Target Object ID:</strong> You can filter relations by the ID of their target object.</li>
+<li>Enter the respective IDs and apply the filter to narrow down the list.</li>
+<li><strong>Instances Table:</strong> The table displays instances of the selected Relation Type, matching any applied filters. Columns will include source ID, target ID, and any properties defined for the Relation Type.</li>
+<li><strong>"New Relation" Button:</strong></li>
+<li>Opens the <code>RelationInstanceDialog</code>.</li>
+<li>[Screenshot of RelationInstanceDialog for a sample Relation Type, showing ComboBoxes for Source and Target Object selection]</li>
+<li><strong><code>RelationInstanceDialog</code> Fields:</strong><ul>
+<li><strong>Relation Type:</strong> Pre-selected based on the explorer's context, or selectable if opened generically.</li>
+<li><strong>Source Object:</strong> Select the source object instance for this relation using a filterable dropdown list (ComboBox). This replaces manual ID input and helps ensure the object exists.</li>
+<li><strong>Target Object:</strong> Select the target object instance for this relation using a filterable dropdown list (ComboBox). This also replaces manual ID input.</li>
+<li><strong>Dynamic Properties:</strong> Input fields for any properties defined for this Relation Type (e.g., <code>weight</code>).</li>
+<li>A <code>weight</code> field might be present for specifying the strength or cost of the relation.</li>
+</ul>
+</li>
+<li>Click "OK" to create the new relation instance.</li>
+<li><strong>"View/Edit Selected" Button:</strong> Select a relation instance from the table to open the <code>RelationInstanceDialog</code> with its data pre-filled for viewing or editing.</li>
+<li><strong>"Delete Selected" Button:</strong> Deletes the selected relation instance after confirmation.</li>
+</ul>
+<h2 id="query-view">Query View</h2>
+<p>The Query View is your interface for interacting with Grizabella's query engine, allowing you to retrieve specific data from your graph.</p>
+<p>[Screenshot of Query View]</p>
+<ul>
+<li><strong>Query Type Selector:</strong> A dropdown menu allows you to choose the type of query you want to perform:</li>
+<li>Simple Object Query</li>
+<li>Embedding Similarity Search</li>
+<li>Complex Query</li>
+<li><strong>Executing Queries:</strong> After configuring your query parameters, click the "Execute Query" button.</li>
+<li><strong>Results Display:</strong> The results of your query will be displayed in the table at the bottom of the view.</li>
+</ul>
+<h3 id="1-simple-object-query">1. Simple Object Query</h3>
+<p>This allows for basic retrieval of objects based on property conditions.</p>
+<p>[Screenshot of Simple Object Query section]</p>
+<ul>
+<li><strong>Object Type:</strong> Select the Object Type you want to query from the dropdown.</li>
+<li><strong>Conditions:</strong> Enter conditions for filtering the objects. The current simple format might be a basic key-value pair or a simple expression (e.g., <code>name = "Alice"</code> or <code>age &gt; 30</code>). Refer to specific examples or further documentation for the exact supported syntax.</li>
+</ul>
+<h3 id="2-embedding-similarity-search">2. Embedding Similarity Search</h3>
+<p>This query type finds objects whose embeddings are most similar to a given query text or vector.</p>
+<p>[Screenshot of Embedding Similarity Search section]</p>
+<ul>
+<li><strong>Embedding Definition:</strong> Select the Embedding Definition (which implies an Object Type and an embedding model) to use for the search.</li>
+<li><strong>Query Text/Vector:</strong></li>
+<li>Enter query text (which will be embedded using the selected definition's model).</li>
+<li>Alternatively, you might be able to paste a pre-computed query vector.</li>
+<li><strong>Limit:</strong> Specify the maximum number of similar objects to return.</li>
+<li><strong>Filter:</strong> Optionally, provide additional property-based filters to apply to the candidate objects before or after the similarity search.</li>
+</ul>
+<h3 id="3-complex-query">3. Complex Query</h3>
+<p>This option is for more advanced queries, typically expressed in a structured format like JSON.</p>
+<p>[Screenshot of Complex Query section]</p>
+<ul>
+<li><strong>JSON Input:</strong> A text area is provided where you can enter your complex query in JSON format. This allows for intricate graph traversals, multi-hop queries, and sophisticated filtering logic. Refer to the Grizabella Complex Query Language documentation for details on constructing these queries.</li>
+<li>Example: <code>{"object_type": "Person", "filters": [{"property": "city", "operator": "==", "value": "New York"}], "relations": [{"relation_type": "WORKS_AT", "target_object_type": "Company", "filters": [{"property": "industry", "operator": "==", "value": "Technology"}]}]}</code> (This is a conceptual example, actual syntax may vary).</li>
+</ul>
+<h2 id="general-ui-concepts">General UI Concepts</h2>
+<p>Several concepts apply across the Grizabella PySide6 UI:</p>
+<ul>
+<li><strong>Threading for API Calls:</strong> Most operations that interact with the backend database (e.g., fetching data, creating items, executing queries) are performed in separate threads. This ensures that the UI remains responsive and does not freeze during potentially long-running operations.</li>
+<li><strong>Error Messages:</strong> If an error occurs (e.g., invalid input, database error), a <code>QMessageBox</code> dialog will typically appear, displaying a descriptive error message to inform the user.</li>
+<li><strong>Status Bar Updates:</strong> The status bar at the bottom of the main window provides ongoing feedback about the application's state, such as "Connecting to database...", "Query executed successfully.", "Error: Object Type not found.", etc. This is a key place to look for quick updates on operations.</li>
+<li><strong>Appearance:</strong> The Grizabella UI uses the <code>qt_material</code> library to apply a modern Material Design theme (specifically, <code>light_blue.xml</code>), enhancing the visual appeal and user experience.</li>
+</ul>
+<hr />
+<p>This guide should provide a solid foundation for using the Grizabella PySide6 UI. As new features are added, this documentation will be updated.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>
