@@ -233,15 +233,28 @@ class ConnectionPoolManager:
                     while not pool.empty():
                         try:
                             pooled_conn = pool.get_nowait()
-                            if (current_time - pooled_conn.last_used > self._max_idle_time and 
+                            if (current_time - pooled_conn.last_used > self._max_idle_time and
                                 not pooled_conn.in_use):
                                 # Connection is idle and not in use, close it
-                                asyncio.create_task(
-                                    self._close_connection(pooled_conn.connection, adapter_type)
-                                )
+                                # Since we're in a background thread, close synchronously
+                                try:
+                                    if hasattr(pooled_conn.connection, 'close'):
+                                        if asyncio.iscoroutinefunction(pooled_conn.connection.close):
+                                            # For async close methods, create a new event loop in this thread
+                                            import asyncio
+                                            close_loop = asyncio.new_event_loop()
+                                            asyncio.set_event_loop(close_loop)
+                                            try:
+                                                close_loop.run_until_complete(pooled_conn.connection.close())
+                                            finally:
+                                                close_loop.close()
+                                        else:
+                                            pooled_conn.connection.close()
+                                    logger.info(f"Cleaned up idle {adapter_type} connection")
+                                except Exception as e:
+                                    logger.error(f"Error closing idle {adapter_type} connection: {e}")
                                 with self._lock:
                                     self._connection_count[adapter_type] -= 1
-                                logger.info(f"Cleaned up idle {adapter_type} connection")
                             else:
                                 temp_connections.append(pooled_conn)
                         except Empty:
@@ -350,7 +363,16 @@ def cleanup_global_connection_pool():
         try:
             loop = asyncio.get_event_loop()
             if loop.is_running():
-                asyncio.create_task(_connection_pool_manager.cleanup_all())
+                # If we're in an async context, we need to handle this differently
+                # Create a task and ensure it's properly tracked
+                task = asyncio.create_task(_connection_pool_manager.cleanup_all())
+                # Add a callback to handle any exceptions
+                def handle_task_exception(task):
+                    try:
+                        task.result()
+                    except Exception as e:
+                        logger.error(f"Error in cleanup task: {e}")
+                task.add_done_callback(handle_task_exception)
             else:
                 loop.run_until_complete(_connection_pool_manager.cleanup_all())
         except Exception as e:

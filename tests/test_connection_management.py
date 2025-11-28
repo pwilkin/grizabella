@@ -205,7 +205,7 @@ class TestThreadSafeKuzuAdapter(unittest.TestCase):
             import asyncio
             async def get_conn():
                 adapter = ThreadSafeKuzuAdapter(str(self.test_db_path))
-                conn = adapter.conn
+                conn = adapter.connection
                 result_dict[key] = id(conn)
                 return id(conn)
             
