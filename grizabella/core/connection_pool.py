@@ -7,6 +7,7 @@ and thread-safe operations.
 """
 
 import asyncio
+import atexit
 import logging
 import threading
 import time
@@ -225,6 +226,10 @@ class ConnectionPoolManager:
         """Background thread to clean up idle connections."""
         while not self._shutdown:
             try:
+                # Check if Python is shutting down
+                if hasattr(threading, 'main_thread') and not threading.main_thread().is_alive():
+                    break
+                    
                 current_time = time.time()
                 for adapter_type, pool in self._pools.items():
                     temp_connections = []
@@ -241,13 +246,14 @@ class ConnectionPoolManager:
                                     if hasattr(pooled_conn.connection, 'close'):
                                         if asyncio.iscoroutinefunction(pooled_conn.connection.close):
                                             # For async close methods, create a new event loop in this thread
-                                            import asyncio
-                                            close_loop = asyncio.new_event_loop()
-                                            asyncio.set_event_loop(close_loop)
-                                            try:
-                                                close_loop.run_until_complete(pooled_conn.connection.close())
-                                            finally:
-                                                close_loop.close()
+                                            # But only if Python is not shutting down
+                                            if not (hasattr(threading, 'main_thread') and not threading.main_thread().is_alive()):
+                                                close_loop = asyncio.new_event_loop()
+                                                asyncio.set_event_loop(close_loop)
+                                                try:
+                                                    close_loop.run_until_complete(pooled_conn.connection.close())
+                                                finally:
+                                                    close_loop.close()
                                         else:
                                             pooled_conn.connection.close()
                                     logger.info(f"Cleaned up idle {adapter_type} connection")
@@ -292,15 +298,30 @@ class ConnectionPoolManager:
         
     def close_all_pools(self):
         """Synchronous method to close all connection pools."""
-        import asyncio
         try:
-            # Run the async cleanup in a new event loop if needed
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+            # Check if there's already an event loop running
             try:
-                loop.run_until_complete(self.cleanup_all())
-            finally:
-                loop.close()
+                loop = asyncio.get_running_loop()
+                # If there's a running loop, we need to run the cleanup synchronously
+                # since close_all_pools is a synchronous method
+                # We'll use run_coroutine_threadsafe to run it in the existing loop
+                import concurrent.futures
+                future = asyncio.run_coroutine_threadsafe(self.cleanup_all(), loop)
+                # Wait for completion with timeout
+                try:
+                    future.result(timeout=10)  # 10 second timeout
+                    logger.info("Cleanup completed in running event loop")
+                except concurrent.futures.TimeoutError:
+                    logger.warning("Cleanup timed out")
+                    future.cancel()
+            except RuntimeError:
+                # No running loop, we can create our own
+                new_loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(new_loop)
+                try:
+                    new_loop.run_until_complete(self.cleanup_all())
+                finally:
+                    new_loop.close()
         except Exception as e:
             logger.error(f"Error closing all pools: {e}")
             # Force cleanup even if there's an error
@@ -347,10 +368,49 @@ class ConnectionPoolManager:
                 'available_connections': pool.qsize()
             }
         return stats
+    
+    def __del__(self):
+        """Cleanup when the object is garbage collected."""
+        try:
+            # Set shutdown flag to prevent any further operations
+            self._shutdown = True
+            
+            # Stop the cleanup thread if it's running
+            if hasattr(self, '_cleanup_thread') and self._cleanup_thread and self._cleanup_thread.is_alive():
+                self._cleanup_thread.join(timeout=0.1)  # Very short timeout during GC
+                
+            # Clear all pools to prevent any further operations
+            if hasattr(self, '_pools'):
+                self._pools.clear()
+            if hasattr(self, '_connection_count'):
+                self._connection_count.clear()
+                
+            # Replace cleanup_all with a no-op to prevent any async calls during GC
+            async def _noop_cleanup():
+                return None
+            self.cleanup_all = _noop_cleanup
+            
+        except Exception:
+            # Ignore any errors during garbage collection
+            pass
 
 # Global singleton instance
 _connection_pool_manager: Optional[ConnectionPoolManager] = None
 _pool_lock = threading.Lock()
+
+# Register cleanup function to be called at exit
+def _cleanup_at_exit():
+    """Cleanup function to be called at Python exit."""
+    global _connection_pool_manager
+    if _connection_pool_manager is not None:
+        try:
+            _connection_pool_manager._shutdown = True
+            if _connection_pool_manager._cleanup_thread and _connection_pool_manager._cleanup_thread.is_alive():
+                _connection_pool_manager._cleanup_thread.join(timeout=0.5)
+        except Exception:
+            pass  # Ignore errors during exit
+
+atexit.register(_cleanup_at_exit)
 
 def get_connection_pool_manager() -> ConnectionPoolManager:
     """Get the global connection pool manager instance.

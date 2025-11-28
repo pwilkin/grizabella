@@ -934,15 +934,43 @@ def cleanup_resources():
 
 def shutdown_handler(signum, frame):
     """Handle shutdown signals gracefully."""
-    print(f"Received signal {signum}, shutting down...", file=sys.stderr)
+    import sys
+    try:
+        print(f"Received signal {signum}, shutting down...", file=sys.stderr)
+    except Exception:
+        # sys.stderr might not be available during shutdown
+        print(f"Received signal {signum}, shutting down...")
+    
     logger.info(f"Received signal {signum}, shutting down...")
     
-    # Perform cleanup
-    cleanup_resources()
+    # Perform forceful cleanup during signal handling to avoid async issues
+    try:
+        # Stop monitoring first (sync)
+        stop_global_monitoring()
+        
+        # Force cleanup DB managers without async operations
+        from grizabella.core.db_manager_factory import _db_manager_factory
+        if _db_manager_factory:
+            with _db_manager_factory._lock:
+                _db_manager_factory._instances.clear()
+                _db_manager_factory._reference_counts.clear()
+        
+        # Force cleanup connection pools without async operations
+        from grizabella.core.connection_pool import _connection_pool_manager
+        if _connection_pool_manager:
+            _connection_pool_manager._shutdown = True
+            if _connection_pool_manager._cleanup_thread and _connection_pool_manager._cleanup_thread.is_alive():
+                _connection_pool_manager._cleanup_thread.join(timeout=1)
+            with _connection_pool_manager._lock:
+                _connection_pool_manager._connection_count.clear()
+        
+        logger.info("Force cleanup completed during shutdown")
+    except Exception as e:
+        logger.error(f"Error during force cleanup: {e}")
     
-    # Don't call sys.exit(0) as it can cause issues during interpreter shutdown
-    # Instead, let the main function handle the exit naturally
-    raise SystemExit(0)
+    # Exit immediately
+    import sys
+    sys.exit(0)
 
 def main():
     """Initializes client and runs the FastMCP application."""
