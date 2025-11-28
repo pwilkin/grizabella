@@ -321,7 +321,7 @@ async function schemaEvolutionExample() {
     },
   });
 
-  console.log('✅ Created user with initial schema:', user1.properties.username);
+  console.log('✅ Created user with initial schema:', user1.properties['username']);
 
   // Note: In a real scenario, you would need to handle schema migration
   // This example shows the pattern, but actual schema modification
@@ -391,7 +391,7 @@ async function schemaEvolutionExample() {
     },
   });
 
-  console.log('✅ Created extended user:', extendedUser.properties.username);
+  console.log('✅ Created extended user:', extendedUser.properties['username']);
 }
 
 // Run all examples

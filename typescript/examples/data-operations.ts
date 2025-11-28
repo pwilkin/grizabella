@@ -44,12 +44,12 @@ async function basicCrudExample() {
     },
   });
 
-  console.log('✅ Created person:', person.properties.name);
+  console.log('✅ Created person:', person.properties['name']);
 
   // Read the person (Read)
   const retrievedPerson = await client.getObjectById('person-1', 'Person');
   if (retrievedPerson) {
-    console.log('✅ Retrieved person:', retrievedPerson.properties.name);
+    console.log('✅ Retrieved person:', retrievedPerson.properties['name']);
   }
 
   // Update the person (Update)
@@ -65,7 +65,7 @@ async function basicCrudExample() {
     },
   });
 
-  console.log('✅ Updated person age to:', updatedPerson.properties.age);
+  console.log('✅ Updated person age to:', updatedPerson.properties['age']);
 
   // Delete the person (Delete)
   const deleted = await client.deleteObject('person-1', 'Person');
@@ -219,7 +219,7 @@ async function basicRelationsExample() {
     },
   });
 
-  console.log('✅ Created relation:', relation.properties.role);
+  console.log('✅ Created relation:', relation.properties?.['role'] ?? 'Unknown role');
 
   // Query outgoing relations from person
   const outgoingRelations = await client.getOutgoingRelations(person.id, 'Person', 'WORKS_ON');

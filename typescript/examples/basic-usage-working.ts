@@ -136,7 +136,7 @@ async function queryExample() {
   // Get a specific book by ID
   const book = await client.getObjectById('book-1', 'Book');
   if (book) {
-    console.log('Found book:', book.properties.title);
+    console.log('Found book:', book.properties['title']);
   }
 
   // Find all books

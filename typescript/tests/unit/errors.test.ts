@@ -115,8 +115,8 @@ describe('Error Handling Framework', () => {
       expect(json['category']).toBe(ErrorCategory.SYSTEM);
       expect(json['severity']).toBe(ErrorSeverity.MEDIUM);
       expect(json['isRetryable']).toBe(true);
-      expect(json['cause']?.['name']).toBe('Error');
-      expect(json['cause']?.['message']).toBe('Original error');
+      expect((json['cause'] as any)?.['name']).toBe('Error');
+      expect((json['cause'] as any)?.['message']).toBe('Original error');
     });
 
     it('should create detailed error message', () => {
@@ -612,12 +612,12 @@ describe('Error Handling Framework', () => {
     describe('isErrorType', () => {
       it('should return true for correct error type', () => {
         const error = new ConnectionError('Test error');
-        expect(isErrorType(error, ConnectionError)).toBe(true);
+        expect(isErrorType(error, ConnectionError as any)).toBe(true);
       });
 
       it('should return false for incorrect error type', () => {
         const error = new ConnectionError('Test error');
-        expect(isErrorType(error, ValidationError)).toBe(false);
+        expect(isErrorType(error, ValidationError as any)).toBe(false);
       });
     });
 

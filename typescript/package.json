@@ -1,6 +1,6 @@
 {
   "name": "grizabella-typescript-api",
-  "version": "0.1.0",
+  "version": "0.1.5",
   "description": "TypeScript API client for Grizabella multi-database knowledge graph operations through MCP communication",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -105,7 +105,7 @@
   },
   "engines": {
     "node": ">=18.0.0",
-    "npm": ">=8.0.0"
+    "pnpm": ">=8.0.0"
   },
   "repository": {
     "type": "git",
