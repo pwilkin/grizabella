@@ -7,7 +7,7 @@
 Based on the codebase analysis, the memory leak and threading issues stem from several interconnected problems:
 
 1. **Multiple Connection Instances**: Each TypeScript client connection creates new GrizabellaDBManager instances
-2. **KuzuAdapter Threading Issues**: KuzuDB connections are not thread-safe and create lock files/WAL files that aren't properly cleaned up
+2. **LadybugDBAdapter Threading Issues**: LadybugDB connections are not thread-safe and create lock files/WAL files that aren't properly cleaned up
 3. **MCP Server Resource Leaks**: The MCP server creates singleton Grizabella instances but doesn't properly manage their lifecycle
 4. **No Connection Pooling**: Database adapters are created per-request rather than reused
 5. **Improper Cleanup**: Connection cleanup is inconsistent across different code paths
@@ -16,7 +16,7 @@ Based on the codebase analysis, the memory leak and threading issues stem from s
 
 - Over a dozen threads spawned for Grizabella process
 - Uncontrollable memory growth leading to system crashes
-- Lock files and WAL files accumulating in Kuzu database directories
+- Lock files and WAL files accumulating in LadybugDB database directories
 - MCP server connections not being properly terminated
 
 ## Solution Architecture
@@ -42,7 +42,7 @@ class ConnectionPoolManager:
         self._pools = {
             'sqlite': Queue(maxsize=max_connections),
             'lancedb': Queue(maxsize=max_connections),
-            'kuzu': Queue(maxsize=max_connections)
+            'ladybugdb': Queue(maxsize=max_connections)
         }
         self._lock = threading.RLock()
         self._connection_count = defaultdict(int)
@@ -79,11 +79,11 @@ class DBManagerFactory:
         """Clean up all DBManager instances"""
 ```
 
-#### 3. Thread-Safe KuzuAdapter
+#### 3. Thread-Safe LadybugDBAdapter
 
 ```python
-class ThreadSafeKuzuAdapter(BaseDBAdapter):
-    """Thread-safe Kuzu adapter with proper connection isolation"""
+class ThreadSafeLadybugDBAdapter(BaseDBAdapter):
+    """Thread-safe LadybugDB adapter with proper connection isolation"""
     
     def __init__(self, db_path: str, config: Optional[dict] = None):
         self._local = threading.local()
@@ -99,7 +99,7 @@ class ThreadSafeKuzuAdapter(BaseDBAdapter):
         return self._local.conn
         
     def _create_connection(self):
-        """Create a new Kuzu connection with proper cleanup"""
+        """Create a new LadybugDB connection with proper cleanup"""
         
     def close(self):
         """Close thread-local connection"""
@@ -178,10 +178,10 @@ class ConnectionManager {
    - Reference counting for shared instances
    - Graceful shutdown procedures
 
-3. **Enhanced KuzuAdapter**
-   - Thread-local storage for connections
-   - Proper lock file management
-   - WAL file cleanup on connection close
+3. **Enhanced LadybugDBAdapter**
+    - Thread-local storage for connections
+    - Proper lock file management
+    - WAL file cleanup on connection close
 
 ### Phase 2: MCP Server Enhancements
 
@@ -244,13 +244,13 @@ graph TB
     subgraph "Adapter Layer"
         CPM --> SA[SQLite Adapter]
         CPM --> LA[LanceDB Adapter]
-        CPM --> TKA[Thread-Safe Kuzu Adapter]
+        CPM --> TLA[Thread-Safe LadybugDB Adapter]
     end
     
     subgraph "Database Layer"
         SA --> DB[(SQLite DB)]
         LA --> LD[(LanceDB)]
-        TKA --> KD[(KuzuDB)]
+        TLA --> LD[(LadybugDB)]
     end
     
     TC -.->|HTTP/Stdio| MS

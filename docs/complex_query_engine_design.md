@@ -8,7 +8,7 @@
 
 ## 1. Introduction
 
-This document outlines the design for a complex query engine within the Grizabella project. The engine will enable users to execute queries that span across Grizabella's integrated database layers: SQLite (relational), LanceDB (vector), and Kuzu (graph). The goal is to provide a unified way to parse, plan, execute, and aggregate results for such queries, starting with AND logic for combining conditions and allowing for future extensions like OR/NOT logic and more sophisticated query patterns.
+This document outlines the design for a complex query engine within the Grizabella project. The engine will enable users to execute queries that span across Grizabella's integrated database layers: SQLite (relational), LanceDB (vector), and LadybugDB (graph). The goal is to provide a unified way to parse, plan, execute, and aggregate results for such queries, starting with AND logic for combining conditions and allowing for future extensions like OR/NOT logic and more sophisticated query patterns.
 
 ## 2. Query Input/Representation
 
@@ -245,7 +245,7 @@ The `QueryPlanner` is responsible for validating the query and creating a step-b
 3. **Order of Operations:** The planner establishes a fixed, logical order of operations for the steps within each component to ensure a predictable filtering flow:
     * **Step 1: Relational Filtering (SQLite):** Applies filters on object properties (`sqlite_filter`). This is typically the first step as it's often highly selective.
     * **Step 2: Embedding Similarity Search (LanceDB):** Takes the IDs from the previous step and performs embedding searches (`lancedb_search`).
-    * **Step 3: Graph Traversal (Kuzu):** Uses the remaining IDs to perform graph traversals (`kuzu_traversal`).
+    * **Step 3: Graph Traversal (LadybugDB):** Uses the remaining IDs to perform graph traversals (`ladybugdb_traversal`).
 4. **Plan Output:** The final output is a `PlannedQuery` Pydantic model, which encapsulates the original query and the list of `PlannedComponentExecution` plans. This object is then passed to the `QueryExecutor`.
 
 ### QueryExecutor
@@ -260,7 +260,7 @@ The `QueryExecutor` is responsible for executing the `PlannedQuery`.
 4. **Adapter Methods:** The executor calls specialized methods on the database adapters:
     * **SQLiteAdapter:** `find_object_ids_by_properties`
     * **LanceDBAdapter:** `find_object_ids_by_similarity`
-    * **KuzuAdapter:** `filter_object_ids_by_relations`
+    * **LadybugDBAdapter:** `filter_object_ids_by_relations`
 5. **Error Handling:** If a step fails, the error is logged, and the execution of that component is stopped. The error message is added to the final `QueryResult`.
 
 ## 4. Result Aggregation & Joining
@@ -346,7 +346,7 @@ sequenceDiagram
     participant Executor as QueryExecutor
     participant SQLiteAdapter
     participant LanceDBAdapter
-    participant KuzuAdapter
+    participant LadybugDBAdapter
 
     User->>GrizabellaAPI: execute_complex_query(ComplexQuery)
     GrizabellaAPI->>DBManager: process_complex_query(ComplexQuery)
@@ -366,10 +366,10 @@ sequenceDiagram
     LanceDBAdapter-->>DBManager: List[UUID] (ids_step2)
     DBManager-->>Executor: List[UUID] (ids_step2)
 
-    Note over Executor,KuzuAdapter: Loop for Kuzu steps
+    Note over Executor,LadybugDBAdapter: Loop for LadybugDB steps
     Executor->>DBManager: filter_object_ids_by_relations(ids_step2, ...)
-    DBManager->>KuzuAdapter: query_ids_by_traversal(ids_step2, ...)
-    KuzuAdapter-->>DBManager: List[UUID] (ids_final)
+    DBManager->>LadybugDBAdapter: query_ids_by_traversal(ids_step2, ...)
+    LadybugDBAdapter-->>DBManager: List[UUID] (ids_final)
     DBManager-->>Executor: List[UUID] (ids_final)
 
     Note over Executor,SQLiteAdapter: Fetch full objects
@@ -439,7 +439,7 @@ classDiagram
 * **Cost-Based Optimization:** Implement a cost model for different query operations to allow the `QueryPlanner` to choose more optimal execution orders.
 * **User-Defined Functions/Scripts:** Allow embedding small scripts or functions (e.g., Python snippets) for more complex filtering or data transformation within the query pipeline.
 * **Aggregation Functions:** Support for aggregation functions (COUNT, SUM, AVG, etc.) on query results.
-* **More Complex Graph Patterns:** Support for multi-hop traversals, pathfinding, or more expressive graph query patterns (e.g., Cypher-like sub-queries if Kuzu supports them directly or via translation).
+* **More Complex Graph Patterns:** Support for multi-hop traversals, pathfinding, or more expressive graph query patterns (e.g., Cypher-like sub-queries if LadybugDB supports them directly or via translation).
 * **Caching:** Implement caching for intermediate results or frequently executed query patterns.
 * **Asynchronous Execution:** For long-running queries, provide an asynchronous execution model.
 

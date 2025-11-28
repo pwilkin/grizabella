@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Any, Optional
 from uuid import UUID
 
-import kuzu
+import real_ladybug as kuzu
 
 from grizabella.core.exceptions import DatabaseError, InstanceError, SchemaError, ConfigurationError
 from grizabella.core.models import (
@@ -42,36 +42,38 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
     def __init__(self, db_path: str, config: Optional[dict[str, Any]] = None) -> None:
         """Initialize the Kuzu adapter.
         
-        Validates that the provided db_path is a directory (not a file) and
-        creates the directory if it doesn't exist. This ensures that Kuzu can
-        properly initialize with a valid directory path.
+        For real_ladybug: Validates that the parent directory exists and creates
+        the database file if it doesn't exist.
+        For kuzu compatibility: Creates directory structure if needed.
         
         Args:
-            db_path: Path to the Kuzu database directory
+            db_path: Path to the Kuzu database (file path for real_ladybug, directory for kuzu)
             config: Optional configuration dictionary
             
         Raises:
-            ConfigurationError: If the path exists but is not a directory, or
-                               if unable to create the directory
+            ConfigurationError: If the parent directory doesn't exist or cannot be created
         """
         logger.info(f"KuzuAdapter: Initializing in thread ID: {threading.get_ident()} for db_path: {db_path}")
-        # Validate that db_path is a directory, not a file
         import os
         from pathlib import Path
         
         db_path_obj = Path(db_path)
-        if db_path_obj.exists() and not db_path_obj.is_dir():
-            msg = f"KuzuAdapter: The provided path '{db_path}' exists but is not a directory. Kuzu requires a directory path."
-            raise ConfigurationError(msg)
         
-        # Create the directory if it doesn't exist
-        if not db_path_obj.exists():
+        # Ensure parent directory exists
+        parent_dir = db_path_obj.parent
+        if not parent_dir.exists():
             try:
-                db_path_obj.mkdir(parents=True, exist_ok=True)
-                logger.info(f"KuzuAdapter: Created directory {db_path} for Kuzu database")
+                parent_dir.mkdir(parents=True, exist_ok=True)
+                logger.info(f"KuzuAdapter: Created parent directory {parent_dir} for database")
             except OSError as e:
-                msg = f"KuzuAdapter: Unable to create directory {db_path} for Kuzu database: {e}"
+                msg = f"KuzuAdapter: Unable to create parent directory {parent_dir}: {e}"
                 raise ConfigurationError(msg) from e
+        
+        # For real_ladybug compatibility, ensure the database file path is properly formed
+        if not db_path_obj.suffix:
+            # If no extension, add .db to make it a proper file path
+            db_path_obj = db_path_obj.with_suffix('.db')
+            logger.info(f"KuzuAdapter: Added .db extension, using {db_path_obj}")
         
         self.db: Optional[kuzu.Database] = None
         self.conn: Optional[kuzu.Connection] = None
@@ -83,20 +85,29 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
         """Establish a connection to the Kuzu database."""
         logger.info(f"KuzuAdapter: _connect called in thread ID: {threading.get_ident()} for db_path: {self.db_path}")
         try:
-            # Clean up stale lock files
-            lock_files = glob.glob(os.path.join(self.db_path, "*.lock"), include_hidden=True)
-            if lock_files:
-                logger.info(f"KuzuAdapter: Found {len(lock_files)} lock files. Attempting removal.")
-                for lock_file in lock_files:
+            # Clean up stale lock files - look for both directory pattern and suffix pattern
+            db_dir = os.path.dirname(self.db_path)
+            db_name = os.path.basename(self.db_path)
+            
+            # Pattern 1: lock files in directory (existing logic)
+            lock_files_in_dir = glob.glob(os.path.join(db_dir, "*.lock"), include_hidden=True)
+            # Pattern 2: lock files as suffix for the specific database file
+            lock_file_as_suffix = os.path.join(db_dir, f"{db_name}.lock")
+            all_lock_files = lock_files_in_dir + ([lock_file_as_suffix] if os.path.exists(lock_file_as_suffix) else [])
+            
+            if all_lock_files:
+                logger.info(f"KuzuAdapter: Found {len(all_lock_files)} lock files. Attempting removal.")
+                for lock_file in all_lock_files:
                     try:
                         os.remove(lock_file)
                         logger.info(f"KuzuAdapter: Removed lock file: {lock_file}")
                     except OSError as e:
-                        logger.warning(f"KuzuAdapter: Could not remove WAL file {lock_file}: {e}")
+                        logger.warning(f"KuzuAdapter: Could not remove lock file {lock_file}: {e}")
+            
             # Kuzu might also create WAL files that could interfere if not cleared after a crash,
             # especially if the lock file is gone but WAL remains.
-            # Look for .wal files in the wal directory
-            wal_files = glob.glob(os.path.join(self.db_path, "*.wal"), include_hidden=True)
+            # Look for .wal files in the database directory
+            wal_files = glob.glob(os.path.join(db_dir, "*.wal"), include_hidden=True)
             if wal_files:
                 logger.info(f"KuzuAdapter: Found {len(wal_files)} WAL files. Attempting removal.")
                 for wal_file in wal_files:
@@ -410,15 +421,19 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
         }  # Kuzu expects UUID as string
 
         # Build SET clause and populate params_for_query with correctly typed values
+        # Note: For real_ladybug, we should NOT set the primary key 'id' in SET clauses
+        # as it's already being set by the MERGE clause
         set_clause_parts = []
-        # Add id parameter
+        
+        # Add id parameter for the MERGE match (not for SET)
         params_for_query["id_param"] = instance.id
-        set_clause_parts.append("n.id = $id_param")
 
-        # Process each property
+        # Process each property, but exclude 'id' from SET clauses (it's set by MERGE)
         for key, original_value in instance.properties.items():
             param_name = f"p_{key}"
-            set_clause_parts.append(f"n.{key} = ${param_name}")
+            # Only add to SET clause if it's not the primary key 'id'
+            if key.lower() != "id":
+                set_clause_parts.append(f"n.{key} = ${param_name}")
             # Ensure the parameter type matches Kuzu's expectation for the property
             if isinstance(original_value, UUID):
                 params_for_query[param_name] = original_value # Pass UUID object
@@ -852,7 +867,9 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
 
         for key, original_value in all_relation_properties.items():
             param_name = f"p_{key}"
-            set_clause_parts.append(f"r.{key} = ${param_name}")
+            # Only add to SET clause if it's not the primary key 'id'
+            if key.lower() != "id":
+                set_clause_parts.append(f"r.{key} = ${param_name}")
             # Ensure the parameter type matches Kuzu's expectation
             if key == "id": # 'id' property in Kuzu is UUID
                 params_for_query[param_name] = instance.id # Pass UUID object
@@ -1428,10 +1445,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
                 # print(f"DEBUG: Parameters: {params}")
 
                 try:
-                    prepared_statement = self.conn.prepare(query_str)
-                    raw_query_result = self.conn.execute(
-                        prepared_statement, parameters=params,
-                    )
+                    raw_query_result = self.conn.execute(query_str, parameters=params)
 
                     actual_query_result: Optional[kuzu.query_result.QueryResult] = None
                     if isinstance(raw_query_result, list):

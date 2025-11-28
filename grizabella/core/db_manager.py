@@ -7,9 +7,10 @@ import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Optional, Union
 
-# from grizabella.db_layers.kuzu.kuzu_adapter import KuzuAdapter # Moved to TYPE_CHECKING
-from grizabella.db_layers.lancedb.lancedb_adapter import LanceDBAdapter
-from grizabella.db_layers.sqlite.sqlite_adapter import SQLiteAdapter
+if TYPE_CHECKING:
+    from grizabella.db_layers.kuzu.kuzu_adapter import KuzuAdapter
+    from grizabella.db_layers.lancedb.lancedb_adapter import LanceDBAdapter
+    from grizabella.db_layers.sqlite.sqlite_adapter import SQLiteAdapter
 
 from . import db_paths
 from ._db_manager_helpers import _ConnectionHelper, _InstanceManager, _SchemaManager
@@ -27,6 +28,8 @@ from .models import (
     RelationTypeDefinition,
 )
 from .query_engine import QueryExecutor, QueryPlanner  # Added import
+
+
 from .query_models import ComplexQuery, QueryResult  # Added import
 
 if TYPE_CHECKING:
@@ -149,14 +152,14 @@ class GrizabellaDBManager: # pylint: disable=R0904, R0902
         self.close()
 
     @property
-    def sqlite_adapter(self) -> SQLiteAdapter:
+    def sqlite_adapter(self) -> "SQLiteAdapter":
         """Provides access to the SQLite adapter, ensuring connection."""
         if not self._manager_fully_initialized:
             msg = "GrizabellaDBManager not fully initialized."
             raise DatabaseError(msg)
         return self._connection_helper.sqlite_adapter
     @property
-    def lancedb_adapter(self) -> LanceDBAdapter:
+    def lancedb_adapter(self) -> "LanceDBAdapter":
         """Provides access to the LanceDB adapter, ensuring connection."""
         if not self._manager_fully_initialized:
             msg = "GrizabellaDBManager not fully initialized."
@@ -475,7 +478,7 @@ class GrizabellaDBManager: # pylint: disable=R0904, R0902
             msg = "Manager not connected."
             raise DatabaseError(msg)
         # The _InstanceManager.get_relation_instance should handle the UUID conversion if needed
-        return self._instance_manager.get_relation_instance(relation_type_name, str(relation_id))
+        return self._instance_manager.get_relation_instance(relation_type_name, relation_id)
 
 
     def delete_relation_instance(
@@ -485,7 +488,8 @@ class GrizabellaDBManager: # pylint: disable=R0904, R0902
         if not self.is_connected:
             msg = "Manager not connected."
             raise DatabaseError(msg)
-        return self._instance_manager.delete_relation_instance(relation_type_name, str(relation_id))
+        # Pass UUID directly to match Kuzu adapter expectations (not string conversion like get_relation_instance)
+        return self._instance_manager.delete_relation_instance(relation_type_name, relation_id)
 
     def find_relation_instances( # pylint: disable=R0913, R0917
         self,

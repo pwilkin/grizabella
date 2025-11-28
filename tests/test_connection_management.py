@@ -25,7 +25,7 @@ class TestConnectionPoolManager(unittest.TestCase):
     
     def setUp(self):
         """Set up test fixtures."""
-        self.pool_manager = ConnectionPoolManager(max_connections_per_type=5, max_idle_time=1)
+        self.pool_manager = ConnectionPoolManager(max_connections_per_type=5, max_idle_time=0.1)
         self.test_db_path = Path(tempfile.mkdtemp()) / "test.db"
     
     def tearDown(self):
@@ -90,7 +90,7 @@ class TestConnectionPoolManager(unittest.TestCase):
             await self.pool_manager.return_connection('sqlite', pooled_conn)
             
             # Wait for the idle time to pass
-            time.sleep(1.1)
+            time.sleep(0.2)
             
             # The cleanup should happen automatically
             status = self.pool_manager.get_pool_stats()
@@ -304,7 +304,7 @@ class TestMemoryLeakPrevention(unittest.TestCase):
         db_path = self.test_db_path / "pool_cleanup_test.db"
         
         initial_process = psutil.Process()
-        initial_connections = len(initial_process.connections())
+        initial_connections = len(initial_process.net_connections())
         
         # Create and use several connections
         import asyncio
@@ -327,7 +327,7 @@ class TestMemoryLeakPrevention(unittest.TestCase):
         
         # Check that no resources are leaked
         current_process = psutil.Process()
-        current_connections = len(current_process.connections())
+        current_connections = len(current_process.net_connections())
         
         # The number of connections should not have grown significantly
         # (allowing for some variance due to test environment)

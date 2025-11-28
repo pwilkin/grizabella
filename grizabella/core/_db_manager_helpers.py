@@ -3,12 +3,8 @@
 import logging
 import threading  # For logging thread ID
 from datetime import datetime, timezone
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional
 from uuid import UUID
-
-from grizabella.db_layers.kuzu.kuzu_adapter import KuzuAdapter
-from grizabella.db_layers.lancedb.lancedb_adapter import LanceDBAdapter
-from grizabella.db_layers.sqlite.sqlite_adapter import SQLiteAdapter
 
 from .exceptions import (
     ConfigurationError,
@@ -26,6 +22,11 @@ from .models import (
     RelationInstance,  # Added for new methods
     RelationTypeDefinition,  # Added for new methods
 )
+
+if TYPE_CHECKING:
+    from grizabella.db_layers.kuzu.kuzu_adapter import KuzuAdapter
+    from grizabella.db_layers.lancedb.lancedb_adapter import LanceDBAdapter
+    from grizabella.db_layers.sqlite.sqlite_adapter import SQLiteAdapter
 
 
 class _ConnectionHelper:  # pylint: disable=R0902
@@ -46,13 +47,13 @@ class _ConnectionHelper:  # pylint: disable=R0902
         self.kuzu_path: str = kuzu_path_str
         self._logger = manager_logger
 
-        self._sqlite_adapter_instance: Optional[SQLiteAdapter] = None
-        self._lancedb_adapter_instance: Optional[LanceDBAdapter] = None
-        self._kuzu_adapter_instance: Optional[KuzuAdapter] = None
+        self._sqlite_adapter_instance: Optional["SQLiteAdapter"] = None
+        self._lancedb_adapter_instance: Optional["LanceDBAdapter"] = None
+        self._kuzu_adapter_instance: Optional["KuzuAdapter"] = None
         self._adapters_are_connected: bool = False
 
     @property
-    def sqlite_adapter(self) -> SQLiteAdapter:
+    def sqlite_adapter(self) -> "SQLiteAdapter":
         """Provides access to the SQLite adapter instance."""
         if not self._sqlite_adapter_instance or not self._adapters_are_connected:
             self._logger.error("Attempted to access SQLite adapter when not connected.")
@@ -61,7 +62,7 @@ class _ConnectionHelper:  # pylint: disable=R0902
         return self._sqlite_adapter_instance
 
     @property
-    def lancedb_adapter(self) -> LanceDBAdapter:
+    def lancedb_adapter(self) -> "LanceDBAdapter":
         """Provides access to the LanceDB adapter instance."""
         if not self._lancedb_adapter_instance or not self._adapters_are_connected:
             self._logger.error(
@@ -115,6 +116,7 @@ class _ConnectionHelper:  # pylint: disable=R0902
             self._logger.info(
                 "_ConnectionHelper: Connecting LanceDBAdapter to %s", self.lancedb_uri,
             )
+            from grizabella.db_layers.lancedb.lancedb_adapter import LanceDBAdapter
             self._lancedb_adapter_instance = LanceDBAdapter(db_uri=self.lancedb_uri)
             self._logger.info("_ConnectionHelper: LanceDBAdapter initialized.")
 
@@ -799,21 +801,21 @@ class _InstanceManager:
             )
             return None
         try:
-            return self._conn_helper.sqlite_adapter.get_object_instance(
+            instance = self._conn_helper.sqlite_adapter.get_object_instance(
                 object_type_name, instance_id,
             )
-        except (DatabaseError, SchemaError) as e:
+            self._logger.debug(
+                "Retrieved object instance '%s' of type '%s'.", instance_id, object_type_name,
+            )
+            return instance
+        except (DatabaseError, InstanceError) as e:
             self._logger.error(
-                "Error getting OI '%s' of type '%s': %s",
-                instance_id,
-                object_type_name,
-                e,
-                exc_info=True,
+                "Error retrieving object instance '%s': %s", instance_id, e, exc_info=True,
             )
             raise
 
     def update_object_instance(self, instance: ObjectInstance) -> None:
-        """Updates an existing object instance in SQLite."""
+        """Updates an existing object instance in the SQLite database."""
         if not self._schema_manager.get_object_type_definition(
             instance.object_type_name,
         ):
@@ -824,7 +826,7 @@ class _InstanceManager:
         try:
             self._conn_helper.sqlite_adapter.update_object_instance(instance)
             self._logger.debug(
-                "Object instance '%s' of type '%s' updated.",
+                "Updated object instance '%s' of type '%s'.",
                 instance.id,
                 instance.object_type_name,
             )
@@ -835,316 +837,189 @@ class _InstanceManager:
             raise
 
     def upsert_object_instance(self, instance: ObjectInstance) -> ObjectInstance:
-        """Upserts an OI to SQLite and handles its embeddings in LanceDB."""
-        self._logger.info(f"_InstanceManager: upsert_object_instance called in thread ID: {threading.get_ident()} for instance ID: {instance.id}, type: {instance.object_type_name}")
-        otd = self._schema_manager.get_object_type_definition(instance.object_type_name)
-        if not otd:
+        """Upserts an object instance in both SQLite and Kuzu, and generates embeddings if applicable."""
+        if not self._schema_manager.get_object_type_definition(
+            instance.object_type_name,
+        ):
             msg = f"Cannot upsert instance: OTD '{instance.object_type_name}' not found."
             raise SchemaError(
                 msg,
             )
-
-        # Ensure upsert_date reflects the current operation time
-        instance.upsert_date = datetime.now(timezone.utc)
-
-        returned_instance: Optional[ObjectInstance] = None
         try:
-            returned_instance = self._conn_helper.sqlite_adapter.upsert_object_instance(
-                instance,
-            )
+            # First upsert in SQLite
+            self._conn_helper.sqlite_adapter.upsert_object_instance(instance)
+            
+            # Then upsert in Kuzu for graph operations
+            self._conn_helper.kuzu_adapter.upsert_object_instance(instance)
+            
+            # Generate and upsert embeddings if applicable
+            self._generate_embeddings_for_instance(instance)
+            
             self._logger.debug(
-                "OI '%s' of type '%s' upserted to SQLite.",
+                "Upserted object instance '%s' of type '%s' in SQLite, Kuzu, and generated embeddings.",
                 instance.id,
                 instance.object_type_name,
             )
-            applicable_eds = [
-                ed
-                for ed in self._schema_manager.list_embedding_definitions()
-                if ed.object_type_name == instance.object_type_name
-            ]
-            for ed_instance in applicable_eds:
-                try:
-                    self._conn_helper.lancedb_adapter.delete_embedding_instances_for_object(
-                        instance.id, ed_instance.name,
-                    )
-                    self._logger.debug(
-                        "Deleted existing embeddings for OI '%s', def '%s'.",
-                        instance.id,
-                        ed_instance.name,
-                    )
-                except Exception as e:  # pylint: disable=broad-except
-                    self._logger.error(
-                        "Error deleting old embeddings for OI '%s', def '%s': %s",
-                        instance.id,
-                        ed_instance.name,
-                        e,
-                        exc_info=True,
-                    )  # Continue if one embedding fails
-                text_to_embed = instance.properties.get(
-                    ed_instance.source_property_name,
-                )
-                if isinstance(text_to_embed, str) and text_to_embed.strip():
-                    try:
-                        embedding_model_func = self._conn_helper.lancedb_adapter.get_embedding_model(
-                            ed_instance.embedding_model,
-                        )
-                        # Use compute_source_embeddings for TransformersEmbeddingFunction
-                        raw_embeddings_list = embedding_model_func.compute_source_embeddings([text_to_embed])
-                        if not raw_embeddings_list:
-                             self._logger.error(
-                                "Model '%s' for OI '%s' returned empty list for text: %s",
-                                ed_instance.embedding_model, instance.id, text_to_embed[:50],
-                            )
-                             raise EmbeddingError(f"Model {ed_instance.embedding_model} returned empty list for text.")
-
-                        raw_vector = raw_embeddings_list[0]
-
-                        if hasattr(raw_vector, "tolist"): # Handles numpy array
-                            vector = raw_vector.tolist()
-                        elif isinstance(raw_vector, list):
-                            vector = raw_vector
-                        else:
-                            self._logger.error(
-                                "Unexpected vector type from model '%s' for OI '%s': %s",
-                                ed_instance.embedding_model, instance.id, type(raw_vector),
-                            )
-                            raise EmbeddingError(f"Unexpected vector type from model {ed_instance.embedding_model}")
-
-                        preview = (
-                            text_to_embed[:200] + "..."
-                            if len(text_to_embed) > 200
-                            else text_to_embed
-                        )
-                        embedding_instance_obj = EmbeddingInstance(
-                            object_instance_id=instance.id,
-                            embedding_definition_name=ed_instance.name,
-                            vector=vector,
-                            source_text_preview=preview,
-                        )
-                        self._conn_helper.lancedb_adapter.upsert_embedding_instance(
-                            embedding_instance_obj, ed_instance,
-                        )
-                        self._logger.info(
-                            "Generated/stored embedding for OI '%s' using def '%s'.",
-                            instance.id,
-                            ed_instance.name,
-                        )
-                    except EmbeddingError as ee:
-                        self._logger.error(
-                            "EmbeddingError for OI '%s', def '%s': %s",
-                            instance.id,
-                            ed_instance.name,
-                            ee,
-                            exc_info=True,
-                        )  # Continue if one embedding fails
-                    except Exception as e:  # pylint: disable=broad-except
-                        self._logger.error(
-                            "Unexpected error generating/storing embedding for OI '%s', "
-                            "def '%s': %s",
-                            instance.id,
-                            ed_instance.name,
-                            e,
-                            exc_info=True,
-                        )  # Continue if one embedding fails
-                else:
-                    self._logger.debug(
-                        "No text for property '%s' in OI '%s'. Skipping embedding for def '%s'.",
-                        ed_instance.source_property_name,
-                        instance.id,
-                        ed_instance.name,
-                    )
-            if returned_instance is None:
-                msg = f"Upsert operation failed to return an instance for {instance.id}"
-                raise InstanceError(
-                    msg,
-                )
-
-            # Kuzu operation for ObjectInstance
-            try:
-                self._conn_helper.kuzu_adapter.upsert_object_instance(returned_instance)
-                self._logger.info(
-                    "OI '%s' of type '%s' upserted to Kuzu.",
-                    instance.id,
-                    instance.object_type_name,
-                )
-            except (DatabaseError, InstanceError, SchemaError) as e:
-                self._logger.error(
-                    "Error upserting OI '%s' to Kuzu: %s", instance.id, e, exc_info=True,
-                )
-                # Decide on error handling: re-raise, or just log?
-                # For now, re-raise to make it visible.
-                raise
-
-            return returned_instance
-        except (DatabaseError, InstanceError, SchemaError) as e:
+            return instance
+        except (DatabaseError, InstanceError, SchemaError, EmbeddingError) as e:
             self._logger.error(
-                "Error upserting OI '%s' (SQLite/pre-embedding/Kuzu): %s",
-                instance.id,
-                e,
-                exc_info=True,
+                "Error upserting object instance '%s': %s", instance.id, e, exc_info=True,
             )
             raise
-        except Exception as e:  # pylint: disable=broad-except
-            self._logger.error(
-                "Unexpected error during embedding or Kuzu processing for OI '%s': %s",
-                instance.id,
-                e,
-                exc_info=True,
-            )
-            msg = f"Failed during embedding or Kuzu processing for {instance.id}: {e}"
-            raise DatabaseError(
-                msg,
-            ) from e
+    
+    def _generate_embeddings_for_instance(self, instance: ObjectInstance) -> None:
+        """Generate and save embeddings for an object instance based on applicable EmbeddingDefinitions."""
+        # Find all EmbeddingDefinitions that apply to this object type
+        applicable_embeddings = [
+            ed for ed in self._schema_manager.list_embedding_definitions()
+            if ed.object_type_name == instance.object_type_name
+        ]
+        
+        if not applicable_embeddings:
+            return  # No embeddings to generate for this object type
+            
+        for embedding_def in applicable_embeddings:
+            try:
+                # Delete existing embeddings first (defensive deletion)
+                self._conn_helper.lancedb_adapter.delete_embedding_instances_for_object(
+                    instance.id, embedding_def.name
+                )
+                
+                # Get the source text from the specified property
+                source_text = instance.properties.get(embedding_def.source_property_name)
+                if not source_text or not source_text.strip():
+                    self._logger.warning(
+                        f"No source text found for property '{embedding_def.source_property_name}' "
+                        f"on instance '{instance.id}' for embedding definition '{embedding_def.name}'. Skipping."
+                    )
+                    continue
+                
+                # Generate embedding using the model
+                embedding_model = self._conn_helper.lancedb_adapter.get_embedding_model(
+                    embedding_def.embedding_model
+                )
+                
+                # Generate embeddings - handle both compute_source_embeddings and compute_query_embeddings
+                if hasattr(embedding_model, 'compute_source_embeddings'):
+                    embeddings = embedding_model.compute_source_embeddings([source_text])
+                elif hasattr(embedding_model, 'compute_query_embeddings'):
+                    embeddings = embedding_model.compute_query_embeddings([source_text])
+                else:
+                    raise EmbeddingError(
+                        f"Embedding model '{embedding_def.embedding_model}' does not have "
+                        "compute_source_embeddings or compute_query_embeddings method"
+                    )
+                
+                if not embeddings or len(embeddings) == 0:
+                    raise EmbeddingError(
+                        f"Embedding generation returned empty result for instance '{instance.id}' "
+                        f"with embedding definition '{embedding_def.name}'"
+                    )
+                
+                # Get the first embedding vector
+                embedding_vector = embeddings[0]
+                
+                # Convert numpy arrays to lists if needed
+                if hasattr(embedding_vector, 'tolist'):
+                    embedding_vector = embedding_vector.tolist()
+                elif hasattr(embedding_vector, 'tolist'):  # Some numpy types
+                    embedding_vector = embedding_vector.tolist()
+                elif not isinstance(embedding_vector, list):
+                    raise EmbeddingError(
+                        f"Unexpected embedding vector type: {type(embedding_vector)}"
+                    )
+                
+                # Create EmbeddingInstance and save to LanceDB
+                from .models import EmbeddingInstance
+                embedding_instance = EmbeddingInstance(
+                    object_instance_id=instance.id,
+                    embedding_definition_name=embedding_def.name,
+                    vector=embedding_vector,
+                    source_text_preview=source_text[:100] if len(source_text) > 100 else source_text,
+                )
+                
+                # Upsert the embedding instance to LanceDB
+                self._conn_helper.lancedb_adapter.upsert_embedding_instance(
+                    embedding_instance, embedding_def
+                )
+                
+                self._logger.debug(
+                    "Generated and saved embedding for instance '%s' using definition '%s'",
+                    instance.id, embedding_def.name
+                )
+                
+            except Exception as e:
+                self._logger.error(
+                    "Error generating embedding for instance '%s' with definition '%s': %s",
+                    instance.id, embedding_def.name, e, exc_info=True
+                )
+                # Continue with other embeddings even if one fails
+                continue
 
     def delete_object_instance(self, object_type_name: str, instance_id: Any) -> bool:
-        """Deletes an OI from SQLite, its embeddings from LanceDB, and node from Kuzu."""
-        otd = self._schema_manager.get_object_type_definition(object_type_name)
-        if not otd:
+        """Deletes an object instance from both SQLite and Kuzu."""
+        if not self._schema_manager.get_object_type_definition(object_type_name):
             self._logger.warning(
                 "Attempting to delete instance of undefined OTD '%s'.", object_type_name,
             )
             return False
-
-        deleted_sqlite = False
-        deleted_kuzu = False
-        deleted_lancedb = False
-
+        
         try:
-            # LanceDB deletion (embeddings) - collect results
-            applicable_eds = [
-                ed
-                for ed in self._schema_manager.list_embedding_definitions()
-                if ed.object_type_name == object_type_name
-            ]
-            lancedb_errors = []
-            for ed_instance in applicable_eds:
-                try:
-                    lancedb_result = self._conn_helper.lancedb_adapter.delete_embedding_instances_for_object(
-                        instance_id, ed_instance.name,
-                    )
-                    if lancedb_result:
-                        self._logger.info(
-                            "Deleted embeddings for OI '%s' using def '%s' from LanceDB.",
-                            instance_id,
-                            ed_instance.name,
-                        )
-                        deleted_lancedb = True
-                    else:
-                        self._logger.debug(
-                            "No embeddings found for OI '%s' using def '%s' in LanceDB.",
-                            instance_id,
-                            ed_instance.name,
-                        )
-                except Exception as e:  # pylint: disable=broad-except
-                    lancedb_errors.append(f"ED '{ed_instance.name}': {e}")
-                    self._logger.error(
-                        "Error deleting embeddings for OI '%s', def '%s' from LanceDB: %s",
-                        instance_id,
-                        ed_instance.name,
-                        e,
-                        exc_info=True,
-                    )  # Log and continue, as main deletion might still succeed
-
-            # Report LanceDB deletion summary
-            if lancedb_errors:
+            # First delete from Kuzu
+            kuzu_deleted = False
+            try:
+                kuzu_deleted = self._conn_helper.kuzu_adapter.delete_object_instance(
+                    object_type_name, instance_id,
+                )
+            except Exception as e_kuzu:
                 self._logger.warning(
-                    "LanceDB deletion completed with %d errors for OI '%s': %s",
-                    len(lancedb_errors),
+                    "Error deleting object instance '%s' from Kuzu: %s", instance_id, e_kuzu,
+                )
+            
+            # Then delete from SQLite
+            sqlite_deleted = self._conn_helper.sqlite_adapter.delete_object_instance(
+                object_type_name, instance_id,
+            )
+            
+            if kuzu_deleted or sqlite_deleted:
+                # Delete embeddings if applicable
+                applicable_embeddings = [
+                    ed for ed in self._schema_manager.list_embedding_definitions()
+                    if ed.object_type_name == object_type_name
+                ]
+                for embedding_def in applicable_embeddings:
+                    try:
+                        self._conn_helper.lancedb_adapter.delete_embedding_instances_for_object(
+                            instance_id, embedding_def.name
+                        )
+                    except Exception as e_embed:
+                        self._logger.warning(
+                            "Error deleting embeddings for instance '%s' with definition '%s': %s",
+                            instance_id, embedding_def.name, e_embed,
+                        )
+                
+                self._logger.debug(
+                    "Deleted object instance '%s' of type '%s' from %s.",
                     instance_id,
-                    "; ".join(lancedb_errors[:3]),  # Limit error details in summary
+                    object_type_name,
+                    "both SQLite and Kuzu" if kuzu_deleted and sqlite_deleted
+                    else "Kuzu only" if kuzu_deleted
+                    else "SQLite only",
                 )
-
-            # Kuzu deletion
-            try:
-                deleted_kuzu = self._conn_helper.kuzu_adapter.delete_object_instance(
-                    object_type_name, UUID(instance_id) if isinstance(instance_id, str) else instance_id,
-                )
-                if deleted_kuzu:
-                    self._logger.info(
-                        "OI '%s' of type '%s' deleted from Kuzu.",
-                        instance_id,
-                        object_type_name,
-                    )
-                else:
-                    self._logger.warning(
-                        "OI '%s' of type '%s' not found in Kuzu or delete failed.",
-                        instance_id,
-                        object_type_name,
-                    )
-            except (DatabaseError, InstanceError, SchemaError) as e:
-                self._logger.error(
-                    "Error deleting OI '%s' from Kuzu: %s",
-                    instance_id,
-                    e,
-                    exc_info=True,
-                )
-                # Don't re-raise here - continue with SQLite deletion for partial cleanup
-
-            # SQLite deletion (master record) - do this last as it's the primary store
-            try:
-                deleted_sqlite = self._conn_helper.sqlite_adapter.delete_object_instance(
-                    object_type_name, UUID(instance_id) if isinstance(instance_id, str) else instance_id,
-                )
-                if deleted_sqlite:
-                    self._logger.debug(
-                        "OI '%s' of type '%s' deleted from SQLite.",
-                        instance_id,
-                        object_type_name,
-                    )
-                else:
-                    self._logger.warning(
-                        "OI '%s' of type '%s' not found in SQLite or delete failed.",
-                        instance_id,
-                        object_type_name,
-                    )
-            except Exception as e:
-                self._logger.error(
-                    "Error deleting OI '%s' from SQLite: %s",
-                    instance_id,
-                    e,
-                    exc_info=True,
-                )
-                # SQLite is the primary store, so this is more critical
-                raise
-
-            # Determine overall success based on primary store (SQLite)
-            # Log summary of the deletion operation
-            deletion_summary = []
-            if deleted_sqlite:
-                deletion_summary.append("SQLite: ✓")
+                return True
             else:
-                deletion_summary.append("SQLite: ✗")
-
-            if deleted_kuzu:
-                deletion_summary.append("Kuzu: ✓")
-            elif not deleted_kuzu:
-                deletion_summary.append("Kuzu: ✗ (not found or failed)")
-
-            if deleted_lancedb:
-                deletion_summary.append("LanceDB: ✓")
-            elif applicable_eds and not deleted_lancedb:
-                deletion_summary.append("LanceDB: ✗ (errors or not found)")
-
-            self._logger.info(
-                "Object deletion summary for OI '%s' of type '%s': %s",
-                instance_id,
-                object_type_name,
-                " | ".join(deletion_summary),
-            )
-
-            # Return SQLite result as it's the primary store for existence
-            return deleted_sqlite
-
-        except Exception as e:  # Catch any remaining errors not handled above
+                self._logger.warning(
+                    "Object instance '%s' of type '%s' not found in either database.",
+                    instance_id,
+                    object_type_name,
+                )
+                return False
+                
+        except (DatabaseError, InstanceError) as e:
             self._logger.error(
-                "Unexpected error during delete_object_instance for OI '%s' of type '%s': %s",
-                instance_id,
-                object_type_name,
-                e,
-                exc_info=True,
+                "Error deleting object instance '%s': %s", instance_id, e, exc_info=True,
             )
-            msg = f"Failed during deletion or cleanup for {instance_id}: {e}"
-            raise DatabaseError(msg) from e
+            raise
 
     def query_object_instances(
         self,
@@ -1153,531 +1028,224 @@ class _InstanceManager:
         limit: Optional[int] = None,
         offset: Optional[int] = None,
     ) -> list[ObjectInstance]:
-        """Queries OIs from SQLite based on specified conditions."""
+        """Queries object instances from SQLite based on specified conditions."""
         if not self._schema_manager.get_object_type_definition(object_type_name):
-            msg = f"Cannot query instances: OTD '{object_type_name}' not found."
-            raise SchemaError(
-                msg,
+            self._logger.warning(
+                "Attempting to query instances of undefined OTD '%s'.", object_type_name,
             )
+            return []
         try:
-            return self._conn_helper.sqlite_adapter.find_object_instances(
-                object_type_name, query=conditions, limit=limit, offset=offset,
+            return self._conn_helper.sqlite_adapter.query_object_instances(
+                object_type_name, conditions, limit, offset,
             )
         except (DatabaseError, SchemaError) as e:
             self._logger.error(
-                "Error querying OIs of type '%s': %s",
-                object_type_name,
-                e,
-                exc_info=True,
+                "Error querying object instances of type '%s': %s",
+                object_type_name, e, exc_info=True,
             )
             raise
 
-    def find_similar_objects_by_embedding(  # pylint: disable=R0913, R0912
+    def find_similar_objects_by_embedding( # pylint: disable=R0913
         self,
         embedding_definition_name: str,
         query_text: Optional[str] = None,
         query_vector: Optional[list[float]] = None,
-        *,  # Marks subsequent arguments as keyword-only
-        limit: int = 10,
+        limit: int = 5,
         filter_condition: Optional[str] = None,
         retrieve_full_objects: bool = False,
     ) -> list[dict[str, Any]]:
         """Finds objects based on vector similarity of their embeddings."""
-        if not query_text and not query_vector:
-            msg = "Either query_text or query_vector must be provided."
-            raise ValueError(msg)
-        if query_text and query_vector:
-            msg = "Provide either query_text or query_vector, not both."
-            raise ValueError(msg)
-        ed_def = self._schema_manager.get_embedding_definition(
-            embedding_definition_name,
-        )
+        ed_def = self._schema_manager.get_embedding_definition(embedding_definition_name)
         if not ed_def:
             msg = f"ED '{embedding_definition_name}' not found."
-            raise SchemaError(msg)
-        final_query_vector: list[float]
-        if query_text:
-            try:
-                self._logger.debug(
-                    "Generating query vector for text: '%s...' using model '%s'",
-                    query_text[:100],
-                    ed_def.embedding_model,
-                )
-                embedding_model_func = self._conn_helper.lancedb_adapter.get_embedding_model(
-                    ed_def.embedding_model,
-                )
-                # Use compute_query_embeddings for TransformersEmbeddingFunction when it's a query
-                raw_query_embeddings = embedding_model_func.compute_query_embeddings([query_text])
-                if not raw_query_embeddings:
-                    self._logger.error(
-                        "Model '%s' for query text '%s' returned empty list.",
-                        ed_def.embedding_model, query_text[:50],
-                    )
-                    raise EmbeddingError(f"Model {ed_def.embedding_model} returned empty list for query text.")
-
-                raw_query_vector = raw_query_embeddings[0]
-
-                if hasattr(raw_query_vector, "tolist"): # Handles numpy array
-                    final_query_vector = raw_query_vector.tolist()
-                elif isinstance(raw_query_vector, list):
-                    final_query_vector = raw_query_vector
-                else:
-                    self._logger.error(
-                        "Unexpected query vector type from model '%s' for query text: %s",
-                        ed_def.embedding_model, type(raw_query_vector),
-                    )
-                    raise EmbeddingError(f"Unexpected query vector type from model {ed_def.embedding_model}")
-                self._logger.debug(
-                    "Generated query vector with dimension %s", len(final_query_vector),
-                )
-            except Exception as e:  # pylint: disable=broad-except
-                self._logger.error(
-                    "Failed to generate embedding for query_text using '%s': %s",
-                    ed_def.embedding_model,
-                    e,
-                    exc_info=True,
-                )
-                msg = f"Failed to generate query vector: {e}"
-                raise EmbeddingError(msg) from e
-        elif query_vector:
-            final_query_vector = query_vector
-            self._logger.debug(
-                "Using provided query vector with dimension %s", len(final_query_vector),
-            )
-        else:
-            msg = "Internal error: No query vector determined."
-            raise ValueError(msg)
-        if ed_def.dimensions and len(final_query_vector) != ed_def.dimensions:
-            msg = (
-                f"Query vector dim ({len(final_query_vector)}) does not match ED "
-                f"'{ed_def.name}' dim ({ed_def.dimensions})."
-            )
-            raise EmbeddingError(
+            raise SchemaError(
                 msg,
             )
         try:
-            self._logger.info(
-                "Querying LanceDB table for '%s' with limit %s and filter: '%s'",
-                embedding_definition_name,
-                limit,
-                filter_condition if filter_condition else "None",
-            )
-            lance_results = self._conn_helper.lancedb_adapter.query_similar_embeddings(
+            # Validate input parameters
+            if query_text is None and query_vector is None:
+                msg = "Either query_text or query_vector must be provided."
+                raise ValueError(msg)
+            if query_text is not None and query_vector is not None:
+                msg = "Provide either query_text or query_vector, not both."
+                raise ValueError(msg)
+            
+            # If query_text is provided, generate the embedding vector
+            if query_text is not None and query_vector is None:
+                try:
+                    embedding_model = self._conn_helper.lancedb_adapter.get_embedding_model(
+                        ed_def.embedding_model
+                    )
+                    embeddings = embedding_model.compute_query_embeddings([query_text])
+                    query_vector = embeddings[0]
+                except Exception as e:
+                    msg = f"Failed to generate query vector: {e}"
+                    raise EmbeddingError(msg) from e
+            
+            # Validate vector dimensions if both query_vector and embedding definition have dimensions
+            if query_vector is not None and ed_def.dimensions is not None:
+                if len(query_vector) != ed_def.dimensions:
+                    msg = (
+                        f"Query vector dim ({len(query_vector)}) does not match ED "
+                        f"'{ed_def.name}' dim ({ed_def.dimensions})."
+                    )
+                    raise EmbeddingError(msg)
+            
+            # Use query_similar_embeddings for similarity search
+            results = self._conn_helper.lancedb_adapter.query_similar_embeddings(
                 embedding_definition_name=embedding_definition_name,
-                query_vector=final_query_vector,
+                query_vector=query_vector,  # type: ignore[arg-type]  # Validated above to not be None
                 limit=limit,
                 filter_condition=filter_condition,
             )
-            self._logger.debug(
-                "Received %s results from LanceDB query.", len(lance_results),
-            )
+            
+            # Log warning if retrieve_full_objects was requested but not implemented
             if retrieve_full_objects:
-                self._logger.warning(
-                    "retrieve_full_objects=True is not fully implemented yet. "
-                    "Returning raw LanceDB results.",
-                )
-            return lance_results  # type: ignore
-        except (DatabaseError, SchemaError, EmbeddingError) as e:
+                self._logger.warning("retrieve_full_objects=True is not fully implemented yet. Returning raw LanceDB results.")
+            
+            return results
+        except (DatabaseError, EmbeddingError) as e:
             self._logger.error(
-                "Error during similarity search for ED '%s': %s",
-                embedding_definition_name,
-                e,
-                exc_info=True,
+                "Error finding similar objects for embedding definition '%s': %s",
+                embedding_definition_name, e, exc_info=True,
             )
             raise
-        except Exception as e:  # pylint: disable=broad-except
-            self._logger.error(
-                "Unexpected error during similarity search for ED '%s': %s",
-                embedding_definition_name,
-                e,
-                exc_info=True,
-            )
-            msg = f"Unexpected error during similarity search: {e}"
-            raise DatabaseError(
-                msg,
-            ) from e
 
-    # --- Relation Instance Management ---
     def add_relation_instance(self, instance: RelationInstance) -> RelationInstance:
-        """Upserts a relation instance.
-
-        This method first validates the relation type and its source/target object types.
-        It then ensures that the source and target object instances exist in Kuzu,
-        retrieving them from SQLite and upserting them into Kuzu if necessary.
-        Finally, it upserts the relation instance itself into Kuzu and persists
-        its metadata (if applicable) to SQLite.
-
-        Args:
-            instance: The RelationInstance to add or update.
-
-        Returns:
-            The upserted RelationInstance, typically reflecting Kuzu's state.
-
-        Raises:
-            SchemaError: If the relation type or related object types are not defined.
-            InstanceError: If source or target objects cannot be found or ensured in Kuzu.
-            DatabaseError: For other underlying database or processing errors.
-
-        """
-        self._logger.debug(
-            f"_InstanceManager.add_relation_instance called with instance: {instance.id=}, "
-            f"{instance.relation_type_name=}, {instance.source_object_instance_id=}, "
-            f"{instance.target_object_instance_id=}, {instance.weight=}, "
-            f"{instance.upsert_date=}, properties: {instance.properties}",
-        )
-
-        rtd = self._schema_manager.get_relation_type_definition(
-            instance.relation_type_name,
-        )
+        """Persists the RelationInstance to SQLite (for metadata) and Kuzu (for graph operations)."""
+        # Get the RTD to ensure it exists and is properly configured
+        rtd = self._schema_manager.get_relation_type_definition(instance.relation_type_name)
         if not rtd:
-            msg = (
-                f"Cannot add relation instance: RelationTypeDefinition "
-                f"'{instance.relation_type_name}' not found."
-            )
+            msg = f"Cannot add relation instance: RTD '{instance.relation_type_name}' not found."
             raise SchemaError(
                 msg,
             )
-
-        if not rtd.source_object_type_names:
-            msg = f"RTD '{rtd.name}' has no source object type names for relation instance '{instance.id}'."
-            raise SchemaError(
-                msg,
-            )
-        if not rtd.target_object_type_names:
-            msg = f"RTD '{rtd.name}' has no target object type names for relation instance '{instance.id}'."
-            raise SchemaError(
-                msg,
-            )
-
-        source_otd = self._schema_manager.get_object_type_definition(
-            rtd.source_object_type_names[0],
-        )
-        target_otd = self._schema_manager.get_object_type_definition(
-            rtd.target_object_type_names[0],
-        )
-        if not source_otd:
-            msg = f"Source ObjectType '{rtd.source_object_type_names[0]}' for RelationType '{rtd.name}' not found."
-            raise SchemaError(
-                msg,
-            )
-        if not target_otd:
-            msg = f"Target ObjectType '{rtd.target_object_type_names[0]}' for RelationType '{rtd.name}' not found."
-            raise SchemaError(
-                msg,
-            )
-
-        # Kuzu's MATCH clause handles existence check for source and target object instances.
-        # --- START: Ensure source and target objects exist in Kuzu ---
-        self._logger.debug(f"Ensuring source object {instance.source_object_instance_id} (type {source_otd.name}) exists in Kuzu.")
-        source_object_from_sqlite = self.get_object_instance(
-            source_otd.name, instance.source_object_instance_id,
-        )
-        if source_object_from_sqlite:
-            try:
-                self._conn_helper.kuzu_adapter.upsert_object_instance(source_object_from_sqlite)
-                self._logger.info(f"Source object {source_object_from_sqlite.id} ensured in Kuzu.")
-            except Exception as e_kuzu_src:
-                self._logger.error(f"Failed to upsert source object {source_object_from_sqlite.id} to Kuzu: {e_kuzu_src}", exc_info=True)
-                raise InstanceError(f"Failed to ensure source object {source_object_from_sqlite.id} in Kuzu.") from e_kuzu_src
-        else:
-            self._logger.error(f"Source object {instance.source_object_instance_id} (type {source_otd.name}) not found in SQLite. Cannot create relation in Kuzu.")
-            raise InstanceError(f"Source object {instance.source_object_instance_id} not found in primary store.")
-
-        self._logger.debug(f"Ensuring target object {instance.target_object_instance_id} (type {target_otd.name}) exists in Kuzu.")
-        target_object_from_sqlite = self.get_object_instance(
-            target_otd.name, instance.target_object_instance_id,
-        )
-        if target_object_from_sqlite:
-            try:
-                self._conn_helper.kuzu_adapter.upsert_object_instance(target_object_from_sqlite)
-                self._logger.info(f"Target object {target_object_from_sqlite.id} ensured in Kuzu.")
-            except Exception as e_kuzu_tgt:
-                self._logger.error(f"Failed to upsert target object {target_object_from_sqlite.id} to Kuzu: {e_kuzu_tgt}", exc_info=True)
-                raise InstanceError(f"Failed to ensure target object {target_object_from_sqlite.id} in Kuzu.") from e_kuzu_tgt
-        else:
-            self._logger.error(f"Target object {instance.target_object_instance_id} (type {target_otd.name}) not found in SQLite. Cannot create relation in Kuzu.")
-            raise InstanceError(f"Target object {instance.target_object_instance_id} not found in primary store.")
-        # --- END: Ensure source and target objects exist in Kuzu ---
-
-        # Ensure upsert_date reflects the current operation time
-        instance.upsert_date = datetime.now(timezone.utc)
-
-        # Outer try for the whole operation (SQLite and Kuzu)
+        
         try:
-            # Inner try for SQLite part
-            try:
-                self._conn_helper.sqlite_adapter.add_relation_instance(
-                    instance,
-                )  # Assumed method
-                self._logger.info(
-                    "Relation instance '%s' of type '%s' (metadata) added to SQLite.",
-                    instance.id,
-                    instance.relation_type_name,
-                )
-            except AttributeError:
-                self._logger.warning(
-                    "SQLiteAdapter.add_relation_instance not found. Skipping SQLite persistence for relation instance '%s'.",
-                    instance.id,
-                )
-            except (
-                DatabaseError,
-                InstanceError,
-                SchemaError,
-            ) as e:  # Catch SQLite specific errors
-                self._logger.error(
-                    "Error adding relation instance '%s' to SQLite: %s",
-                    instance.id,
-                    e,
-                    exc_info=True,
-                )
-                raise  # Re-raise to stop further processing if SQLite part is critical
-
-            # Kuzu part, still within the outer try
-            kuzu_instance = self._conn_helper.kuzu_adapter.upsert_relation_instance(
-                instance, rtd,
-            )
-            self._logger.info(
-                "Relation instance '%s' of type '%s' upserted to Kuzu.",
+            # First add to SQLite for metadata persistence
+            self._conn_helper.sqlite_adapter.add_relation_instance(instance)
+            
+            # Then add to Kuzu for graph operations
+            self._conn_helper.kuzu_adapter.upsert_relation_instance(instance, rtd)
+            
+            self._logger.debug(
+                "Added relation instance '%s' of type '%s'.",
                 instance.id,
                 instance.relation_type_name,
             )
-            return kuzu_instance  # IMPORTANT: Return the instance
-
-        # These excepts are for the outer try block, covering SQLite re-raises or Kuzu errors
+            return instance
         except (DatabaseError, InstanceError, SchemaError) as e:
             self._logger.error(
-                "Error during add_relation_instance for '%s' (type '%s'): %s",
-                instance.id,
-                instance.relation_type_name,
-                e,
-                exc_info=True,
+                "Error adding relation instance '%s': %s", instance.id, e, exc_info=True,
             )
             raise
-        except Exception as e:  # Catch-all for unexpected issues in the whole process
-            self._logger.error(
-                "Unexpected error during add_relation_instance for '%s': %s",
-                instance.id,
-                e,
-                exc_info=True,
-            )
-            msg = f"Failed during relation instance add/upsert for {instance.id}: {e}"
-            raise DatabaseError(
-                msg,
-            ) from e
 
     def get_relation_instance(
-        self,
-        relation_type_name: str,
-        relation_id: str,  # Kuzu uses string IDs typically
+        self, relation_type_name: str, relation_id: Any,
     ) -> Optional[RelationInstance]:
-        """Retrieves a relation instance from Kuzu."""
-        # Convert string ID to UUID if your model expects UUID
-        try:
-            relation_uuid = (
-                UUID(relation_id) if isinstance(relation_id, str) else relation_id
+        """Retrieves a relation instance primarily from Kuzu, potentially enriched with SQLite metadata."""
+        rtd = self._schema_manager.get_relation_type_definition(relation_type_name)
+        if not rtd:
+            self._logger.warning(
+                "Attempting to get relation instance of undefined RTD '%s'.", relation_type_name,
             )
-        except ValueError:
-            self._logger.exception(f"Invalid UUID format for relation_id: {relation_id}")
             return None
-
-        if not self._schema_manager.get_relation_type_definition(relation_type_name):
-            self._logger.warning(
-                "Attempting to get relation instance of undefined RTD '%s'.",
-                relation_type_name,
-            )
-            return None  # Or raise SchemaError depending on desired strictness
+        
         try:
-            return self._conn_helper.kuzu_adapter.get_relation_instance(
-                relation_type_name, relation_uuid,
+            # Get from Kuzu
+            kuzu_instance = self._conn_helper.kuzu_adapter.get_relation_instance(
+                relation_type_name, relation_id,
             )
-        except (DatabaseError, InstanceError, SchemaError) as e:
+            
+            if kuzu_instance:
+                self._logger.debug(
+                    "Retrieved relation instance '%s' of type '%s'.", relation_id, relation_type_name,
+                )
+            
+            return kuzu_instance
+        except (DatabaseError, InstanceError) as e:
             self._logger.error(
-                "Error getting relation instance '%s' of type '%s' from Kuzu: %s",
-                relation_id,
-                relation_type_name,
-                e,
-                exc_info=True,
-            )
-            raise  # Re-raise to signal failure to the caller
-        except Exception as e:
-            self._logger.error(
-                "Unexpected error getting relation instance '%s' from Kuzu: %s",
-                relation_id,
-                e,
-                exc_info=True,
-            )
-            msg = f"Unexpected error getting relation instance {relation_id} from Kuzu: {e}"
-            raise DatabaseError(
-                msg,
-            ) from e
-
-    def delete_relation_instance(
-        self, relation_type_name: str, relation_id: str,
-    ) -> bool:
-        """Deletes a relation instance from Kuzu and SQLite."""
-        try:
-            relation_uuid = (
-                UUID(relation_id) if isinstance(relation_id, str) else relation_id
-            )
-        except ValueError:
-            self._logger.exception(f"Invalid UUID format for relation_id: {relation_id}")
-            return False
-
-        if not self._schema_manager.get_relation_type_definition(relation_type_name):
-            self._logger.warning(
-                "Attempting to delete relation instance of undefined RTD '%s'.",
-                relation_type_name,
-            )
-            return False
-
-        deleted_kuzu = False
-        deleted_sqlite = False
-
-        try:
-            deleted_kuzu = self._conn_helper.kuzu_adapter.delete_relation_instance(
-                relation_type_name, relation_uuid,
-            )
-            if deleted_kuzu:
-                self._logger.info(
-                    "Relation instance '%s' of type '%s' deleted from Kuzu.",
-                    relation_id,
-                    relation_type_name,
-                )
-            else:
-                self._logger.warning(
-                    "Relation instance '%s' of type '%s' not found in Kuzu or delete failed.",
-                    relation_id,
-                    relation_type_name,
-                )
-
-            # Delete from SQLite (assuming this method exists or will be added)
-            try:
-                deleted_sqlite = (
-                    self._conn_helper.sqlite_adapter.delete_relation_instance(
-                        relation_type_name, relation_uuid,  # Assumed method
-                    )
-                )
-                if deleted_sqlite:
-                    self._logger.info(
-                        "Relation instance '%s' (metadata) deleted from SQLite.",
-                        relation_id,
-                    )
-            except AttributeError:
-                self._logger.warning(
-                    "SQLiteAdapter.delete_relation_instance not found. Skipping SQLite deletion for relation instance '%s'.",
-                    relation_id,
-                )
-                deleted_sqlite = (
-                    True  # Assume success if not implemented, to not block Kuzu success
-                )
-            except (DatabaseError, InstanceError, SchemaError) as e:
-                self._logger.error(
-                    "Error deleting relation instance '%s' from SQLite: %s",
-                    relation_id,
-                    e,
-                    exc_info=True,
-                )
-                # If Kuzu succeeded but SQLite failed, how to reconcile?
-                # For now, we log and the overall success depends on both if SQLite part is implemented.
-                # If SQLite part is not critical for relation data, kuzu_deleted might be enough.
-                # Let's make overall success dependent on Kuzu, and SQLite is best-effort if method exists.
-
-            return deleted_kuzu  # Primary success depends on Kuzu deletion for now.
-
-        except (DatabaseError, InstanceError, SchemaError) as e:
-            self._logger.error(
-                "Error deleting relation instance '%s' of type '%s': %s",
-                relation_id,
-                relation_type_name,
-                e,
-                exc_info=True,
+                "Error retrieving relation instance '%s': %s", relation_id, e, exc_info=True,
             )
             raise
-        except Exception as e:
-            self._logger.error(
-                "Unexpected error deleting relation instance '%s': %s",
-                relation_id,
-                e,
-                exc_info=True,
-            )
-            msg = f"Failed during relation instance deletion for {relation_id}: {e}"
-            raise DatabaseError(
-                msg,
-            ) from e
 
-    def find_relation_instances(
+    def delete_relation_instance(self, relation_type_name: str, relation_id: Any) -> bool:
+        """Deletes a relation instance from both Kuzu and SQLite."""
+        rtd = self._schema_manager.get_relation_type_definition(relation_type_name)
+        if not rtd:
+            self._logger.warning(
+                "Attempting to delete relation instance of undefined RTD '%s'.", relation_type_name,
+            )
+            return False
+        
+        try:
+            # Delete from Kuzu first
+            kuzu_deleted = False
+            try:
+                kuzu_deleted = self._conn_helper.kuzu_adapter.delete_relation_instance(
+                    relation_type_name, relation_id,
+                )
+            except Exception as e_kuzu:
+                self._logger.warning(
+                    "Error deleting relation instance '%s' from Kuzu: %s", relation_id, e_kuzu,
+                )
+            
+            # Then delete from SQLite
+            sqlite_deleted = self._conn_helper.sqlite_adapter.delete_relation_instance(
+                relation_type_name, relation_id,
+            )
+            
+            if kuzu_deleted or sqlite_deleted:
+                self._logger.debug(
+                    "Deleted relation instance '%s' of type '%s' from %s.",
+                    relation_id,
+                    relation_type_name,
+                    "both SQLite and Kuzu" if kuzu_deleted and sqlite_deleted 
+                    else "Kuzu only" if kuzu_deleted 
+                    else "SQLite only",
+                )
+                return True
+            else:
+                self._logger.warning(
+                    "Relation instance '%s' of type '%s' not found in either database.",
+                    relation_id,
+                    relation_type_name,
+                )
+                return False
+                
+        except (DatabaseError, InstanceError) as e:
+            self._logger.error(
+                "Error deleting relation instance '%s': %s", relation_id, e, exc_info=True,
+            )
+            raise
+
+    def find_relation_instances( # pylint: disable=R0913, R0917
         self,
         relation_type_name: Optional[str] = None,
-        source_object_id: Optional[Any] = None,  # Allow string or UUID
-        target_object_id: Optional[Any] = None,  # Allow string or UUID
+        source_object_id: Optional[UUID] = None,
+        target_object_id: Optional[UUID] = None,
         query: Optional[dict[str, Any]] = None,
         limit: Optional[int] = None,
     ) -> list[RelationInstance]:
-        """Exposes the Kuzu adapter's find_relation_instances method."""
-        # Convert string IDs to UUIDs if provided
-        src_uuid: Optional[UUID] = None
-        if source_object_id:
-            try:
-                src_uuid = (
-                    UUID(source_object_id)
-                    if isinstance(source_object_id, str)
-                    else source_object_id
+        """Finds relation instances from Kuzu based on various criteria."""
+        if relation_type_name:
+            rtd = self._schema_manager.get_relation_type_definition(relation_type_name)
+            if not rtd:
+                self._logger.warning(
+                    "Attempting to find relation instances of undefined RTD '%s'.", relation_type_name,
                 )
-            except ValueError as exc:
-                self._logger.exception(
-                    f"Invalid UUID format for source_object_id: {source_object_id}",
-                )
-                msg = f"Invalid UUID format for source_object_id: {source_object_id}"
-                raise InstanceError(
-                    msg,
-                ) from exc
-
-        tgt_uuid: Optional[UUID] = None
-        if target_object_id:
-            try:
-                tgt_uuid = (
-                    UUID(target_object_id)
-                    if isinstance(target_object_id, str)
-                    else target_object_id
-                )
-            except ValueError as exc:
-                self._logger.exception(
-                    f"Invalid UUID format for target_object_id: {target_object_id}",
-                )
-                msg = f"Invalid UUID format for target_object_id: {target_object_id}"
-                raise InstanceError(
-                    msg,
-                ) from exc
-
+                return []
+        
         try:
             return self._conn_helper.kuzu_adapter.find_relation_instances(
                 relation_type_name=relation_type_name,
-                source_object_id=src_uuid,
-                target_object_id=tgt_uuid,
+                source_object_id=source_object_id,
+                target_object_id=target_object_id,
                 query=query,
                 limit=limit,
             )
-        except (
-            DatabaseError,
-            InstanceError,
-            SchemaError,
-            ValueError,
-        ) as e:  # ValueError for bad UUIDs from KuzuAdapter
-            self._logger.error("Error finding relation instances: %s", e, exc_info=True)
-            raise
-        except Exception as e:
+        except (DatabaseError, SchemaError) as e:
             self._logger.error(
-                "Unexpected error finding relation instances: %s", e, exc_info=True,
+                "Error finding relation instances: %s", e, exc_info=True,
             )
-            msg = f"Unexpected error finding relation instances: {e}"
-            raise DatabaseError(
-                msg,
-            ) from e
-
-    # Note: The get_relation_instance, delete_relation_instance, and find_relation_instances
-    # methods were already present in the file content provided in the previous turn (lines 904-1010).
-    # The Pylance errors in db_manager.py likely arose because the _db_manager_helpers.py file
-    # was not in the expected state when Pylance analyzed db_manager.py.
-    # Since the methods are already there, no changes are needed for this specific step.
-    # If the Pylance errors persist for db_manager.py after this, it might be a caching issue
-    # or an incorrect assumption about the state of _db_manager_helpers.py during that analysis.
+            raise

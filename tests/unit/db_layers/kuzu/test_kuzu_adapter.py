@@ -1,5 +1,5 @@
 import pytest
-import kuzu
+import real_ladybug as kuzu
 import shutil
 from pathlib import Path
 from typing import Dict, Optional, Any # Added Any
@@ -31,10 +31,13 @@ def kuzu_adapter_fixture():
         shutil.rmtree(TEMP_KUZU_DB_DIR)
     TEMP_KUZU_DB_DIR.mkdir(parents=True, exist_ok=True)
     
-    adapter = KuzuAdapter(db_path=str(TEMP_KUZU_DB_DIR))
+    # For real_ladybug, use a file path instead of directory path
+    db_file_path = TEMP_KUZU_DB_DIR / "test_database.db"
+    
+    adapter = KuzuAdapter(db_path=str(db_file_path))
     yield adapter
     
-    adapter.close() 
+    adapter.close()
     if TEMP_KUZU_DB_DIR.exists():
         shutil.rmtree(TEMP_KUZU_DB_DIR)
 
@@ -154,14 +157,16 @@ def test_kuzu_adapter_init_connect_close():
         shutil.rmtree(TEMP_KUZU_DB_DIR)
     TEMP_KUZU_DB_DIR.mkdir(parents=True, exist_ok=True)
     
-    adapter = KuzuAdapter(db_path=str(TEMP_KUZU_DB_DIR))
+    # For real_ladybug, we need to pass a file path, not directory path
+    db_file_path = TEMP_KUZU_DB_DIR / "test_database.db"
+    
+    adapter = KuzuAdapter(db_path=str(db_file_path))
     assert adapter.db is not None, "Database object should be initialized"
     assert adapter.conn is not None, "Connection object should be initialized"
     
-    assert TEMP_KUZU_DB_DIR.exists()
-    assert any(TEMP_KUZU_DB_DIR.iterdir()), "Kuzu database directory should not be empty"
+    assert db_file_path.exists(), "Database file should be created"
 
-    adapter.close() 
+    adapter.close()
     assert adapter.db is None, "Database object should be None after close"
     assert adapter.conn is None, "Connection object should be None after close"
     
@@ -428,7 +433,9 @@ def test_upsert_object_instance(kuzu_adapter_fixture: KuzuAdapter, sample_otd_pe
 
     assert expected_query_fragment_merge in actual_query
     # Updated assertions for individual SET properties
-    assert "ON CREATE SET n.id = $id_param" in actual_query
+    # Primary key 'id' should NOT be in SET clauses (handled by MERGE)
+    assert "ON CREATE SET n.id = $id_param" not in actual_query
+    assert "ON MATCH SET n.id = $id_param" not in actual_query
     assert "n.name = $p_name" in actual_query
     assert "n.age = $p_age" in actual_query
     assert "n.isVerified = $p_isVerified" in actual_query
@@ -436,12 +443,6 @@ def test_upsert_object_instance(kuzu_adapter_fixture: KuzuAdapter, sample_otd_pe
     assert "n.created_at = $p_created_at" in actual_query
     assert "n.metadata = $p_metadata" in actual_query
     assert "ON MATCH SET n.name = $p_name" in actual_query
-    assert "n.age = $p_age" in actual_query
-    assert "n.isVerified = $p_isVerified" in actual_query
-    assert "n.score = $p_score" in actual_query
-    assert "n.created_at = $p_created_at" in actual_query
-    assert "n.metadata = $p_metadata" in actual_query
-    assert "n.name = $p_name" in actual_query
     assert "n.age = $p_age" in actual_query
     assert "n.isVerified = $p_isVerified" in actual_query
     assert "n.score = $p_score" in actual_query
@@ -567,13 +568,14 @@ def test_upsert_relation_instance(kuzu_adapter_fixture: KuzuAdapter, sample_rtd_
     assert f"(tgt:{sample_rtd_works_at.target_object_type_names[0]} {{id: $tgt_id_param}})" in actual_query
     assert f"MERGE (src)-[r:{sample_works_at_instance.relation_type_name} {{id: $rel_id_param}}]->(tgt)" in actual_query
     # Updated assertions for individual SET properties
-    assert "ON CREATE SET r.id = $p_id" in actual_query
+    # Primary key 'id' should NOT be in SET clauses (handled by MERGE)
+    assert "ON CREATE SET r.id = $p_id" not in actual_query
+    assert "ON MATCH SET r.id = $p_id" not in actual_query
     assert "r.weight = $p_weight" in actual_query
     assert "r.upsert_date = $p_upsert_date" in actual_query
     assert "r.role = $p_role" in actual_query
     assert "r.start_date = $p_start_date" in actual_query
-    assert "ON MATCH SET r.id = $p_id" in actual_query
-    assert "r.weight = $p_weight" in actual_query
+    assert "ON MATCH SET r.weight = $p_weight" in actual_query
     assert "r.upsert_date = $p_upsert_date" in actual_query
     assert "r.role = $p_role" in actual_query
     assert "r.start_date = $p_start_date" in actual_query

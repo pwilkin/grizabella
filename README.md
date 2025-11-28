@@ -11,7 +11,7 @@ Grizabella is a sophisticated memory layer designed for Large Language Model (LL
 
 ## Key Features
 
-* **Tri-layer Storage:** Integrates SQLite (relational), LanceDB (vector), and Kuzu (graph) for comprehensive data management.
+* **Tri-layer Storage:** Integrates SQLite (relational), LanceDB (vector), and LadybugDB (graph) for comprehensive data management.
 * **Unified Python API:** Offers a simple and consistent Python interface to interact with all three database layers.
 * **Complex Query Engine:** Allows for sophisticated queries that can span across the different data storage paradigms.
 * **PySide6 UI:** Includes an optional desktop application for visualizing and managing data.

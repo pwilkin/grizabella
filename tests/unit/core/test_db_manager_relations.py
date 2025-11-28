@@ -114,7 +114,7 @@ def test_get_relation_instance_found(db_manager_mocked_helpers: GrizabellaDBMana
     
     result = db_manager_mocked_helpers.get_relation_instance(relation_type_name, relation_id)
     
-    mock_instance_manager.get_relation_instance.assert_called_once_with(relation_type_name, str(relation_id))
+    mock_instance_manager.get_relation_instance.assert_called_once_with(relation_type_name, relation_id)
     assert result == sample_relation_instance
 
 def test_get_relation_instance_not_found(db_manager_mocked_helpers: GrizabellaDBManager, mock_instance_manager: MagicMock):
@@ -124,7 +124,7 @@ def test_get_relation_instance_not_found(db_manager_mocked_helpers: GrizabellaDB
     
     result = db_manager_mocked_helpers.get_relation_instance(relation_type_name, relation_id)
     
-    mock_instance_manager.get_relation_instance.assert_called_once_with(relation_type_name, str(relation_id))
+    mock_instance_manager.get_relation_instance.assert_called_once_with(relation_type_name, relation_id)
     assert result is None
 
 def test_get_relation_instance_disconnected(db_manager_mocked_helpers: GrizabellaDBManager):
@@ -139,7 +139,7 @@ def test_delete_relation_instance_success(db_manager_mocked_helpers: GrizabellaD
     
     result = db_manager_mocked_helpers.delete_relation_instance(relation_type_name, relation_id)
     
-    mock_instance_manager.delete_relation_instance.assert_called_once_with(relation_type_name, str(relation_id))
+    mock_instance_manager.delete_relation_instance.assert_called_once_with(relation_type_name, relation_id)
     assert result is True
 
 def test_delete_relation_instance_failure(db_manager_mocked_helpers: GrizabellaDBManager, mock_instance_manager: MagicMock):
@@ -149,7 +149,7 @@ def test_delete_relation_instance_failure(db_manager_mocked_helpers: GrizabellaD
     
     result = db_manager_mocked_helpers.delete_relation_instance(relation_type_name, relation_id)
     
-    mock_instance_manager.delete_relation_instance.assert_called_once_with(relation_type_name, str(relation_id))
+    mock_instance_manager.delete_relation_instance.assert_called_once_with(relation_type_name, relation_id)
     assert result is False
 
 def test_delete_relation_instance_disconnected(db_manager_mocked_helpers: GrizabellaDBManager):

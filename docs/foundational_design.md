@@ -35,13 +35,13 @@ graph TD
     B2 --> B2a(common)
     B2 --> B2b(sqlite)
     B2 --> B2c(lancedb)
-    B2 --> B2d(kuzu)
+    B2 --> B2d(ladybugdb)
     B2 --> B2e(__init__.py)
 
     B2a --> B2a1(base_adapter.py)
     B2b --> B2b1(sqlite_adapter.py)
     B2c --> B2c1(lancedb_adapter.py)
-    B2d --> B2d1(kuzu_adapter.py)
+    B2d --> B2d1(ladybugdb_adapter.py)
 
     C --> C1(unit)
     C --> C2(integration)
@@ -98,7 +98,7 @@ graph TD
     * `common/`: Base classes, interfaces (e.g., `BaseDBAdapter`), or shared database logic.
     * `sqlite/`: SQLite-specific implementation.
     * `lancedb/`: LanceDB-specific implementation.
-    * `kuzu/`: Kuzu-specific implementation.
+    * `ladybugdb/`: LadybugDB-specific implementation.
   * **`api/`**: If Grizabella runs as a standalone app with an HTTP API (e.g., using FastAPI), this module will house the API-related code (routers, schemas for API, etc.).
   * **`mcp/`**: Implementation for the Grizabella MCP server.
   * **`cli/`**: Code for any command-line interface tools provided by Grizabella.
@@ -302,25 +302,25 @@ classDiagram
 **A. Database Location:**
 
 * **Default Location:** `Path.home() / ".grizabella" / "default_db/"`
-  * The `default_db` directory will house the files for SQLite, LanceDB, and Kuzu for the default Grizabella instance.
+  * The `default_db` directory will house the files for SQLite, LanceDB, and LadybugDB for the default Grizabella instance.
 * **Named Databases:** `Path.home() / ".grizabella" / "<db_name>/"`
   * Allows users to manage multiple, isolated Grizabella database instances.
 * **Custom Locations:** Users can specify an absolute path to a directory that will serve as a Grizabella database instance.
 * **Internal Structure of a Grizabella DB Instance Directory (e.g., `~/.grizabella/my_project_db/`):**
   * `sqlite_data/grizabella.db` (SQLite database file)
   * `lancedb_data/` (Directory for LanceDB tables/indices)
-  * `kuzu_data/` (Directory for Kuzu database files)
+  * `ladybugdb_data/` (Directory for LadybugDB database files)
   * `grizabella_meta.json` (Optional: metadata about this specific Grizabella DB instance, schema versions, etc.)
 
 **B. Connection Management:**
 
 * A central `GrizabellaDB` class (or `DatabaseManager`) will be responsible for managing a single Grizabella database instance (i.e., a specific path as defined above).
 * When instantiated with a database path, `GrizabellaDB` will:
-    1. Determine the paths for SQLite, LanceDB, and Kuzu data within that main path.
-    2. Initialize and hold connection objects/handlers for each of the three databases.
-        * SQLite: `sqlite3.connect()`
-        * LanceDB: `lancedb.connect()` to the LanceDB data directory.
-        * Kuzu: `kuzu.Database()` with the Kuzu data directory.
+     1. Determine the paths for SQLite, LanceDB, and LadybugDB data within that main path.
+     2. Initialize and hold connection objects/handlers for each of the three databases.
+         * SQLite: `sqlite3.connect()`
+         * LanceDB: `lancedb.connect()` to the LanceDB data directory.
+         * LadybugDB: `ladybugdb.Database()` with the LadybugDB data directory.
     3. Provide methods to access these connections or adapters that wrap these connections.
 * Schema Management:
   * `ObjectTypeDefinition`, `EmbeddingDefinition`, and `RelationTypeDefinition` will be stored, likely in the SQLite database as serialized JSON or in dedicated tables, to define the structure for all three layers.
@@ -335,21 +335,21 @@ classDiagram
 * **Consistency Across Layers:**
   * **SQLite:** The `ObjectInstance.id` (UUID) will be the primary key for the main table storing objects.
   * **LanceDB:** Embeddings (`EmbeddingInstance`) will store the `object_instance_id` (the UUID of the parent `ObjectInstance`) to link back. LanceDB can efficiently filter by UUIDs if stored appropriately (e.g., as a string or potentially a native UUID type if supported and beneficial).
-  * **Kuzu:** `ObjectInstance.id` (UUID) will be used as the primary key for nodes representing these objects. Kuzu supports `UUID` as a data type. Relations (`RelationInstance`) will use these UUIDs to define `_from` and `_to` connections.
+   * **LadybugDB:** `ObjectInstance.id` (UUID) will be used as the primary key for nodes representing these objects. LadybugDB supports `UUID` as a data type. Relations (`RelationInstance`) will use these UUIDs to define `_from` and `_to` connections.
 * This ensures that a single conceptual entity (an `ObjectInstance`) can be unambiguously referenced and linked across all three database backends.
 
 ## 6. Relation Creation Flow
 
-The process of creating a relation instance has been refined to ensure data integrity, particularly within the Kuzu graph database. The flow is designed to guarantee that source and target nodes exist before a relationship is created between them.
+The process of creating a relation instance has been refined to ensure data integrity, particularly within the LadybugDB graph database. The flow is designed to guarantee that source and target nodes exist before a relationship is created between them.
 
 The process is as follows:
 
 1. **API Call:** The user calls the `add_relation()` method on the `Grizabella` client with a `RelationInstance` object.
 2. **Delegation:** The client delegates this call to the `add_relation_instance()` method of the `GrizabellaDBManager`.
 3. **Instance Management:** The `GrizabellaDBManager` further delegates to the `_InstanceManager`'s `add_relation_instance()` method.
-4. **Node Pre-creation:** Before creating the relation, the `_InstanceManager` ensures that both the source and target nodes (object instances) exist in Kuzu. It does this by calling `upsert_object_instance()` on the `KuzuAdapter` for both the source and target object IDs from the `RelationInstance`. This step is idempotent; if the nodes already exist, Kuzu's `MERGE` operation does nothing, but if they don't, they are created.
-5. **Relation Upsert:** Once the existence of both nodes is guaranteed, the `_InstanceManager` calls `upsert_relation_instance()` on the `KuzuAdapter`.
-6. **Kuzu MERGE:** The `KuzuAdapter` executes a `MERGE` Cypher query to create the relationship between the source and target nodes. This operation is also idempotent.
+4. **Node Pre-creation:** Before creating the relation, the `_InstanceManager` ensures that both the source and target nodes (object instances) exist in LadybugDB. It does this by calling `upsert_object_instance()` on the `LadybugDBAdapter` for both the source and target object IDs from the `RelationInstance`. This step is idempotent; if the nodes already exist, LadybugDB's `MERGE` operation does nothing, but if they don't, they are created.
+5. **Relation Upsert:** Once the existence of both nodes is guaranteed, the `_InstanceManager` calls `upsert_relation_instance()` on the `LadybugDBAdapter`.
+6. **LadybugDB MERGE:** The `LadybugDBAdapter` executes a `MERGE` Cypher query to create the relationship between the source and target nodes. This operation is also idempotent.
 
 This flow prevents errors that could arise from attempting to create a relationship between non-existent nodes.
 
@@ -358,16 +358,16 @@ sequenceDiagram
     participant Client as Grizabella Client
     participant DBManager as GrizabellaDBManager
     participant InstManager as _InstanceManager
-    participant Kuzu as KuzuAdapter
+    participant LadybugDB as LadybugDBAdapter
 
     Client->>DBManager: add_relation(relation)
     DBManager->>InstManager: add_relation_instance(relation)
-    InstManager->>Kuzu: upsert_object_instance(source_node)
-    Kuzu-->>InstManager: Source Node Upserted
-    InstManager->>Kuzu: upsert_object_instance(target_node)
-    Kuzu-->>InstManager: Target Node Upserted
-    InstManager->>Kuzu: upsert_relation_instance(relation)
-    Kuzu-->>InstManager: Relation Upserted
+    InstManager->>LadybugDB: upsert_object_instance(source_node)
+    LadybugDB-->>InstManager: Source Node Upserted
+    InstManager->>LadybugDB: upsert_object_instance(target_node)
+    LadybugDB-->>InstManager: Target Node Upserted
+    InstManager->>LadybugDB: upsert_relation_instance(relation)
+    LadybugDB-->>InstManager: Relation Upserted
     InstManager-->>DBManager: RelationInstance
     DBManager-->>Client: RelationInstance
 end

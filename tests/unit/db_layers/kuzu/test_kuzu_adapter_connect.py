@@ -7,7 +7,7 @@ import logging
 
 # Ensure kuzu is importable, or mock it if not available in the test environment
 try:
-    import kuzu
+    import real_ladybug as kuzu
 except ImportError:
     kuzu = MagicMock()
 
@@ -39,14 +39,15 @@ class TestKuzuAdapterConnect(unittest.TestCase):
         shutil.rmtree(self.test_dir)
         logger.info(f"TestKuzuAdapterConnect: tearDown removed test_dir: {self.test_dir}")
 
-    @patch('kuzu.Database')
-    @patch('kuzu.Connection')
+    @patch('real_ladybug.Database')
+    @patch('real_ladybug.Connection')
     def test_connect_with_existing_lockfile(self, mock_kuzu_connection, mock_kuzu_database):
         """Test that _connect removes an existing lockfile and connects."""
         logger.info("TestKuzuAdapterConnect: Running test_connect_with_existing_lockfile")
         # Arrange
-        # Create a dummy lock file
-        lock_file_path = os.path.join(self.db_path, ".lock") # Corrected lock file name
+        # Create a dummy lock file with correct pattern matching
+        expected_db_path_with_ext = self.db_path + ".db"
+        lock_file_path = expected_db_path_with_ext + ".lock"
         with open(lock_file_path, "w", encoding="utf-8") as f:
             f.write("dummy lock content")
         self.assertTrue(os.path.exists(lock_file_path))
@@ -65,19 +66,20 @@ class TestKuzuAdapterConnect(unittest.TestCase):
         # Assert
         self.assertFalse(os.path.exists(lock_file_path), "Lockfile should have been removed.")
         logger.info(f"TestKuzuAdapterConnect: Verified lock file was removed from {lock_file_path}")
-        mock_kuzu_database.assert_called_once_with(self.db_path)
+        mock_kuzu_database.assert_called_once_with(expected_db_path_with_ext)
         mock_kuzu_connection.assert_called_once_with(mock_db_instance)
         self.assertIsNotNone(adapter.db, "Database object should be set.")
         self.assertIsNotNone(adapter.conn, "Connection object should be set.")
         logger.info("TestKuzuAdapterConnect: test_connect_with_existing_lockfile PASSED")
 
-    @patch('kuzu.Database')
-    @patch('kuzu.Connection')
+    @patch('real_ladybug.Database')
+    @patch('real_ladybug.Connection')
     def test_connect_no_lockfile(self, mock_kuzu_connection, mock_kuzu_database):
         """Test that _connect works correctly when no lockfile is present."""
         logger.info("TestKuzuAdapterConnect: Running test_connect_no_lockfile")
         # Arrange
-        lock_file_path = os.path.join(self.db_path, ".lock") # Corrected lock file name
+        expected_db_path_with_ext = self.db_path + ".db"
+        lock_file_path = expected_db_path_with_ext + ".lock"
         self.assertFalse(os.path.exists(lock_file_path)) # Ensure no lock file exists
         logger.info(f"TestKuzuAdapterConnect: Verified no lock file at {lock_file_path}")
 
@@ -93,7 +95,7 @@ class TestKuzuAdapterConnect(unittest.TestCase):
         # Assert
         self.assertFalse(os.path.exists(lock_file_path), "Lockfile should still not exist.")
         logger.info(f"TestKuzuAdapterConnect: Verified lock file still does not exist at {lock_file_path}")
-        mock_kuzu_database.assert_called_once_with(self.db_path)
+        mock_kuzu_database.assert_called_once_with(expected_db_path_with_ext)
         mock_kuzu_connection.assert_called_once_with(mock_db_instance)
         self.assertIsNotNone(adapter.db, "Database object should be set.")
         self.assertIsNotNone(adapter.conn, "Connection object should be set.")

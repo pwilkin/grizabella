@@ -14,7 +14,7 @@ from datetime import datetime
 from typing import Any, Optional
 from uuid import UUID
 
-import kuzu
+import real_ladybug as kuzu
 
 from grizabella.core.exceptions import DatabaseError, InstanceError, SchemaError, ConfigurationError
 from grizabella.core.models import (
@@ -52,38 +52,41 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
     def __init__(self, db_path: str, config: Optional[dict[str, Any]] = None) -> None:
         """Initialize the thread-safe Kuzu adapter.
         
-        Validates that the provided db_path is a directory (not a file) and
-        creates the directory if it doesn't exist. This ensures that Kuzu can
-        properly initialize with a valid directory path.
+        For real_ladybug: Validates that the parent directory exists and creates
+        the database file if it doesn't exist.
+        For kuzu compatibility: Creates directory structure if needed.
         
         Args:
-            db_path: Path to the Kuzu database directory
+            db_path: Path to the Kuzu database (file path for real_ladybug, directory for kuzu)
             config: Optional configuration dictionary
             
         Raises:
-            ConfigurationError: If the path exists but is not a directory, or
-                               if unable to create the directory
+            ConfigurationError: If the parent directory doesn't exist or cannot be created
         """
         thread_id = threading.get_ident()
         logger.info(f"ThreadSafeKuzuAdapter: Initializing in thread ID: {thread_id} for db_path: {db_path}")
         
-        # Validate that db_path is a directory, not a file
+        # Validate that parent directory exists for real_ladybug compatibility
         import os
         from pathlib import Path
         
         db_path_obj = Path(db_path)
-        if db_path_obj.exists() and not db_path_obj.is_dir():
-            msg = f"ThreadSafeKuzuAdapter: The provided path '{db_path}' exists but is not a directory. Kuzu requires a directory path."
-            raise ConfigurationError(msg)
         
-        # Create the directory if it doesn't exist
-        if not db_path_obj.exists():
+        # Ensure parent directory exists
+        parent_dir = db_path_obj.parent
+        if not parent_dir.exists():
             try:
-                db_path_obj.mkdir(parents=True, exist_ok=True)
-                logger.info(f"ThreadSafeKuzuAdapter: Created directory {db_path} for Kuzu database")
+                parent_dir.mkdir(parents=True, exist_ok=True)
+                logger.info(f"ThreadSafeKuzuAdapter: Created parent directory {parent_dir} for database")
             except OSError as e:
-                msg = f"ThreadSafeKuzuAdapter: Unable to create directory {db_path} for Kuzu database: {e}"
+                msg = f"ThreadSafeKuzuAdapter: Unable to create parent directory {parent_dir}: {e}"
                 raise ConfigurationError(msg) from e
+        
+        # For real_ladybug compatibility, ensure the database file path is properly formed
+        if not db_path_obj.suffix:
+            # If no extension, add .db to make it a proper file path
+            db_path_obj = db_path_obj.with_suffix('.db')
+            logger.info(f"ThreadSafeKuzuAdapter: Added .db extension, using {db_path_obj}")
         
         self._db_path = str(db_path_obj)
         self._config = config or {}
@@ -490,12 +493,17 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
 
         # Build SET clause and populate params_for_query with correctly typed values
         set_clause_parts = []
-        # Add id parameter
-        params_for_query["id_param"] = instance.id
-        set_clause_parts.append("n.id = $id_param")
 
-        # Process each property
+        # For real_ladybug: Don't set the id property in SET clauses (it's a primary key)
+        # The id is only used for matching in the MERGE clause
+        params_for_query["id_param"] = instance.id
+
+        # Process each property (excluding 'id' as it's handled by the MERGE pattern)
         for key, original_value in instance.properties.items():
+            # Skip the 'id' property as it's handled by the MERGE pattern
+            if key.lower() == "id":
+                continue
+                
             param_name = f"p_{key}"
             set_clause_parts.append(f"n.{key} = ${param_name}")
             # Ensure the parameter type matches Kuzu's expectation for the property
@@ -781,65 +789,47 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
             # props_for_set is used to gather all properties that need to be in the SET clause
             props_for_set[key] = value # Store original types
 
-        # Build SET clause and populate params_for_query with correctly typed values
+        # Build SET clause - ONLY include user-defined properties, NOT built-in Kuzu properties
         set_clause_parts = []
-        # Iterate over all properties intended for the relation (id, weight, upsert_date + instance.properties)
-        all_relation_properties = {
-            "id": instance.id,
-            "weight": float(instance.weight),
-            "upsert_date": instance.upsert_date,
-            **instance.properties,
-        }
+        
+        # Only set user-defined properties from the relation type definition
+        # Exclude built-in Kuzu properties: id, weight, upsert_date (these are managed automatically)
+        for prop in rtd.properties:
+            if prop.name.lower() in ["id", "weight", "upsert_date"]:
+                # Skip built-in Kuzu properties - they are automatically managed
+                continue
+                
+            if prop.name in instance.properties:
+                param_name = f"p_{prop.name}"
+                set_clause_parts.append(f"r.{prop.name} = ${param_name}")
+                
+                # Get the value from instance properties
+                original_value = instance.properties[prop.name]
+                
+                # Ensure the parameter type matches Kuzu's expectation
+                if isinstance(original_value, UUID):
+                    params_for_query[param_name] = original_value
+                elif isinstance(original_value, datetime):
+                    params_for_query[param_name] = original_value
+                elif isinstance(original_value, str):
+                    # Handle datetime strings by converting to datetime objects
+                    try:
+                        dt_value = datetime.fromisoformat(original_value)
+                        params_for_query[param_name] = dt_value
+                    except (ValueError, TypeError):
+                        # If conversion fails, pass the original string
+                        params_for_query[param_name] = original_value
+                else:
+                    params_for_query[param_name] = original_value
 
-        for key, original_value in all_relation_properties.items():
-            param_name = f"p_{key}"
-            set_clause_parts.append(f"r.{key} = ${param_name}")
-            # Ensure the parameter type matches Kuzu's expectation
-            if key == "id": # 'id' property in Kuzu is UUID
-                params_for_query[param_name] = instance.id # Pass UUID object
-            elif isinstance(original_value, UUID): # Other potential UUID properties
-                params_for_query[param_name] = original_value # Pass UUID object
-            else:
-                params_for_query[param_name] = original_value
-
-        if not set_clause_parts:
-            msg = f"KuzuDB: No properties to set for relation instance {instance.id} in {rel_table_name}."
-            raise InstanceError(msg)
-        set_clause_str = ", ".join(set_clause_parts)
-
-        # Diagnostic: Check if source node exists
-        check_src_query = f"MATCH (s:{src_node_table} {{id: $src_id_param}}) RETURN s.id"
-        logger.debug(f"ThreadSafeKuzuAdapter: Checking source node existence with query: {check_src_query} and params: {{'src_id_param': instance.source_object_instance_id}}")
-        src_exists_result = self.connection.execute(check_src_query, parameters={"src_id_param": instance.source_object_instance_id})
-
-        actual_src_exists_result: Optional[kuzu.query_result.QueryResult] = None
-        if isinstance(src_exists_result, list):
-            if src_exists_result:
-                actual_src_exists_result = src_exists_result[0]
+        # If there are no user-defined properties to set, we still need to create the relationship
+        # Kuzu will handle the built-in properties (id, weight, upsert_date) automatically
+        if set_clause_parts:
+            set_clause_str = ", ".join(set_clause_parts)
         else:
-            actual_src_exists_result = src_exists_result
-
-        if not actual_src_exists_result or not actual_src_exists_result.has_next():
-            logger.error(f"ThreadSafeKuzuAdapter: DIAGNOSTIC - Source node {instance.source_object_instance_id} NOT FOUND in table {src_node_table}.")
-        else:
-            logger.debug(f"ThreadSafeKuzuAdapter: DIAGNOSTIC - Source node {instance.source_object_instance_id} FOUND in table {src_node_table}.")
-
-        # Diagnostic: Check if target node exists
-        check_tgt_query = f"MATCH (t:{tgt_node_table} {{id: $tgt_id_param}}) RETURN t.id"
-        logger.debug(f"ThreadSafeKuzuAdapter: Checking target node existence with query: {check_tgt_query} and params: {{'tgt_id_param': instance.target_object_instance_id}}")
-        tgt_exists_result = self.connection.execute(check_tgt_query, parameters={"tgt_id_param": instance.target_object_instance_id})
-
-        actual_tgt_exists_result: Optional[kuzu.query_result.QueryResult] = None
-        if isinstance(tgt_exists_result, list):
-            if tgt_exists_result:
-                actual_tgt_exists_result = tgt_exists_result[0]
-        else:
-            actual_tgt_exists_result = tgt_exists_result
-
-        if not actual_tgt_exists_result or not actual_tgt_exists_result.has_next():
-            logger.error(f"ThreadSafeKuzuAdapter: DIAGNOSTIC - Target node {instance.target_object_instance_id} NOT FOUND in table {tgt_node_table}.")
-        else:
-            logger.debug(f"ThreadSafeKuzuAdapter: DIAGNOSTIC - Target node {instance.target_object_instance_id} FOUND in table {tgt_node_table}.")
+            # No user properties to set, but we need a SET clause for the MERGE to work
+            # Use a dummy SET to trigger the MERGE operation
+            set_clause_str = "r.weight = r.weight"  # No-op SET clause
 
         query = f"""
             MATCH (src:{src_node_table} {{id: $src_id_param}}), (tgt:{tgt_node_table} {{id: $tgt_id_param}})
@@ -1150,12 +1140,20 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
                     "properties": {},
                 }
 
-                if "weight" in rel_data_from_kuzu:
+                # Always set weight and upsert_date - if not in database, use defaults from MemoryInstance
+                # This ensures the RelationInstance constructor gets all required fields
+                from decimal import Decimal
+                from datetime import datetime, timezone
+                
+                if "weight" in rel_data_from_kuzu and rel_data_from_kuzu["weight"] is not None:
                     reconstructed_args["weight"] = rel_data_from_kuzu["weight"]
-                if "upsert_date" in rel_data_from_kuzu:
-                    reconstructed_args["upsert_date"] = rel_data_from_kuzu[
-                        "upsert_date"
-                    ]
+                else:
+                    reconstructed_args["weight"] = Decimal("1.0")  # Default from MemoryInstance
+                    
+                if "upsert_date" in rel_data_from_kuzu and rel_data_from_kuzu["upsert_date"] is not None:
+                    reconstructed_args["upsert_date"] = rel_data_from_kuzu["upsert_date"]
+                else:
+                    reconstructed_args["upsert_date"] = datetime.now(timezone.utc)  # Default from MemoryInstance
 
                 temp_properties = {}
                 internal_kuzu_fields = {
@@ -1201,7 +1199,7 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
             raise DatabaseError(msg)
 
         query = f"MATCH ()-[r:{relation_type_name} {{id: $rel_id_param}}]->() DELETE r"
-        params = {"rel_id_param": relation_id}  # Pass UUID object
+        params = {"rel_id_param": relation_id}  # Pass UUID object directly to match Kuzu expectation
 
         try:
             self.connection.execute(query, parameters=params)
@@ -1318,10 +1316,7 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
                 # print(f"DEBUG: Parameters: {params}")
 
                 try:
-                    prepared_statement = self.connection.prepare(query_str)
-                    raw_query_result = self.connection.execute(
-                        prepared_statement, parameters=params,
-                    )
+                    raw_query_result = self.connection.execute(query_str, parameters=params)
 
                     actual_query_result: Optional[kuzu.query_result.QueryResult] = None
                     if isinstance(raw_query_result, list):

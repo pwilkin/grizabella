@@ -262,7 +262,7 @@ from datetime import datetime
 from typing import Any, Optional
 from uuid import UUID
 
-import kuzu
+import real_ladybug as kuzu
 
 from grizabella.core.exceptions import DatabaseError, InstanceError, SchemaError
 from grizabella.core.models import (

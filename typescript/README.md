@@ -9,7 +9,7 @@ A comprehensive TypeScript client library for Grizabella, providing type-safe ac
 
 ## 🚀 Features
 
-- **Multi-Database Support**: Connect to SQLite, Kuzu, and LanceDB databases
+- **Multi-Database Support**: Connect to SQLite, LadybugDB, and LanceDB databases
 - **Type-Safe Operations**: Full TypeScript support with comprehensive type definitions
 - **Schema Management**: Create and manage object types, relation types, and embeddings
 - **Graph Operations**: Perform complex graph traversals and queries

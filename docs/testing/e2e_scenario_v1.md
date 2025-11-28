@@ -2,7 +2,7 @@
 
 ## 1. Introduction & Goal
 
-This document outlines a comprehensive end-to-end test scenario for the Grizabella engine. The primary goal is to validate the engine's functionality across its core layers (SQLite, LanceDB, Kuzu) and the unified Python API (`Grizabella` client) without using any mocks. This test will cover schema definition, data population, complex querying, data modification, and re-querying to ensure inter-layer consistency and overall system integrity.
+This document outlines a comprehensive end-to-end test scenario for the Grizabella engine. The primary goal is to validate the engine's functionality across its core layers (SQLite, LanceDB, LadybugDB) and the unified Python API (`Grizabella` client) without using any mocks. This test will cover schema definition, data population, complex querying, data modification, and re-querying to ensure inter-layer consistency and overall system integrity.
 
 The scenario will use a "Scientific Publications" domain, involving Authors, Papers, and Venues, along with their relationships.
 
