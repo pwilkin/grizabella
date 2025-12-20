@@ -41,7 +41,8 @@ class GrizabellaDBManager: # pylint: disable=R0904, R0902
     """Manages a single Grizabella database instance, coordinating SQLite, LanceDB, and Kuzu."""
 
     def __init__(self, db_name_or_path: Union[str, Path] = "default",
-                 create_if_not_exists: bool = True) -> None:
+                 create_if_not_exists: bool = True,
+                 use_gpu: bool = False) -> None:
         self.db_instance_root: Path = db_paths.get_db_instance_path(
             db_name_or_path, create_if_not_exists,
         )
@@ -54,7 +55,7 @@ class GrizabellaDBManager: # pylint: disable=R0904, R0902
         )
         kuzu_path_str = str(db_paths.get_kuzu_path(self.db_instance_root, create_if_not_exists))
         self._connection_helper = _ConnectionHelper(
-            sqlite_path_str, lancedb_uri_str, kuzu_path_str, logger,
+            sqlite_path_str, lancedb_uri_str, kuzu_path_str, logger, use_gpu=use_gpu,
         )
         self._schema_manager = _SchemaManager(self._connection_helper, logger)
         self._instance_manager = _InstanceManager(
@@ -553,6 +554,16 @@ class GrizabellaDBManager: # pylint: disable=R0904, R0902
                 object_instances=[],
                 errors=[f"Failed to process complex query: {e}"],
             )
+
+    def begin_bulk_addition(self) -> None:
+        """Starts a bulk addition operation.
+        In bulk mode, embeddings are not generated until finish_bulk_addition is called.
+        """
+        self._instance_manager.begin_bulk_addition()
+
+    def finish_bulk_addition(self) -> None:
+        """Finishes a bulk addition operation and generates all pending embeddings."""
+        self._instance_manager.finish_bulk_addition()
 
 if __name__ == "__main__":
     logging.basicConfig(

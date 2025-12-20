@@ -38,6 +38,7 @@ class _ConnectionHelper:  # pylint: disable=R0902
         lancedb_uri_str: str,
         kuzu_path_str: str,
         manager_logger: logging.Logger,
+        use_gpu: bool = False,
     ) -> None:
         import threading  # For logging thread ID
         self._logger = manager_logger # Ensure logger is set first
@@ -46,6 +47,7 @@ class _ConnectionHelper:  # pylint: disable=R0902
         self.lancedb_uri: str = lancedb_uri_str
         self.kuzu_path: str = kuzu_path_str
         self._logger = manager_logger
+        self._use_gpu = use_gpu
 
         self._sqlite_adapter_instance: Optional["SQLiteAdapter"] = None
         self._lancedb_adapter_instance: Optional["LanceDBAdapter"] = None
@@ -117,17 +119,28 @@ class _ConnectionHelper:  # pylint: disable=R0902
                 "_ConnectionHelper: Connecting LanceDBAdapter to %s", self.lancedb_uri,
             )
             from grizabella.db_layers.lancedb.lancedb_adapter import LanceDBAdapter
-            self._lancedb_adapter_instance = LanceDBAdapter(db_uri=self.lancedb_uri)
+            self._lancedb_adapter_instance = LanceDBAdapter(
+                db_uri=self.lancedb_uri, use_gpu=self._use_gpu
+            )
             self._logger.info("_ConnectionHelper: LanceDBAdapter initialized.")
 
             self._logger.info(
                 "_ConnectionHelper: Connecting KuzuAdapter to %s", self.kuzu_path,
             )
-            from grizabella.db_layers.kuzu.thread_safe_kuzu_adapter import ThreadSafeKuzuAdapter
-            self._kuzu_adapter_instance = ThreadSafeKuzuAdapter(db_path=self.kuzu_path)
-            self._logger.info("_ConnectionHelper: KuzuAdapter initialized.")
+            try:
+                from grizabella.db_layers.kuzu.thread_safe_kuzu_adapter import ThreadSafeKuzuAdapter
+                self._kuzu_adapter_instance = ThreadSafeKuzuAdapter(db_path=self.kuzu_path)
+                self._logger.info("_ConnectionHelper: KuzuAdapter initialized.")
+            except (ImportError, Exception) as e:
+                self._logger.warning(
+                    "_ConnectionHelper: Failed to initialize KuzuAdapter: %s. "
+                    "Kuzu/Ladybug functionality will be unavailable.",
+                    e,
+                )
+                self._kuzu_adapter_instance = None
+
             self._adapters_are_connected = True
-            self._logger.info("_ConnectionHelper: All adapters connected successfully.")
+            self._logger.info("_ConnectionHelper: Adapters connected successfully (some may be missing).")
         except DatabaseError as e:
             self._logger.error(
                 "_ConnectionHelper: DatabaseError during adapter connection: %s",
@@ -153,7 +166,11 @@ class _ConnectionHelper:  # pylint: disable=R0902
         self._logger.debug("_ConnectionHelper: Closing all adapters.")
         if self._sqlite_adapter_instance:
             try:
-                self._sqlite_adapter_instance.close()
+                # Use close_all_connections if available (ThreadSafeSQLiteAdapter)
+                if hasattr(self._sqlite_adapter_instance, 'close_all_connections'):
+                    self._sqlite_adapter_instance.close_all_connections()
+                else:
+                    self._sqlite_adapter_instance.close()
                 self._logger.debug("_ConnectionHelper: SQLiteAdapter closed.")
             except DatabaseError as e:
                 self._logger.warning(
@@ -768,6 +785,8 @@ class _InstanceManager:
         self._conn_helper = conn_helper
         self._schema_manager = schema_manager
         self._logger = manager_logger
+        self._bulk_mode = False
+        self._pending_bulk_instances: list[ObjectInstance] = []
 
     def add_object_instance(self, instance: ObjectInstance) -> None:
         """Adds an object instance to the SQLite database."""
@@ -852,8 +871,15 @@ class _InstanceManager:
             # Then upsert in Kuzu for graph operations
             self._conn_helper.kuzu_adapter.upsert_object_instance(instance)
             
-            # Generate and upsert embeddings if applicable
-            self._generate_embeddings_for_instance(instance)
+            # Generate and upsert embeddings if applicable, unless in bulk mode
+            if self._bulk_mode:
+                self._pending_bulk_instances.append(instance)
+                self._logger.debug(
+                    "Deferred embedding generation for instance '%s' (Bulk Mode)",
+                    instance.id,
+                )
+            else:
+                self._generate_embeddings_for_instance(instance)
             
             self._logger.debug(
                 "Upserted object instance '%s' of type '%s' in SQLite, Kuzu, and generated embeddings.",
@@ -955,6 +981,118 @@ class _InstanceManager:
                 )
                 # Continue with other embeddings even if one fails
                 continue
+
+    def begin_bulk_addition(self) -> None:
+        """Starts a bulk addition operation."""
+        self._bulk_mode = True
+        self._pending_bulk_instances = []
+        self._logger.info("Bulk addition mode started.")
+
+    def finish_bulk_addition(self) -> None:
+        """Finishes a bulk addition operation and generates all pending embeddings."""
+        if not self._bulk_mode:
+            return
+        
+        self._logger.info(
+            "Finishing bulk addition. Processing %d pending instances.",
+            len(self._pending_bulk_instances),
+        )
+        try:
+            self._process_pending_bulk_embeddings()
+        finally:
+            self._bulk_mode = False
+            self._pending_bulk_instances = []
+            self._logger.info("Bulk addition mode finished.")
+
+    def _process_pending_bulk_embeddings(self) -> None:
+        """Generates and upserts embeddings for all pending instances in bulk."""
+        if not self._pending_bulk_instances:
+            return
+
+        # Group instances by object_type_name
+        instances_by_type: dict[str, list[ObjectInstance]] = {}
+        for instance in self._pending_bulk_instances:
+            instances_by_type.setdefault(instance.object_type_name, []).append(instance)
+
+        for type_name, instances in instances_by_type.items():
+            # Find all EmbeddingDefinitions that apply to this object type
+            applicable_embeddings = [
+                ed for ed in self._schema_manager.list_embedding_definitions()
+                if ed.object_type_name == type_name
+            ]
+
+            if not applicable_embeddings:
+                continue
+
+            for embedding_def in applicable_embeddings:
+                try:
+                    # Prepare data for batch generation
+                    source_texts = []
+                    valid_instances = []
+                    for instance in instances:
+                        source_text = instance.properties.get(embedding_def.source_property_name)
+                        if source_text and source_text.strip():
+                            source_texts.append(source_text)
+                            valid_instances.append(instance)
+
+                    if not source_texts:
+                        continue
+
+                    self._logger.info(
+                        "Generating bulk embeddings for %d instances of type '%s' using definition '%s'",
+                        len(source_texts), type_name, embedding_def.name
+                    )
+
+                    # Load model
+                    embedding_model = self._conn_helper.lancedb_adapter.get_embedding_model(
+                        embedding_def.embedding_model
+                    )
+
+                    # Batch generate embeddings
+                    if hasattr(embedding_model, 'compute_source_embeddings'):
+                        vectors = embedding_model.compute_source_embeddings(source_texts)
+                    elif hasattr(embedding_model, 'compute_query_embeddings'):
+                        vectors = embedding_model.compute_query_embeddings(source_texts)
+                    else:
+                        raise EmbeddingError(
+                            f"Embedding model '{embedding_def.embedding_model}' does not have "
+                            "compute_source_embeddings or compute_query_embeddings method"
+                        )
+
+                    if len(vectors) != len(valid_instances):
+                        raise EmbeddingError(
+                            f"Bulk embedding generation size mismatch: got {len(vectors)}, "
+                            f"expected {len(valid_instances)}"
+                        )
+
+                    # Create EmbeddingInstances
+                    embedding_instances = []
+                    for i, vector in enumerate(vectors):
+                        instance = valid_instances[i]
+                        source_text = source_texts[i]
+                        
+                        # Convert vector to list if needed
+                        if hasattr(vector, 'tolist'):
+                            vector = vector.tolist()
+                        
+                        embedding_instances.append(EmbeddingInstance(
+                            object_instance_id=instance.id,
+                            embedding_definition_name=embedding_def.name,
+                            vector=vector,
+                            source_text_preview=source_text[:100] if len(source_text) > 100 else source_text,
+                        ))
+
+                    # Bulk upsert to LanceDB
+                    self._conn_helper.lancedb_adapter.upsert_embedding_instances_bulk(
+                        embedding_instances, embedding_def
+                    )
+
+                except Exception as e:
+                    self._logger.error(
+                        "Error during bulk embedding generation for type '%s' and definition '%s': %s",
+                        type_name, embedding_def.name, e, exc_info=True
+                    )
+                    continue
 
     def delete_object_instance(self, object_type_name: str, instance_id: Any) -> bool:
         """Deletes an object instance from both SQLite and Kuzu."""

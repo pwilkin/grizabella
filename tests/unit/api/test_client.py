@@ -55,15 +55,16 @@ class TestGrizabellaAPI(unittest.TestCase):
         self.assertTrue(self.grizabella_client._is_connected)
 
 
-    def test_close_delegates_to_db_manager(self):
-        """Test that close() calls db_manager.close()."""
+    def test_close_delegates_to_release_manager(self):
+        """Test that close() calls release_manager()."""
         # First connect to set _is_connected to True
         self.grizabella_client.connect()
         self.mock_db_manager_instance.reset_mock() # Reset after connect call
-
-        self.grizabella_client.close()
-        self.mock_db_manager_instance.close.assert_called_once()
-        self.assertFalse(self.grizabella_client._is_connected)
+    
+        with patch("grizabella.core.db_manager_factory.release_manager") as mock_release:
+            self.grizabella_client.close()
+            mock_release.assert_called_once_with(self.db_path)
+            self.assertFalse(self.grizabella_client._is_connected)
 
     def test_close_idempotent(self):
         """Test that close() is idempotent."""
@@ -80,14 +81,15 @@ class TestGrizabellaAPI(unittest.TestCase):
         with patch("grizabella.api.client.GrizabellaDBManager") as MockDBManagerCtx:
             mock_manager_instance_ctx = MockDBManagerCtx.return_value
             db_path_ctx = "ctx_test_db"
-
-            with Grizabella(db_name_or_path=db_path_ctx) as client_ctx:
-                mock_manager_instance_ctx.connect.assert_called_once()
-                self.assertIsInstance(client_ctx, Grizabella)
-                self.assertTrue(client_ctx._is_connected) # Check internal state
-
-            mock_manager_instance_ctx.close.assert_called_once()
-            self.assertFalse(client_ctx._is_connected) # Check internal state after exit
+    
+            with patch("grizabella.core.db_manager_factory.release_manager") as mock_release_ctx:
+                with Grizabella(db_name_or_path=db_path_ctx) as client_ctx:
+                    mock_manager_instance_ctx.connect.assert_called_once()
+                    self.assertIsInstance(client_ctx, Grizabella)
+                    self.assertTrue(client_ctx._is_connected) # Check internal state
+    
+                mock_release_ctx.assert_called_once_with(db_path_ctx)
+                self.assertFalse(client_ctx._is_connected) # Check internal state after exit
 
     # --- Schema Management Method Tests (Example) ---
     def test_create_object_type_delegates_and_returns(self):

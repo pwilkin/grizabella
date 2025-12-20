@@ -18,7 +18,7 @@ from grizabella.core.models import ObjectTypeDefinition, PropertyDefinition, Dat
 # For more robust error handling, wrap in try...finally or use a 'with' statement.
 
 print("Initializing Grizabella client...")
-client = Grizabella() # You can specify a db_path: client = Grizabella(db_path="/path/to/your/grizabella.db")
+client = Grizabella(use_gpu=True) # Enable GPU acceleration
 
 try:
     print("Connecting to the database...")
@@ -65,6 +65,13 @@ try:
         print(f"  Updated at: {retrieved_note.updated_at}")
     else:
         print(f"Could not retrieve note with ID: {created_note.id}")
+
+    # 5. Bulk Addition Example
+    print("Starting bulk addition...")
+    client.begin_bulk_addition()
+    # ... add many objects ...
+    client.finish_bulk_addition()
+    print("Bulk addition completed.")
 
 finally:
     # 5. Close the connection

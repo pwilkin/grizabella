@@ -95,6 +95,8 @@ export interface MCPClientConfig {
   retryConfig?: Partial<RetryConfig>;
   /** Whether to enable debug logging */
   debug?: boolean;
+  /** Whether to use GPU for embedding models */
+  useGpu?: boolean;
 }
 
 /**
@@ -143,6 +145,7 @@ export class MCPClient {
       reconnectDelay: 1000,
       requestTimeout: 30000,
       debug: false,
+      useGpu: false,
       ...config,
     } as Required<MCPClientConfig>;
 
@@ -835,6 +838,20 @@ export class MCPClient {
     // Note: This tool is not implemented in the MCP server yet
     // We'll throw a not implemented error
     throw new Error('deleteEmbeddingDefinition not implemented in MCP server');
+  }
+
+  /**
+   * Starts a bulk addition operation.
+   */
+  async beginBulkAddition(): Promise<void> {
+    await this.callTool('begin_bulk_addition');
+  }
+
+  /**
+   * Finishes a bulk addition operation.
+   */
+  async finishBulkAddition(): Promise<void> {
+    await this.callTool('finish_bulk_addition');
   }
 
   /**

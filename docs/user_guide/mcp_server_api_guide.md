@@ -21,11 +21,11 @@ The Grizabella MCP server requires a database to store its data. The path to thi
 
 **Example:**
 
-To set a custom database path (e.g., `/opt/grizabella_data/my_db`):
+To set a custom database path and enable GPU support (e.g., `/opt/grizabella_data/my_db`):
 
 ```bash
 export GRIZABELLA_DB_PATH="/opt/grizabella_data/my_db"
-poetry run grizabella-mcp
+poetry run grizabella-mcp --use-gpu
 ```
 
 If the specified database file or directory doesn't exist, Grizabella will attempt to create it.
@@ -406,6 +406,18 @@ Errors are generally reported as a JSON response containing an error message. Th
         }
     ]
     ```
+
+#### 10.1 `begin_bulk_addition`
+
+- **Description:** Starts a bulk addition operation. In bulk mode, embeddings are not generated until `finish_bulk_addition` is called.
+- **Input Parameters (JSON):** None
+- **Output Parameters (JSON):** Returns a success message.
+
+#### 10.2 `finish_bulk_addition`
+
+- **Description:** Finishes a bulk addition operation and generates all pending embeddings.
+- **Input Parameters (JSON):** None
+- **Output Parameters (JSON):** Returns a success message.
 
 ---
 

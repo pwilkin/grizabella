@@ -59,6 +59,9 @@ class ThreadSafeSQLiteAdapter(SQLiteAdapter):
         self.config = config or {}
         self._lock = threading.RLock()
         
+        # Store all connections to allow closing them all
+        self._all_connections: dict[int, sqlite3.Connection] = {}
+        
         # Thread-local storage for connections
         self._local = threading.local()
         
@@ -112,6 +115,11 @@ class ThreadSafeSQLiteAdapter(SQLiteAdapter):
                 detect_types=sqlite3.PARSE_DECLTYPES | sqlite3.PARSE_COLNAMES,
             )
             logger.info(f"ThreadSafeSQLiteAdapter: sqlite3.connect successful for thread {thread_id}. Connection object: {conn}")
+            
+            # Register connection
+            with self._lock:
+                self._all_connections[thread_id] = conn
+                
             conn.row_factory = sqlite3.Row
             conn.execute("PRAGMA foreign_keys = ON;")
             return conn
@@ -189,16 +197,36 @@ class ThreadSafeSQLiteAdapter(SQLiteAdapter):
         
         if hasattr(self._local, 'conn') and self._local.conn is not None:
             try:
-                self._local.conn.close()
+                conn = self._local.conn
+                thread_id = threading.get_ident()
+                conn.close()
                 logger.info(f"ThreadSafeSQLiteAdapter: Connection closed for thread {thread_id}")
-                # Remove the connection from thread-local storage
+                # Remove the connection from thread-local storage and tracker
                 delattr(self._local, 'conn')
+                with self._lock:
+                    if thread_id in self._all_connections:
+                        del self._all_connections[thread_id]
             except sqlite3.Error as e:
                 logger.error(f"ThreadSafeSQLiteAdapter: sqlite3.Error during close for {self.db_path}: {e}", exc_info=True)
                 msg = f"SQLite error closing connection: {e}"
                 raise DatabaseError(msg) from e
         else:
             logger.debug(f"ThreadSafeSQLiteAdapter: No connection to close for thread {thread_id}")
+
+    def close_all_connections(self) -> None:
+        """Close all connections tracked by this adapter."""
+        logger.info(f"ThreadSafeSQLiteAdapter: close_all_connections() called for db: {self.db_path}")
+        with self._lock:
+            for thread_id, conn in list(self._all_connections.items()):
+                try:
+                    conn.close()
+                    logger.info(f"ThreadSafeSQLiteAdapter: Closed connection for thread {thread_id}")
+                except Exception as e:
+                    logger.warning(f"ThreadSafeSQLiteAdapter: Error closing connection for thread {thread_id}: {e}")
+            self._all_connections.clear()
+            # Also clear thread-local if we are in one of those threads
+            if hasattr(self._local, 'conn'):
+                delattr(self._local, 'conn')
     
     def _save_definition(
         self, table_name: str, name: str, definition: BaseModel,

@@ -14,3 +14,4 @@ memory_profile.log
 typescript/test-embedding-*
 ctx_test_db/
 test_db/
+test/sqlite_data/grizabella.db

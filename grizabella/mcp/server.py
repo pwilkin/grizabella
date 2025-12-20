@@ -384,6 +384,33 @@ async def mcp_create_embedding_definition(embedding_def: EmbeddingDefinition) ->
 
 
 # Object Instance Management
+
+@app.tool(
+    name="begin_bulk_addition",
+    description="Starts a bulk addition operation. In bulk mode, embeddings are not generated until finish_bulk_addition is called.",
+)
+@log_tool_call
+async def mcp_begin_bulk_addition():
+    try:
+        get_grizabella_client().begin_bulk_addition()
+        return "Bulk addition mode started."
+    except Exception as e:
+        logger.error(f"MCP: Error starting bulk addition: {e}")
+        raise
+
+@app.tool(
+    name="finish_bulk_addition",
+    description="Finishes a bulk addition operation and generates all pending embeddings.",
+)
+@log_tool_call
+async def mcp_finish_bulk_addition():
+    try:
+        get_grizabella_client().finish_bulk_addition()
+        return "Bulk addition mode finished and embeddings generated."
+    except Exception as e:
+        logger.error(f"MCP: Error finishing bulk addition: {e}")
+        raise
+
 @app.tool(
     name="upsert_object",
     description=(
@@ -980,13 +1007,16 @@ def main():
 
     parser = argparse.ArgumentParser(description="Grizabella MCP Server")
     parser.add_argument("--db-path", help="Path to the Grizabella database.")
+    parser.add_argument("--use-gpu", action="store_true", help="Use GPU for embedding models.")
     args = parser.parse_args()
 
     global grizabella_client_instance
     db_path = get_grizabella_db_path(args.db_path)
     
     try:
-        with Grizabella(db_name_or_path=db_path, create_if_not_exists=True) as gb:
+        with Grizabella(
+            db_name_or_path=db_path, create_if_not_exists=True, use_gpu=args.use_gpu
+        ) as gb:
             grizabella_client_instance = gb
             app.run(show_banner=False)
     except Exception as e:

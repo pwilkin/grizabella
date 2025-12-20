@@ -59,6 +59,8 @@ export interface GrizabellaClientConfig {
   timeout?: number;
   /** Whether to enable debug logging */
   debug?: boolean;
+  /** Whether to use GPU for embedding models */
+  useGpu?: boolean;
   /** Whether to automatically reconnect on connection loss */
   autoReconnect?: boolean;
   /** Maximum number of reconnection attempts */
@@ -160,6 +162,7 @@ export class GrizabellaClient {
       serverArgs: serverArgs, // Store the arguments for the server command
       timeout: config.timeout ?? 30000,
       debug: config.debug ?? true, // Enable debug mode to see response structure
+      useGpu: config.useGpu ?? false,
       autoReconnect: config.autoReconnect ?? true,
       maxReconnectAttempts: config.maxReconnectAttempts ?? 5,
       reconnectDelay: config.reconnectDelay ?? 1000,
@@ -199,6 +202,9 @@ export class GrizabellaClient {
     if (this._config.debug) {
       console.log(`GrizabellaClient initialized for database: ${this._dbNameOrPath}`);
       console.log(`MCP server command: ${serverCommand}`);
+      if (this._config.useGpu) {
+        console.log('GPU support enabled for embeddings');
+      }
     }
   }
 
@@ -759,6 +765,45 @@ export class GrizabellaClient {
       // Re-throw other errors (connection issues, etc.)
       throw error;
     }
+  }
+
+  /**
+   * Starts a bulk addition operation.
+   *
+   * In bulk mode, embeddings for upserted objects are not generated immediately.
+   * Instead, they are queued and generated all at once when {@link finishBulkAddition} is called.
+   * This is significantly faster for large datasets.
+   *
+   * @returns Promise that resolves when bulk mode is started
+   * @throws NotConnectedError if not connected
+   *
+   * @example
+   * ```typescript
+   * await client.beginBulkAddition();
+   * for (const obj of largeDataset) {
+   *   await client.upsertObject({ obj });
+   * }
+   * await client.finishBulkAddition();
+   * ```
+   */
+  async beginBulkAddition(): Promise<void> {
+    this.ensureConnected();
+    return await this._mcpClient.beginBulkAddition();
+  }
+
+  /**
+   * Finishes a bulk addition operation and generates all pending embeddings.
+   *
+   * This method should be called after a series of {@link upsertObject} calls
+   * that were preceded by a {@link beginBulkAddition} call. It triggers the
+   * generation of embeddings for all pending objects.
+   *
+   * @returns Promise that resolves when embeddings are generated
+   * @throws NotConnectedError if not connected
+   */
+  async finishBulkAddition(): Promise<void> {
+    this.ensureConnected();
+    return await this._mcpClient.finishBulkAddition();
   }
 
   // ===== DATA MANAGEMENT METHODS =====

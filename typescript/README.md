@@ -14,6 +14,8 @@ A comprehensive TypeScript client library for Grizabella, providing type-safe ac
 - **Schema Management**: Create and manage object types, relation types, and embeddings
 - **Graph Operations**: Perform complex graph traversals and queries
 - **Semantic Search**: Vector similarity search with embedding support
+- **GPU Acceleration**: Optional GPU support for embedding models
+- **Bulk Processing**: High-throughput data ingestion mode
 - **MCP Integration**: Seamless communication with Grizabella MCP servers
 - **Error Handling**: Robust error handling with retry logic and detailed error types
 - **Resource Management**: Context manager pattern with automatic cleanup
@@ -54,6 +56,7 @@ import { GrizabellaClient } from 'grizabella-typescript-api';
 await using client = await GrizabellaClient.connect({
   dbNameOrPath: 'my-knowledge-base',
   createIfNotExists: true,
+  useGpu: true, // Enable GPU acceleration
   debug: true,
 });
 
@@ -341,6 +344,22 @@ const query: ComplexQuery = {
 
 const result = await client.executeComplexQuery(query);
 console.log(`Found ${result.object_instances.length} matching people`);
+```
+
+### Bulk Data Ingestion
+
+```typescript
+// Enable bulk mode for faster ingestion
+await client.beginBulkAddition();
+
+try {
+  for (const obj of largeDataset) {
+    await client.upsertObject({ obj });
+  }
+} finally {
+  // Always finish bulk addition to generate embeddings
+  await client.finishBulkAddition();
+}
 ```
 
 ### Batch Operations

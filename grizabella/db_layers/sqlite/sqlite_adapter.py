@@ -926,7 +926,6 @@ class SQLiteAdapter(BaseDBAdapter):  # pylint: disable=R0904
         final_query_values = query_values + limit_offset_values
         instances = []
         try:
-            print(f"Executing SQL: {sql} with values: {final_query_values}")
             cursor = self.conn.execute(sql, tuple(final_query_values))
             rows = cursor.fetchall()
             logger.debug(f"Raw rows from DB: {rows}")

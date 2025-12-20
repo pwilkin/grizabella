@@ -247,7 +247,7 @@ def test_get_embedding_model(temp_lancedb_uri):
             # First call - should load and cache
             model1 = adapter.get_embedding_model("huggingface/test-model")
             MockRegistry.get.assert_called_once_with("huggingface")
-            mock_provider.create.assert_called_once_with(name="huggingface/test-model", trust_remote_code=True)
+            mock_provider.create.assert_called_once_with(name="huggingface/test-model", device='cpu', trust_remote_code=True)
             assert model1 is mock_model_func
             # Model is loaded directly without caching
 

@@ -1,6 +1,7 @@
 {
   "name": "grizabella-typescript-api",
-  "version": "0.1.5",
+  "version": "0.2.0",
+  "type": "module",
   "description": "TypeScript API client for Grizabella multi-database knowledge graph operations through MCP communication",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -139,7 +140,6 @@
     "registry": "https://registry.npmjs.org/"
   },
   "sideEffects": false,
-  "type": "module",
   "bin": {
     "grizabella-typescript": "./dist/cli.js"
   },

@@ -82,10 +82,11 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
     else:
         db: Optional[Any] # Runtime can be Any if lancedb is not available
 
-    def __init__(self, db_uri: str, config: Optional[dict[str, Any]] = None) -> None:
+    def __init__(self, db_uri: str, config: Optional[dict[str, Any]] = None, use_gpu: bool = False) -> None:
         """Initializes the LanceDB adapter."""
         self.db = None # Initialize db attribute
         self._model_lock = threading.Lock()  # Lock for model loading
+        self._use_gpu = use_gpu
         super().__init__(db_path=db_uri, config=config)
 
     def _connect(self) -> None:
@@ -308,13 +309,15 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
                 # Already in org/model format
                 pass
 
-            # Get the provider
-            provider = LANCEDB_EMBEDDING_REGISTRY.get(provider_name)
-            if not provider:
-                raise EmbeddingError(f"Embedding provider '{provider_name}' not found in registry")
-                
             # Load model directly without caching
-            return provider.create(name=actual_model_name, trust_remote_code=True)
+            # Pass device if supported by the provider
+            device = "cuda" if self._use_gpu else "cpu"
+            provider = LANCEDB_EMBEDDING_REGISTRY.get(provider_name)
+            try:
+                return provider.create(name=actual_model_name, device=device, trust_remote_code=True)
+            except TypeError:
+                # Some older/different providers might not accept 'device'
+                return provider.create(name=actual_model_name, trust_remote_code=True)
         except Exception as e: # pylint: disable=W0718
             msg = f"Failed to load embedding model '{model_identifier}' via LanceDB registry: {e}"
             raise EmbeddingError(msg) from e
@@ -403,6 +406,49 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
             return instance
         except Exception as e: # pylint: disable=W0718
             msg = f"LanceDB: Error upserting EI to table '{table_name}': {e}"
+            raise DatabaseError(msg) from e
+
+    def upsert_embedding_instances_bulk(
+        self,
+        instances: list[EmbeddingInstance],
+        embedding_definition: EmbeddingDefinition,
+    ) -> None:
+        """Adds or updates multiple embedding records in the LanceDB table in a single operation."""
+        if not instances:
+            return
+
+        if self.db is None:
+            msg = "LanceDB not connected. Cannot bulk upsert EIs."
+            raise DatabaseError(msg)
+        
+        table_name = self._sanitize_table_name(embedding_definition.name)
+        try:
+            tbl = self.db.open_table(table_name)
+        except Exception as e:
+            msg = f"LanceDB: Table '{table_name}' for ED '{embedding_definition.name}' not found. Error: {e}"
+            raise DatabaseError(msg) from e
+
+        data_to_add = []
+        for instance in instances:
+            if (embedding_definition.dimensions and
+                    len(instance.vector) != embedding_definition.dimensions):
+                msg = (
+                    f"Vector dim mismatch for instance '{instance.object_instance_id}' and ED '{embedding_definition.name}'. "
+                    f"Expected {embedding_definition.dimensions}, got {len(instance.vector)}."
+                )
+                raise EmbeddingError(msg)
+            
+            data_to_add.append({
+                "object_instance_id": str(instance.object_instance_id),
+                "vector": instance.vector,
+                "source_text_preview": instance.source_text_preview,
+            })
+
+        try:
+            tbl.add(data_to_add)
+            logger.info(f"LanceDB: Bulk added {len(data_to_add)} EIs to table '{table_name}'.")
+        except Exception as e:
+            msg = f"LanceDB: Error bulk upserting EIs to table '{table_name}': {e}"
             raise DatabaseError(msg) from e
 
     def get_embedding_instance(

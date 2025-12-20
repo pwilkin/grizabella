@@ -14,6 +14,8 @@ Grizabella is a sophisticated memory layer designed for Large Language Model (LL
 * **Tri-layer Storage:** Integrates SQLite (relational), LanceDB (vector), and LadybugDB (graph) for comprehensive data management.
 * **Unified Python API:** Offers a simple and consistent Python interface to interact with all three database layers.
 * **Complex Query Engine:** Allows for sophisticated queries that can span across the different data storage paradigms.
+* **GPU Acceleration:** Optional GPU support for faster embedding generation using Sentence Transformers.
+* **Bulk Processing:** Efficient bulk addition mode for high-throughput data ingestion.
 * **PySide6 UI:** Includes an optional desktop application for visualizing and managing data.
 * **MCP Server:** Can operate as a Model Context Protocol (MCP) server, allowing other tools to leverage its memory capabilities.
 
@@ -59,6 +61,13 @@ doc1 = gz.add_object(
 )
 
 print(f"Added document with ID: {doc1.id}")
+
+# Bulk addition with GPU support
+with Grizabella(use_gpu=True) as gz:
+    gz.begin_bulk_addition()
+    for i in range(100):
+        gz.upsert_object(obj_instance) # Define obj_instance beforehand
+    gz.finish_bulk_addition()
 
 # Further operations (querying, adding relations, etc.) would go here.
 ```

@@ -41,6 +41,7 @@ class Grizabella:
         self,
         db_name_or_path: Union[str, Path] = "default",
         create_if_not_exists: bool = True,
+        use_gpu: bool = False,
     ) -> None:
         """Initializes the Grizabella API client.
 
@@ -54,6 +55,8 @@ class Grizabella:
                 Defaults to "default".
             create_if_not_exists (bool): If True, the database will be
                 created if it does not already exist. Defaults to True.
+            use_gpu (bool): If True, embedding models will attempt to use
+                GPU acceleration. Defaults to False.
 
         """
         self._logger = logging.getLogger(__name__) # Initialize logger
@@ -79,6 +82,7 @@ class Grizabella:
             self._db_manager = self._db_manager_factory.get_manager(
                 db_name_or_path=db_name_or_path,
                 create_if_not_exists=create_if_not_exists,
+                use_gpu=use_gpu,
             )
         
         self._is_connected = False
@@ -89,6 +93,16 @@ class Grizabella:
     def db_name_or_path(self) -> Union[str, Path]:
         """Returns the database name or path this client was initialized with."""
         return self._initial_db_name_or_path
+
+    def begin_bulk_addition(self) -> None:
+        """Starts a bulk addition operation.
+        In bulk mode, embeddings are not generated until finish_bulk_addition is called.
+        """
+        self._db_manager.begin_bulk_addition()
+
+    def finish_bulk_addition(self) -> None:
+        """Finishes a bulk addition operation and generates all pending embeddings."""
+        self._db_manager.finish_bulk_addition()
 
     def connect(self) -> None:
         """Connects to the underlying Grizabella database.
@@ -120,10 +134,11 @@ class Grizabella:
         self._logger.info(f"Grizabella client close() called for db: {self.db_name_or_path}. Connected: {self._is_connected}")
         if self._is_connected:
             try:
-                self._db_manager.close() # This should call _ConnectionHelper.close_all_adapters()
-                self._logger.info(f"Grizabella client: self._db_manager.close() completed for {self.db_name_or_path}.")
+                from grizabella.core.db_manager_factory import release_manager
+                released = release_manager(self._initial_db_name_or_path)
+                self._logger.info(f"Grizabella client: release_manager() returned {released} for {self.db_name_or_path}.")
             except Exception as e:
-                self._logger.error(f"Grizabella client: Error during self._db_manager.close() for {self.db_name_or_path}: {e}", exc_info=True)
+                self._logger.error(f"Grizabella client: Error during release_manager() for {self.db_name_or_path}: {e}", exc_info=True)
             finally:
                 self._is_connected = False
                 self._logger.info(f"Grizabella client: _is_connected set to False for {self.db_name_or_path}.")
