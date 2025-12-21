@@ -153,9 +153,9 @@ export class MCPClient {
     this.maxReconnectAttempts = this.config.maxReconnectAttempts;
     this.reconnectDelay = this.config.reconnectDelay;
 
-    process.stdout.write('MCPClient final config debug=' + this.config.debug + '\n');
+    process.stderr.write('MCPClient final config debug=' + this.config.debug + '\n');
     if (this.config.debug) {
-      process.stdout.write('MCPClient created with debug enabled, config:' + JSON.stringify(this.config, null, 2) + '\n');
+      process.stderr.write('MCPClient created with debug enabled, config:' + JSON.stringify(this.config, null, 2) + '\n');
     }
   }
 
@@ -923,7 +923,7 @@ export class MCPClient {
    */
    async executeComplexQuery(params: ExecuteComplexQueryParams): Promise<QueryResult> {
       if (this.config.debug) {
-        process.stdout.write('MCPClient.executeComplexQuery called with:' + JSON.stringify(params, null, 2) + '\n');
+        process.stderr.write('MCPClient.executeComplexQuery called with:' + JSON.stringify(params, null, 2) + '\n');
       }
 
       const rawResult = await this.callTool<unknown>('execute_complex_query', {

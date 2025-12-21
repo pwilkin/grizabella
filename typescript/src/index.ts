@@ -176,11 +176,11 @@ export { GrizabellaClient, GrizabellaClientConfig, ClientConnectionState } from 
 // Main initialization function (to be implemented)
 export function initialize(): void {
   // TODO: Initialize the Grizabella client
-  console.log('Grizabella TypeScript API initialized');
+  console.error('Grizabella TypeScript API initialized');
 }
 
 // Main cleanup function (to be implemented)
 export function cleanup(): void {
   // TODO: Clean up resources
-  console.log('Grizabella TypeScript API cleanup');
+  console.error('Grizabella TypeScript API cleanup');
 }

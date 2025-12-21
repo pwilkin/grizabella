@@ -817,7 +817,7 @@ export interface ErrorLogger {
  */
 export class ConsoleErrorLogger implements ErrorLogger {
   log(error: GrizabellaError): void {
-    console.log(error.getDetailedMessage(), error.toJSON());
+    console.error(error.getDetailedMessage(), error.toJSON());
   }
 
   warn(error: GrizabellaError): void {

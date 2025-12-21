@@ -393,7 +393,7 @@ async def mcp_create_embedding_definition(embedding_def: EmbeddingDefinition) ->
 async def mcp_begin_bulk_addition():
     try:
         get_grizabella_client().begin_bulk_addition()
-        return "Bulk addition mode started."
+        return  # Return None for successful bulk addition start
     except Exception as e:
         logger.error(f"MCP: Error starting bulk addition: {e}")
         raise
@@ -406,7 +406,7 @@ async def mcp_begin_bulk_addition():
 async def mcp_finish_bulk_addition():
     try:
         get_grizabella_client().finish_bulk_addition()
-        return "Bulk addition mode finished and embeddings generated."
+        return  # Return None for successful bulk addition completion
     except Exception as e:
         logger.error(f"MCP: Error finishing bulk addition: {e}")
         raise
@@ -966,7 +966,12 @@ def shutdown_handler(signum, frame):
         print(f"Received signal {signum}, shutting down...", file=sys.stderr)
     except Exception:
         # sys.stderr might not be available during shutdown
-        print(f"Received signal {signum}, shutting down...")
+        # Using stderr even for the fallback to avoid stdout contamination
+        try:
+            print(f"Received signal {signum}, shutting down...", file=sys.stderr)
+        except Exception:
+            # If even stderr fails, just use logger
+            pass
     
     logger.info(f"Received signal {signum}, shutting down...")
     

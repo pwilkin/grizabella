@@ -142,7 +142,7 @@ export class GrizabellaClient {
    * ```
    */
   constructor(config: GrizabellaClientConfig) {
-    process.stdout.write('=== GrizabellaClient constructor called with config: ' + JSON.stringify(config, null, 2) + '\n');
+    process.stderr.write('=== GrizabellaClient constructor called with config: ' + JSON.stringify(config, null, 2) + '\n');
 
     // Store and resolve database configuration
     this._dbNameOrPath = GrizabellaClient.resolveDatabasePath(config.dbNameOrPath ?? 'default');
