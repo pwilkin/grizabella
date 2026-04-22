@@ -91,6 +91,39 @@ class SQLiteAdapter(BaseDBAdapter):  # pylint: disable=R0904
                     )
                 """,
                 )
+                # Table for storing relation instances
+                self.conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS _grizabella_relation_instances (
+                        id TEXT PRIMARY KEY,
+                        relation_type_name TEXT NOT NULL,
+                        source_object_instance_id TEXT NOT NULL,
+                        target_object_instance_id TEXT NOT NULL,
+                        weight REAL NOT NULL DEFAULT 1.0,
+                        upsert_date TEXT NOT NULL,
+                        properties TEXT -- JSON string of properties
+                    )
+                """,
+                )
+                # Create indexes for efficient querying
+                self.conn.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_relation_instances_type 
+                    ON _grizabella_relation_instances(relation_type_name)
+                """,
+                )
+                self.conn.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_relation_instances_source 
+                    ON _grizabella_relation_instances(source_object_instance_id)
+                """,
+                )
+                self.conn.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_relation_instances_target 
+                    ON _grizabella_relation_instances(target_object_instance_id)
+                """,
+                )
         except sqlite3.Error as e:
             msg = f"SQLite error initializing metadata tables: {e}"
             raise DatabaseError(
@@ -723,11 +756,35 @@ class SQLiteAdapter(BaseDBAdapter):  # pylint: disable=R0904
         return self.load_relation_type_definition(name)
 
     def add_relation_instance(self, instance: RelationInstance) -> RelationInstance:
-        """Placeholder for adding relation instance metadata to SQLite.
-        Currently, Grizabella primarily uses Kuzu for relation storage and querying.
-        This method can be expanded if SQLite needs to store relation metadata.
-        """
-        return instance
+        """Adds a relation instance to SQLite."""
+        if not self.conn:
+            msg = "SQLite connection not established."
+            raise DatabaseError(msg)
+        
+        try:
+            properties_json = json.dumps(instance.properties) if instance.properties else None
+            with self.conn:
+                self.conn.execute(
+                    """
+                    INSERT OR REPLACE INTO _grizabella_relation_instances 
+                    (id, relation_type_name, source_object_instance_id, target_object_instance_id, 
+                     weight, upsert_date, properties)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        str(instance.id),
+                        instance.relation_type_name,
+                        str(instance.source_object_instance_id),
+                        str(instance.target_object_instance_id),
+                        float(instance.weight),
+                        instance.upsert_date.isoformat(),
+                        properties_json,
+                    ),
+                )
+            return instance
+        except sqlite3.Error as e:
+            msg = f"Error adding relation instance '{instance.id}': {e}"
+            raise DatabaseError(msg) from e
 
     def upsert_relation_instance(
         self, instance: RelationInstance, rtd: Optional[RelationTypeDefinition] = None,
@@ -750,9 +807,53 @@ class SQLiteAdapter(BaseDBAdapter):  # pylint: disable=R0904
         target_object_id: Optional[UUID] = None,
         query: Optional[dict[str, Any]] = None,
         limit: Optional[int] = None,
-    ) -> list[RelationInstance]:  # Changed type hint
-        """Placeholder for finding relation instance metadata from SQLite."""
-        return []
+    ) -> list[RelationInstance]:
+        """Finds relation instances from SQLite based on various criteria."""
+        if not self.conn:
+            msg = "SQLite connection not established."
+            raise DatabaseError(msg)
+        
+        try:
+            sql = "SELECT * FROM _grizabella_relation_instances WHERE 1=1"
+            params: list[Any] = []
+            
+            if relation_type_name:
+                sql += " AND relation_type_name = ?"
+                params.append(relation_type_name)
+            
+            if source_object_id:
+                sql += " AND source_object_instance_id = ?"
+                params.append(str(source_object_id))
+            
+            if target_object_id:
+                sql += " AND target_object_instance_id = ?"
+                params.append(str(target_object_id))
+            
+            if limit:
+                sql += f" LIMIT {int(limit)}"
+            
+            cursor = self.conn.execute(sql, params)
+            rows = cursor.fetchall()
+            
+            results: list[RelationInstance] = []
+            for row in rows:
+                properties = json.loads(row["properties"]) if row["properties"] else {}
+                # Import Decimal for weight
+                from decimal import Decimal as PyDecimal
+                results.append(RelationInstance(
+                    id=UUID(row["id"]),
+                    relation_type_name=row["relation_type_name"],
+                    source_object_instance_id=UUID(row["source_object_instance_id"]),
+                    target_object_instance_id=UUID(row["target_object_instance_id"]),
+                    weight=PyDecimal(str(row["weight"])),
+                    upsert_date=datetime.fromisoformat(row["upsert_date"]),
+                    properties=properties,
+                ))
+            
+            return results
+        except sqlite3.Error as e:
+            msg = f"Error finding relation instances: {e}"
+            raise DatabaseError(msg) from e
 
     def delete_relation_instance(
         self, relation_type_name: str, relation_id: UUID,

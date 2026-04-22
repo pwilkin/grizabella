@@ -306,6 +306,40 @@ class Grizabella:
             self._db_manager.connect()  # Ensure connection
         return self._db_manager.list_relation_type_definitions()
 
+    def find_relation_instances(
+        self,
+        relation_type_name: Optional[str] = None,
+        source_object_id: Optional[uuid.UUID] = None,
+        target_object_id: Optional[uuid.UUID] = None,
+        query: Optional[dict[str, Any]] = None,
+        limit: Optional[int] = None,
+    ) -> list[RelationInstance]:
+        """Finds relation instances based on optional filter criteria.
+
+        Args:
+            relation_type_name (Optional[str]): Filter by relation type name.
+            source_object_id (Optional[uuid.UUID]): Filter by source object ID.
+            target_object_id (Optional[uuid.UUID]): Filter by target object ID.
+            query (Optional[dict[str, Any]]): Additional query parameters.
+            limit (Optional[int]): Maximum number of results to return.
+
+        Returns:
+            list[RelationInstance]: A list of relation instances matching the criteria.
+
+        Raises:
+            NotConnectedError: If the client is not connected to the database.
+
+        """
+        if not self._is_connected:
+            self._db_manager.connect()  # Ensure connection
+        return self._db_manager.find_relation_instances(
+            relation_type_name=relation_type_name,
+            source_object_id=source_object_id,
+            target_object_id=target_object_id,
+            query=query,
+            limit=limit,
+        )
+
     # --- Data Management (Objects) ---
     def upsert_object(self, obj: ObjectInstance) -> ObjectInstance:
         """Creates a new object or updates an existing one.

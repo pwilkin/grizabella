@@ -574,6 +574,31 @@ export class MCPClient {
   }
 
   /**
+   * Finds relation instances based on optional filters.
+   */
+  async findRelations(params: {
+    relation_type_name?: string;
+    source_object_id?: string;
+    target_object_id?: string;
+    limit?: number;
+  }): Promise<RelationInstance[]> {
+    const args: Record<string, unknown> = {};
+    if (params.relation_type_name !== undefined) {
+      args['relation_type_name'] = params.relation_type_name;
+    }
+    if (params.source_object_id !== undefined) {
+      args['source_object_id'] = params.source_object_id;
+    }
+    if (params.target_object_id !== undefined) {
+      args['target_object_id'] = params.target_object_id;
+    }
+    if (params.limit !== undefined) {
+      args['limit'] = params.limit;
+    }
+    return await this.callTool<RelationInstance[]>('find_relations', args);
+  }
+
+  /**
    * Deletes an object type definition.
    */
   async deleteObjectType(params: DeleteObjectTypeParams): Promise<void> {
@@ -786,22 +811,28 @@ export class MCPClient {
    * Retrieves outgoing relations from an object.
    */
   async getOutgoingRelations(params: GetOutgoingRelationsParams): Promise<RelationInstance[]> {
-    return await this.callTool<RelationInstance[]>('get_outgoing_relations', {
+    const args: Record<string, unknown> = {
       object_id: params.object_id,
       type_name: params.type_name,
-      relation_type_name: params.relation_type_name,
-    });
+    };
+    if (params.relation_type_name !== undefined) {
+      args['relation_type_name'] = params.relation_type_name;
+    }
+    return await this.callTool<RelationInstance[]>('get_outgoing_relations', args);
   }
 
   /**
    * Retrieves incoming relations to an object.
    */
   async getIncomingRelations(params: GetIncomingRelationsParams): Promise<RelationInstance[]> {
-    return await this.callTool<RelationInstance[]>('get_incoming_relations', {
+    const args: Record<string, unknown> = {
       object_id: params.object_id,
       type_name: params.type_name,
-      relation_type_name: params.relation_type_name,
-    });
+    };
+    if (params.relation_type_name !== undefined) {
+      args['relation_type_name'] = params.relation_type_name;
+    }
+    return await this.callTool<RelationInstance[]>('get_incoming_relations', args);
   }
 
   // ===== EMBEDDING OPERATIONS METHODS =====

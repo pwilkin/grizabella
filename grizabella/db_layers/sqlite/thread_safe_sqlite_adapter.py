@@ -183,6 +183,39 @@ class ThreadSafeSQLiteAdapter(SQLiteAdapter):
                     )
                 """,
                 )
+                # Table for storing relation instances
+                temp_conn.execute(
+                    """
+                    CREATE TABLE IF NOT EXISTS _grizabella_relation_instances (
+                        id TEXT PRIMARY KEY,
+                        relation_type_name TEXT NOT NULL,
+                        source_object_instance_id TEXT NOT NULL,
+                        target_object_instance_id TEXT NOT NULL,
+                        weight REAL NOT NULL DEFAULT 1.0,
+                        upsert_date TEXT NOT NULL,
+                        properties TEXT -- JSON string of properties
+                    )
+                """,
+                )
+                # Create indexes for efficient querying
+                temp_conn.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_relation_instances_type 
+                    ON _grizabella_relation_instances(relation_type_name)
+                """,
+                )
+                temp_conn.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_relation_instances_source 
+                    ON _grizabella_relation_instances(source_object_instance_id)
+                """,
+                )
+                temp_conn.execute(
+                    """
+                    CREATE INDEX IF NOT EXISTS idx_relation_instances_target 
+                    ON _grizabella_relation_instances(target_object_instance_id)
+                """,
+                )
         except sqlite3.Error as e:
             msg = f"SQLite error initializing metadata tables: {e}"
             raise DatabaseError(msg) from e

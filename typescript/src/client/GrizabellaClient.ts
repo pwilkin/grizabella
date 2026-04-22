@@ -616,6 +616,39 @@ export class GrizabellaClient {
   }
 
   /**
+   * Finds relation instances based on optional filters.
+   *
+   * This method queries relation instances from the knowledge base,
+   * optionally filtering by relation type, source object, or target object.
+   *
+   * @param params - Optional filter parameters
+   * @param params.relation_type_name - Filter by relation type name
+   * @param params.source_object_id - Filter by source object ID
+   * @param params.target_object_id - Filter by target object ID
+   * @param params.limit - Maximum number of results to return
+   * @returns Promise that resolves to an array of relation instances
+   * @throws NotConnectedError if not connected
+   *
+   * @example
+   * ```typescript
+   * // Find all relations of a specific type
+   * const relations = await client.findRelations({ relation_type_name: 'CONTAINS' });
+   * 
+   * // Find all relations from a specific source
+   * const outgoing = await client.findRelations({ source_object_id: 'uuid-here' });
+   * ```
+   */
+  async findRelations(params: {
+    relation_type_name?: string;
+    source_object_id?: string;
+    target_object_id?: string;
+    limit?: number;
+  } = {}): Promise<RelationInstance[]> {
+    this.ensureConnected();
+    return await this._mcpClient.findRelations(params);
+  }
+
+  /**
    * Deletes a relation type definition.
    *
    * This method removes a relation type definition from the knowledge base.

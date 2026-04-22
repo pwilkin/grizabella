@@ -1365,7 +1365,11 @@ class _InstanceManager:
         query: Optional[dict[str, Any]] = None,
         limit: Optional[int] = None,
     ) -> list[RelationInstance]:
-        """Finds relation instances from Kuzu based on various criteria."""
+        """Finds relation instances from SQLite based on various criteria.
+        
+        Note: Changed from Kuzu to SQLite because Kuzu tables may not always
+        be created/synced, but SQLite always has the relation data.
+        """
         if relation_type_name:
             rtd = self._schema_manager.get_relation_type_definition(relation_type_name)
             if not rtd:
@@ -1375,7 +1379,9 @@ class _InstanceManager:
                 return []
         
         try:
-            return self._conn_helper.kuzu_adapter.find_relation_instances(
+            # Use SQLite adapter instead of Kuzu for more reliable relation queries
+            # SQLite always has the relation data, while Kuzu tables may not be synced
+            return self._conn_helper.sqlite_adapter.find_relation_instances(
                 relation_type_name=relation_type_name,
                 source_object_id=source_object_id,
                 target_object_id=target_object_id,

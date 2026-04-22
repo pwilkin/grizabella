@@ -325,6 +325,54 @@ async def mcp_delete_relation_type(type_name: str) -> None:
 
 
 @app.tool(
+    name="list_relation_types",
+    description="Lists all defined relation types in the knowledge base.",
+)
+@log_tool_call
+async def mcp_list_relation_types() -> list[RelationTypeDefinition]:
+    """Lists all relation types defined in the knowledge base."""
+    try:
+        gb = get_grizabella_client()
+        return gb.list_relation_types()
+    except GrizabellaException as e:
+        msg = f"MCP: Error listing relation types: {e}"
+        raise GrizabellaException(msg) from e
+    except Exception as e: # pylint: disable=broad-except
+        msg = f"MCP: Unexpected error listing relation types: {e}"
+        raise Exception(msg) from e
+
+
+@app.tool(
+    name="find_relations",
+    description="Finds relation instances based on optional filters. Can filter by relation type, source object ID, and/or target object ID.",
+)
+@log_tool_call
+async def mcp_find_relations(
+    relation_type_name: Optional[str] = None,
+    source_object_id: Optional[str] = None,
+    target_object_id: Optional[str] = None,
+    limit: Optional[int] = None,
+) -> list[RelationInstance]:
+    """Finds relation instances based on optional filters."""
+    try:
+        gb = get_grizabella_client()
+        source_uuid = UUID(source_object_id) if source_object_id else None
+        target_uuid = UUID(target_object_id) if target_object_id else None
+        return gb.find_relation_instances(
+            relation_type_name=relation_type_name,
+            source_object_id=source_uuid,
+            target_object_id=target_uuid,
+            limit=limit,
+        )
+    except GrizabellaException as e:
+        msg = f"MCP: Error finding relations: {e}"
+        raise GrizabellaException(msg) from e
+    except Exception as e: # pylint: disable=broad-except
+        msg = f"MCP: Unexpected error finding relations: {e}"
+        raise Exception(msg) from e
+
+
+@app.tool(
     name="create_embedding_definition",
     description="Defines how an embedding should be generated for an object type.",
 )
