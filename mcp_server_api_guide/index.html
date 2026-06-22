@@ -1,0 +1,1564 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://pwilkin.github.io/grizabella/mcp_server_api_guide/">
+      
+      
+        <link rel="prev" href="../python_api_detailed/">
+      
+      
+        <link rel="next" href="../pyside6_ui_guide/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.22">
+    
+    
+      
+        <title>MCP Server API Guide - Grizabella</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.84d31ad4.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#grizabella-mcp-server-api-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Grizabella" class="md-header__button md-logo" aria-label="Grizabella" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Grizabella
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              MCP Server API Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/pwilkin/grizabella" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pwilkin/grizabella
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Grizabella" class="md-nav__button md-logo" aria-label="Grizabella" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Grizabella
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/pwilkin/grizabella" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    pwilkin/grizabella
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Getting Started
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../core_concepts/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core Concepts
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python_api_detailed/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Python API Detailed Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    MCP Server API Guide
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Server API Guide
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transport
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#launching-the-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      Launching the Server
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connecting-from-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      Connecting from Python
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Handling
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create_object_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      create_object_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list_object_types" class="md-nav__link">
+    <span class="md-ellipsis">
+      list_object_types
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_object_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_object_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_object_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_object_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create_relation_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      create_relation_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list_relation_types" class="md-nav__link">
+    <span class="md-ellipsis">
+      list_relation_types
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_relation_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_relation_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_relation_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_relation_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create_embedding_definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      create_embedding_definition
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#object-instance-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Object Instance Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Object Instance Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#upsert_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      upsert_object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_object_by_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_object_by_id
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      find_objects
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#begin_bulk_addition-finish_bulk_addition" class="md-nav__link">
+    <span class="md-ellipsis">
+      begin_bulk_addition / finish_bulk_addition
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#relation-instance-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relation Instance Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Relation Instance Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#add_relation" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_relation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_relation" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_relation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_relation" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_relation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_outgoing_relations" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_outgoing_relations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_incoming_relations" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_incoming_relations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find_relations" class="md-nav__link">
+    <span class="md-ellipsis">
+      find_relations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#semantic-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      Semantic Search
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Semantic Search">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#find_similar_by_embedding" class="md-nav__link">
+    <span class="md-ellipsis">
+      find_similar_by_embedding
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search_similar_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      search_similar_objects
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_embedding_vector_for_text" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_embedding_vector_for_text
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute_complex_query" class="md-nav__link">
+    <span class="md-ellipsis">
+      execute_complex_query
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes-on-return-shapes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes on Return Shapes
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyside6_ui_guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    PySide6 UI Guide
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    API Reference
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            API Reference
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/core_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Core Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/query_models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Query Models
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/client/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    API Client
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/mcp_server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    MCP Server
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting_faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting & FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#transport" class="md-nav__link">
+    <span class="md-ellipsis">
+      Transport
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#launching-the-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      Launching the Server
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connecting-from-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      Connecting from Python
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      Error Handling
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Schema Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Schema Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#create_object_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      create_object_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list_object_types" class="md-nav__link">
+    <span class="md-ellipsis">
+      list_object_types
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_object_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_object_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_object_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_object_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create_relation_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      create_relation_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#list_relation_types" class="md-nav__link">
+    <span class="md-ellipsis">
+      list_relation_types
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_relation_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_relation_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_relation_type" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_relation_type
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#create_embedding_definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      create_embedding_definition
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#object-instance-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Object Instance Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Object Instance Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#upsert_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      upsert_object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_object_by_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_object_by_id
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_object" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_object
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      find_objects
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#begin_bulk_addition-finish_bulk_addition" class="md-nav__link">
+    <span class="md-ellipsis">
+      begin_bulk_addition / finish_bulk_addition
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#relation-instance-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relation Instance Management
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Relation Instance Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#add_relation" class="md-nav__link">
+    <span class="md-ellipsis">
+      add_relation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_relation" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_relation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#delete_relation" class="md-nav__link">
+    <span class="md-ellipsis">
+      delete_relation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_outgoing_relations" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_outgoing_relations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_incoming_relations" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_incoming_relations
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#find_relations" class="md-nav__link">
+    <span class="md-ellipsis">
+      find_relations
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#semantic-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      Semantic Search
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Semantic Search">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#find_similar_by_embedding" class="md-nav__link">
+    <span class="md-ellipsis">
+      find_similar_by_embedding
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#search_similar_objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      search_similar_objects
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#get_embedding_vector_for_text" class="md-nav__link">
+    <span class="md-ellipsis">
+      get_embedding_vector_for_text
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#execute_complex_query" class="md-nav__link">
+    <span class="md-ellipsis">
+      execute_complex_query
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes-on-return-shapes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes on Return Shapes
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="grizabella-mcp-server-api-guide">Grizabella MCP Server API Guide</h1>
+<p>This guide documents the Grizabella Model Context Protocol (MCP) server — how
+to launch it, how to connect, and the full list of tools it exposes.</p>
+<h2 id="transport">Transport</h2>
+<p>The Grizabella MCP server speaks <strong>stdio</strong> (the standard MCP subprocess
+transport). It is <strong>not</strong> an HTTP server — there is no listening port, no
+<code>curl</code> endpoint, and no REST/JSON-RPC URL. MCP clients spawn the server as a
+child process and exchange framed JSON messages over its stdin/stdout.</p>
+<h2 id="launching-the-server">Launching the Server</h2>
+<pre><code class="language-bash">poetry run grizabella-mcp --db-path /path/to/db
+# optional:
+poetry run grizabella-mcp --db-path /path/to/db --use-gpu
+</code></pre>
+<p>CLI flags:</p>
+<ul>
+<li><code>--db-path PATH</code> — path to the Grizabella database directory. Overrides the
+  <code>GRIZABELLA_DB_PATH</code> environment variable.</li>
+<li><code>--use-gpu</code> — route the embedding model and the optional cross-encoder
+  reranker through CUDA.</li>
+</ul>
+<p>Resolution order for the database path: <code>--db-path</code> CLI arg →
+<code>GRIZABELLA_DB_PATH</code> env var → default <code>grizabella_mcp_db</code> (resolved as a
+Grizabella-managed instance under <code>~/.grizabella/db_instances/</code>). If the
+target does not exist the server creates it.</p>
+<p>The server writes a fresh log file named <code>mcp-server-YYYYMMDD_HHMMSS.log</code>
+into the working directory at startup. <code>stdout</code> is reserved for the MCP
+transport, so logging is file-only by design.</p>
+<h2 id="connecting-from-python">Connecting from Python</h2>
+<pre><code class="language-python">import asyncio
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
+
+async def main():
+    params = StdioServerParameters(
+        command=&quot;poetry&quot;,
+        args=[&quot;run&quot;, &quot;grizabella-mcp&quot;, &quot;--db-path&quot;, &quot;/tmp/my_db&quot;],
+    )
+    async with stdio_client(params) as (reader, writer):
+        async with ClientSession(reader, writer) as session:
+            await session.initialize()
+            tools = await session.list_tools()
+            print([t.name for t in tools.tools])
+
+asyncio.run(main())
+</code></pre>
+<p>All tool calls go through <code>session.call_tool("&lt;tool_name&gt;", {...args...})</code>.
+Results are returned as MCP <code>TextContent</code> items whose payload is a
+JSON-encoded Pydantic model (or list/bool) — deserialize with
+<code>json.loads(...)</code> and (where applicable) round-trip through
+<code>Model.model_validate(...)</code>.</p>
+<h2 id="error-handling">Error Handling</h2>
+<p>Every tool catches <code>GrizabellaException</code> and re-raises it with an <code>"MCP: ..."</code>
+prefix so errors surface on the MCP client side with a descriptive message.
+Unknown failures are wrapped as <code>Exception</code> with the same prefix. Check the
+server log file for tracebacks.</p>
+<hr />
+<h2 id="schema-management">Schema Management</h2>
+<h3 id="create_object_type"><code>create_object_type</code></h3>
+<p><strong>Args:</strong> <code>object_type_def</code> — an <code>ObjectTypeDefinition</code> dict
+(<code>name</code>, <code>description?</code>, <code>properties[]</code>).
+<strong>Property fields:</strong> <code>name</code>, <code>data_type</code> (one of <code>TEXT</code>, <code>INTEGER</code>, <code>FLOAT</code>,
+<code>BOOLEAN</code>, <code>DATETIME</code>, <code>BLOB</code>, <code>JSON</code>, <code>UUID</code>), <code>is_primary_key?</code>,
+<code>is_nullable?</code>, <code>is_indexed?</code>, <code>is_unique?</code>, <code>description?</code>.
+<strong>Returns:</strong> <code>null</code>.</p>
+<pre><code class="language-json">{
+  &quot;object_type_def&quot;: {
+    &quot;name&quot;: &quot;Document&quot;,
+    &quot;description&quot;: &quot;A text document.&quot;,
+    &quot;properties&quot;: [
+      {&quot;name&quot;: &quot;title&quot;, &quot;data_type&quot;: &quot;TEXT&quot;, &quot;is_indexed&quot;: true},
+      {&quot;name&quot;: &quot;content&quot;, &quot;data_type&quot;: &quot;TEXT&quot;}
+    ]
+  }
+}
+</code></pre>
+<h3 id="list_object_types"><code>list_object_types</code></h3>
+<p><strong>Args:</strong> none. <strong>Returns:</strong> <code>ObjectTypeDefinition[]</code>.</p>
+<h3 id="get_object_type"><code>get_object_type</code></h3>
+<p><strong>Args:</strong> <code>type_name</code>. <strong>Returns:</strong> <code>ObjectTypeDefinition | null</code>.</p>
+<h3 id="delete_object_type"><code>delete_object_type</code></h3>
+<p><strong>Args:</strong> <code>type_name</code>. <strong>Returns:</strong> <code>null</code>.</p>
+<h3 id="create_relation_type"><code>create_relation_type</code></h3>
+<p><strong>Args:</strong> <code>relation_type_def</code> — a <code>RelationTypeDefinition</code>
+(<code>name</code>, <code>description?</code>, <code>source_object_type_names[]</code>,
+<code>target_object_type_names[]</code>, <code>properties?</code>).
+<strong>Returns:</strong> <code>null</code>.</p>
+<h3 id="list_relation_types"><code>list_relation_types</code></h3>
+<p><strong>Args:</strong> none. <strong>Returns:</strong> <code>RelationTypeDefinition[]</code>.</p>
+<h3 id="get_relation_type"><code>get_relation_type</code></h3>
+<p><strong>Args:</strong> <code>type_name</code>. <strong>Returns:</strong> <code>RelationTypeDefinition | null</code>.</p>
+<h3 id="delete_relation_type"><code>delete_relation_type</code></h3>
+<p><strong>Args:</strong> <code>type_name</code>. <strong>Returns:</strong> <code>null</code>.</p>
+<h3 id="create_embedding_definition"><code>create_embedding_definition</code></h3>
+<p><strong>Args:</strong> <code>embedding_def</code> — an <code>EmbeddingDefinition</code> with:</p>
+<ul>
+<li><code>name</code> (snake_case), <code>object_type_name</code>, <code>source_property_name</code></li>
+<li><code>embedding_model</code> (e.g. <code>"huggingface/mixedbread-ai/mxbai-embed-large-v1"</code>)</li>
+<li><code>dimensions?</code> (inferred if omitted)</li>
+<li><code>description?</code></li>
+<li><code>reranker_model?</code> — cross-encoder identifier (e.g.
+  <code>"cross-encoder/ms-marco-MiniLM-L-6-v2"</code>). When set, semantic searches
+  against this definition can post-process top-K vector hits with a
+  cross-encoder. See the reranker-aware tools below.</li>
+<li><code>rerank_candidate_multiplier?</code> (default <code>5</code>) — oversample factor: the
+  vector search pulls <code>limit * multiplier</code> hits before the cross-encoder
+  cuts them back down to <code>limit</code>.</li>
+</ul>
+<p><strong>Returns:</strong> <code>null</code>.</p>
+<hr />
+<h2 id="object-instance-management">Object Instance Management</h2>
+<h3 id="upsert_object"><code>upsert_object</code></h3>
+<p><strong>Args:</strong> <code>obj</code> — an <code>ObjectInstance</code> (<code>id?</code>, <code>weight?</code>, <code>upsert_date?</code>,
+<code>object_type_name</code>, <code>properties</code>).
+<strong>Returns:</strong> the stored <code>ObjectInstance</code> (populated <code>id</code>, <code>upsert_date</code>).</p>
+<h3 id="get_object_by_id"><code>get_object_by_id</code></h3>
+<p><strong>Args:</strong> <code>object_id</code> (UUID string), <code>type_name</code>.
+<strong>Returns:</strong> <code>ObjectInstance | null</code>.</p>
+<h3 id="delete_object"><code>delete_object</code></h3>
+<p><strong>Args:</strong> <code>object_id</code> (UUID string), <code>type_name</code>.
+<strong>Returns:</strong> <code>true</code> on delete, <code>false</code> when not found.</p>
+<h3 id="find_objects"><code>find_objects</code></h3>
+<p><strong>Args:</strong> <code>type_name</code>, <code>filter_criteria?</code> (dict of exact matches),
+<code>limit?</code>.
+<strong>Returns:</strong> <code>ObjectInstance[]</code>.</p>
+<h3 id="begin_bulk_addition-finish_bulk_addition"><code>begin_bulk_addition</code> / <code>finish_bulk_addition</code></h3>
+<p>Toggle a bulk ingestion mode in which embedding generation is deferred until
+<code>finish_bulk_addition</code> is called. Useful for high-throughput loads.
+<strong>Args:</strong> none. <strong>Returns:</strong> status string.</p>
+<hr />
+<h2 id="relation-instance-management">Relation Instance Management</h2>
+<h3 id="add_relation"><code>add_relation</code></h3>
+<p><strong>Args:</strong> <code>relation</code> — a <code>RelationInstance</code> (<code>id?</code>, <code>weight?</code>,
+<code>relation_type_name</code>, <code>source_object_instance_id</code>,
+<code>target_object_instance_id</code>, <code>properties?</code>).
+<strong>Returns:</strong> the stored <code>RelationInstance</code>.</p>
+<h3 id="get_relation"><code>get_relation</code></h3>
+<p>Looks up relations of a given type between a specific source and target.
+<strong>Args:</strong> <code>from_object_id</code>, <code>to_object_id</code>, <code>relation_type_name</code> (all
+strings). <strong>Returns:</strong> <code>RelationInstanceList</code> with a <code>relations</code> array —
+multiple parallel relations of the same type can exist between the same
+pair.</p>
+<h3 id="delete_relation"><code>delete_relation</code></h3>
+<p><strong>Args:</strong> <code>relation_type_name</code>, <code>relation_id</code> (UUID string of the specific
+relation).
+<strong>Returns:</strong> <code>true</code> if the row was actually removed, <code>false</code> otherwise.</p>
+<blockquote>
+<p>Note: earlier versions of this doc described <code>delete_relation</code> as taking
+<code>from_object_id</code>/<code>to_object_id</code>. That was incorrect — the tool deletes a
+single relation identified by its own UUID. Use <code>get_relation</code> to find the
+relation's id first if you only have the endpoints.</p>
+</blockquote>
+<h3 id="get_outgoing_relations"><code>get_outgoing_relations</code></h3>
+<p><strong>Args:</strong> <code>args</code> object with <code>object_id</code> (UUID string), <code>type_name</code>, and
+optional <code>relation_type_name</code> filter. <strong>Returns:</strong> <code>RelationInstance[]</code>.</p>
+<h3 id="get_incoming_relations"><code>get_incoming_relations</code></h3>
+<p>Same signature as <code>get_outgoing_relations</code>, but traverses in the reverse
+direction.</p>
+<h3 id="find_relations"><code>find_relations</code></h3>
+<p>More general relation lookup. Filters on any combination of
+<code>relation_type_name</code>, <code>source_object_id</code>, <code>target_object_id</code>, <code>query</code> (a
+properties dict), and <code>limit</code>. Returns <code>RelationInstanceList</code>.</p>
+<hr />
+<h2 id="semantic-search">Semantic Search</h2>
+<h3 id="find_similar_by_embedding"><code>find_similar_by_embedding</code></h3>
+<p>Text-first semantic search with optional cross-encoder reranking.</p>
+<p><strong>Args:</strong> a single <code>args</code> object containing:</p>
+<ul>
+<li><code>embedding_definition_name</code> (string, required)</li>
+<li><code>query_text</code> (string, required)</li>
+<li><code>limit</code> (int, default <code>5</code>)</li>
+<li><code>filter_condition</code> (string, optional) — a LanceDB WHERE clause applied
+  before the ANN step (e.g. <code>"object_instance_id != 'abc…'"</code>)</li>
+<li><code>rerank</code> (bool, optional):</li>
+<li><code>null</code> / omitted — auto-enable if a reranker is configured on the
+    <code>EmbeddingDefinition</code> or if <code>rerank_model</code> is supplied.</li>
+<li><code>true</code> / <code>false</code> — force-enable or force-disable.</li>
+<li><code>rerank_model</code> (string, optional) — cross-encoder model override.</li>
+<li><code>rerank_candidates</code> (int, optional) — how many vector hits to fetch
+  before reranking. Defaults to
+  <code>limit * EmbeddingDefinition.rerank_candidate_multiplier</code>.</li>
+</ul>
+<p><strong>Returns:</strong> <code>ObjectInstance[]</code> ordered by vector distance (ascending) or,
+when reranking ran, by rerank score (descending).</p>
+<pre><code class="language-json">{
+  &quot;args&quot;: {
+    &quot;embedding_definition_name&quot;: &quot;doc_content_embed&quot;,
+    &quot;query_text&quot;: &quot;state machine optimizations&quot;,
+    &quot;limit&quot;: 5,
+    &quot;rerank&quot;: true,
+    &quot;rerank_candidates&quot;: 50
+  }
+}
+</code></pre>
+<h3 id="search_similar_objects"><code>search_similar_objects</code></h3>
+<p><strong>Status:</strong> currently raises <code>NotImplementedError</code>. This tool is retained so
+that the MCP schema matches the Python client surface; use
+<code>find_similar_by_embedding</code> (text query) or <code>execute_complex_query</code> with an
+<code>EmbeddingSearchClause</code> (pre-computed vector) instead.</p>
+<h3 id="get_embedding_vector_for_text"><code>get_embedding_vector_for_text</code></h3>
+<p><strong>Args:</strong> an object with <code>text_to_embed</code> (string) and
+<code>embedding_definition_name</code> (string).
+<strong>Returns:</strong> <code>{ "vector": [&lt;floats&gt;] }</code> — useful when you want to build a
+<code>ComplexQuery</code> programmatically.</p>
+<h3 id="execute_complex_query"><code>execute_complex_query</code></h3>
+<p><strong>Args:</strong> <code>query</code> — a <code>ComplexQuery</code> consisting of:</p>
+<ul>
+<li><code>description?</code> (string)</li>
+<li><code>components[]</code> — each a <code>QueryComponent</code>:</li>
+<li><code>object_type_name</code> (string)</li>
+<li><code>relational_filters?</code> — array of <code>RelationalFilter</code>
+    (<code>property_name</code>, <code>operator</code> ∈ <code>==, !=, &gt;, &lt;, &gt;=, &lt;=, LIKE, IN, CONTAINS, STARTSWITH, ENDSWITH</code>,
+    <code>value</code>).</li>
+<li><code>embedding_searches?</code> — array of <code>EmbeddingSearchClause</code>:<ul>
+<li><code>embedding_definition_name</code> (string)</li>
+<li><code>similar_to_payload</code> (float[]) — the precomputed query vector</li>
+<li><code>threshold?</code>, <code>limit?</code>, <code>is_l2_distance?</code></li>
+<li><code>rerank_query_text?</code> — raw text of the query; required to enable the
+  cross-encoder reranker for this clause</li>
+<li><code>rerank?</code> / <code>rerank_model?</code> / <code>rerank_candidates?</code> — same semantics
+  as <code>find_similar_by_embedding</code></li>
+</ul>
+</li>
+<li><code>graph_traversals?</code> — array of <code>GraphTraversalClause</code>:<ul>
+<li><code>relation_type_name</code>, <code>direction</code> (<code>"outgoing"</code> | <code>"incoming"</code>),
+  <code>target_object_type_name</code>, <code>target_object_id?</code>,
+  <code>target_object_properties?</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>Returns:</strong> <code>QueryResult</code> with <code>object_instances[]</code> and <code>errors[]</code>.</p>
+<p><strong>Reranking inside a complex query.</strong> When <code>rerank_query_text</code> is supplied
+on an <code>EmbeddingSearchClause</code> and a reranker is configured (or
+<code>rerank_model</code> is provided per-call), the lancedb step oversamples and
+re-scores with the cross-encoder before handing ids to the next step.
+Threshold filtering on the clause is skipped in that case (units change
+from cosine distance to rerank score).</p>
+<hr />
+<h2 id="notes-on-return-shapes">Notes on Return Shapes</h2>
+<ul>
+<li>Tools whose Python return type is a Pydantic model (<code>ObjectInstance</code>,
+  <code>RelationInstance</code>, <code>ObjectTypeDefinition</code>, etc.) are serialized as JSON
+  text and arrive as <code>TextContent</code> blocks. Round-trip via
+  <code>Model.model_validate(json.loads(content.text))</code>.</li>
+<li><code>get_outgoing_relations</code> / <code>get_incoming_relations</code> / <code>find_relations</code>
+  return a <code>RelationInstanceList</code> wrapper with a <code>relations</code> field — look
+  inside it rather than expecting a bare array.</li>
+<li><code>begin_bulk_addition</code> / <code>finish_bulk_addition</code> return human-readable
+  status strings, not structured data.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.973d3a69.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.f55a23d4.min.js"></script>
+      
+    
+  </body>
+</html>
