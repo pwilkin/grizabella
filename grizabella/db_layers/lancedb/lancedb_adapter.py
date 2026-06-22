@@ -86,6 +86,7 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
         """Initializes the LanceDB adapter."""
         self.db = None # Initialize db attribute
         self._model_lock = threading.Lock()  # Lock for model loading
+        self._model_cache: dict[str, Any] = {}
         self._use_gpu = use_gpu
         super().__init__(db_path=db_uri, config=config)
 
@@ -139,7 +140,7 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
 
         table_name = self._sanitize_table_name(ed.name)
 
-        if table_name in self.db.table_names():
+        if table_name in self.db.list_tables().tables:
             return
 
         try:
@@ -174,7 +175,7 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
 
         table_name = self._sanitize_table_name(embedding_definition_name)
         try:
-            if table_name not in self.db.table_names():
+            if table_name not in self.db.list_tables().tables:
                 return
 
             self.db.drop_table(table_name)
@@ -187,7 +188,7 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
         if self.db is None:
             return []
         try:
-            return list(self.db.table_names()) # Ensure a List is returned
+            return list(self.db.list_tables().tables) # Ensure a List is returned
         except Exception as e: # pylint: disable=W0718
             msg = f"LanceDB: Error listing tables: {e}"
             raise DatabaseError(msg) from e
@@ -289,15 +290,21 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
 
     def get_embedding_model(self, model_identifier: str) -> Any:
         """Loads an embedding model function using LanceDB's registry.
-        Uses thread locking to prevent multiple concurrent loads of the same model.
+        Caches loaded models so repeated calls don't reload weights.
         """
         if not LANCEDB_AVAILABLE or not LANCEDB_EMBEDDING_REGISTRY:
             msg = "LanceDB or its embedding registry is not available. Cannot load models."
             raise EmbeddingError(msg)
 
+        device = "cuda" if self._use_gpu else "cpu"
+        cache_key = f"{model_identifier}:{device}"
+
+        with self._model_lock:
+            if cache_key in self._model_cache:
+                return self._model_cache[cache_key]
+
         try:
-            # Parse model identifier to extract provider and model name
-            provider_name = "huggingface"  # Default provider
+            provider_name = "huggingface"
             actual_model_name = model_identifier
 
             if ":" in model_identifier:
@@ -305,19 +312,17 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
                 if len(parts) == 2:
                     provider_name = parts[0]
                     actual_model_name = parts[1]
-            elif "/" in model_identifier and not model_identifier.startswith("sentence-transformers/"):
-                # Already in org/model format
-                pass
 
-            # Load model directly without caching
-            # Pass device if supported by the provider
-            device = "cuda" if self._use_gpu else "cpu"
             provider = LANCEDB_EMBEDDING_REGISTRY.get(provider_name)
             try:
-                return provider.create(name=actual_model_name, device=device, trust_remote_code=True)
+                model = provider.create(name=actual_model_name, device=device, trust_remote_code=True)
             except TypeError:
-                # Some older/different providers might not accept 'device'
-                return provider.create(name=actual_model_name, trust_remote_code=True)
+                model = provider.create(name=actual_model_name, trust_remote_code=True)
+
+            with self._model_lock:
+                self._model_cache[cache_key] = model
+            logger.info("Loaded and cached embedding model '%s' on %s", model_identifier, device)
+            return model
         except Exception as e: # pylint: disable=W0718
             msg = f"Failed to load embedding model '{model_identifier}' via LanceDB registry: {e}"
             raise EmbeddingError(msg) from e

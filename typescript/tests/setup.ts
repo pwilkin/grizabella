@@ -6,10 +6,23 @@
  */
 
 import 'reflect-metadata';
+import * as path from 'path';
+import * as fs from 'fs';
 
 // Set test environment
   process.env['NODE_ENV'] = 'test';
   process.env['JEST_WORKER_ID'] = '1';
+
+// Point the TS client at the Python MCP server installed in the sibling
+// `../.venv/` Poetry virtualenv so e2e tests work without requiring a
+// global `grizabella-mcp` on PATH. Users embedding the library can set
+// GRIZABELLA_MCP_COMMAND themselves (or let it default to `grizabella-mcp`).
+if (!process.env['GRIZABELLA_MCP_COMMAND']) {
+  const venvCmd = path.resolve(__dirname, '..', '..', '.venv', 'bin', 'grizabella-mcp');
+  if (fs.existsSync(venvCmd)) {
+    process.env['GRIZABELLA_MCP_COMMAND'] = venvCmd;
+  }
+}
 
 // Global test configuration
 global.testConfig = {

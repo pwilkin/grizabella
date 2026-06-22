@@ -279,7 +279,7 @@ class ThreadSafeSQLiteAdapter(SQLiteAdapter):
         self, table_name: str, name: str, model_class: type,
     ) -> Optional[BaseModel]:
         """Loads a Pydantic model definition from JSON stored in the specified metadata table."""
-        logger.info(f"ThreadSafeSQLiteAdapter: _load_definition called in thread ID: {threading.get_ident()} for table: {table_name}, name: {name}")
+        logger.debug(f"ThreadSafeSQLiteAdapter: _load_definition called in thread ID: {threading.get_ident()} for table: {table_name}, name: {name}")
         try:
             cursor = self.conn.execute(
                 f"SELECT definition FROM {table_name} WHERE name = ?", (name,),
@@ -688,9 +688,13 @@ class ThreadSafeSQLiteAdapter(SQLiteAdapter):
             if not prop_exists and key not in ["id", "weight", "upsert_date"]:
                 continue  # Skip unknown properties
 
-            # For now, assume equality. Can be extended for other operators.
-            where_clauses.append(f'"{key}" = ?')
-            params.append(self._serialize_value(value, PropertyDataType.TEXT))  # Simplified
+            serialized = self._serialize_value(value, PropertyDataType.TEXT)  # Simplified
+            if isinstance(serialized, str) and ("%" in serialized or "*" in serialized):
+                where_clauses.append(f'"{key}" LIKE ?')
+                params.append(serialized.replace("*", "%"))
+            else:
+                where_clauses.append(f'"{key}" = ?')
+                params.append(serialized)
 
         where_clause = " AND ".join(where_clauses)
 
@@ -731,7 +735,7 @@ class ThreadSafeSQLiteAdapter(SQLiteAdapter):
 
     def upsert_object_instance(self, instance: ObjectInstance) -> ObjectInstance:
         """Upserts an object instance (inserts if new, updates if exists)."""
-        logger.info(f"ThreadSafeSQLiteAdapter: upsert_object_instance called in thread ID: {threading.get_ident()} for instance ID: {instance.id}, type: {instance.object_type_name}")
+        logger.debug(f"ThreadSafeSQLiteAdapter: upsert_object_instance called in thread ID: {threading.get_ident()} for instance ID: {instance.id}, type: {instance.object_type_name}")
         
         # First, try to get the existing instance
         existing = self.get_object_instance(instance.object_type_name, instance.id)

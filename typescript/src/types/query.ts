@@ -42,6 +42,26 @@ export interface EmbeddingSearchClause {
 
   /** If True, indicates that the threshold is for L2 distance (smaller is better). */
   is_l2_distance?: boolean;
+
+  /**
+   * Optional raw text of the query. Required to enable cross-encoder
+   * reranking inside the complex query engine — the reranker scores
+   * (query_text, candidate_text) pairs and cannot operate from a
+   * pre-computed vector alone. When omitted, reranking is skipped.
+   */
+  rerank_query_text?: string;
+
+  /** Force-enable or force-disable cross-encoder reranking for this clause. */
+  rerank?: boolean;
+
+  /** Override the reranker model identifier for this clause. */
+  rerank_model?: string;
+
+  /**
+   * Number of vector hits to fetch before reranking. Defaults to
+   * `limit * EmbeddingDefinition.rerank_candidate_multiplier` server-side.
+   */
+  rerank_candidates?: number;
 }
 
 /**

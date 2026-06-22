@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "grizabella"
-version = "0.6.1"
+version = "0.7.0"
 description = "A tri-layer memory framework for LLM solutions."
 authors = ["Grizabella Project Contributors <contributors@example.com>"]
 readme = "README.md"
@@ -8,7 +8,7 @@ license = "MIT"
 homepage = "https://github.com/pwilkin/grizabella"
 repository = "https://github.com/pwilkin/grizabella"
 documentation = "https://pwilkin.github.io/grizabella"
-keywords = ["python", "llm", "memory", "vector-database", "graph-database", "sqlite", "lancedb", "real_ladybug", "pyside6", "sentence-transformers", "fastmcp", "ai", "multi-modal"]
+keywords = ["python", "llm", "memory", "vector-database", "graph-database", "sqlite", "lancedb", "ladybug", "pyside6", "sentence-transformers", "fastmcp", "ai", "multi-modal"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -26,19 +26,18 @@ packages = [{include = "grizabella"}]
 
 [tool.poetry.dependencies]
 python = ">=3.12, <3.14" # Specify a compatible Python version
-pydantic = "^2.11.5" # Add pydantic
-lancedb = "^0.24.0"
-sentence-transformers = "^3.0.0"
-real_ladybug = "^0.12.2"
-pandas = "^2.3.0" # Added for real_ladybug adapter query result handling
-fastmcp = "^2.10.6"
-PySide6 = "^6.7.0"
-optimum = "^1.26.1"
-qt_material = "^2.14"
-litellm = "^1.74.4"  # For OpenRouter integration
-pytest-asyncio = "^1.1.0"
-psutil = "^7.0.0"
-kuzu = "0.10.1"
+pydantic = "^2.12.0"  # litellm 1.83.x pins pydantic to 2.12.5
+lancedb = "^0.30.2"
+sentence-transformers = "^5.1.0"
+ladybug = "^0.17.1"  # 0.17.x fixes a native SIGSEGV on the per-row MERGE write path (unguarded PK-visibility check, upstream 435f244)
+pandas = "^2.3.3" # Added for ladybug adapter query result handling
+fastmcp = ">=2.10.6,<2.14"  # 2.14 hangs on ListToolsRequest — retry after upstream fix
+PySide6 = "^6.9.0"
+optimum = "^1.27.0"
+qt_material = "^2.17"
+litellm = ">=1.74.4,<1.83"  # For OpenRouter integration; 1.83.x pins python-dotenv==1.0.1 and pydantic==2.12.5, conflicting with fastmcp/pydantic ranges
+pytest-asyncio = "^1.3.0"
+psutil = "^7.2.2"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.4.1"

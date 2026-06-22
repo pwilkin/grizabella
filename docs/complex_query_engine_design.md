@@ -1,5 +1,14 @@
 # Grizabella Complex Query Engine Design (Subtask 4.3)
 
+> **Historical design doc (2025-06-04).** The design here shipped as
+> `grizabella.core.query_engine` (QueryPlanner + QueryExecutor) and
+> `grizabella.core.query_models` (ComplexQuery, QueryComponent,
+> RelationalFilter, EmbeddingSearchClause, GraphTraversalClause). Since
+> this doc was written, `EmbeddingSearchClause` gained optional
+> cross-encoder reranker fields (`rerank_query_text`, `rerank`,
+> `rerank_model`, `rerank_candidates`). For current behavior consult
+> the code and `docs/user_guide/python_api_detailed.md`.
+
 **Date:** 2025-06-04
 
 **Author:** Roo (AI Technical Leader)

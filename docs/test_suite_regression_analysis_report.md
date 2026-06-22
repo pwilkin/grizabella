@@ -1,6 +1,11 @@
 # Comprehensive Test Suite Execution Report
 ## kuzu → real_ladybug Migration Verification
 
+> **Historical report.** Snapshot from the original migration off the
+> `kuzu` PyPI package to `real_ladybug` (LadybugDB). The test suite
+> has grown substantially since — for current pass/fail status run
+> `poetry run pytest` yourself.
+
 ### Executive Summary
 
 **Overall Test Health: ✅ SUCCESSFUL MIGRATION**

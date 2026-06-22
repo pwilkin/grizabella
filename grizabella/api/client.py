@@ -855,6 +855,9 @@ class Grizabella:
         query_text: str,
         limit: int = 5,
         filter_condition: Optional[str] = None,
+        rerank: Optional[bool] = None,
+        rerank_model: Optional[str] = None,
+        rerank_candidates: Optional[int] = None,
     ) -> list[ObjectInstance]: # Changed return type to list[ObjectInstance] for simplicity in test
         """Finds objects semantically similar to a given query text.
 
@@ -863,10 +866,18 @@ class Grizabella:
             query_text (str): The text to find similar objects for.
             limit (int): The maximum number of similar results to return. Defaults to 5.
             filter_condition (Optional[str]): An SQL-like WHERE clause to pre-filter results.
+            rerank (Optional[bool]): Force-enable or force-disable the cross-encoder
+                rerank pass. If ``None`` (default), reranking is applied automatically
+                whenever the ``EmbeddingDefinition`` or ``rerank_model`` names a model.
+            rerank_model (Optional[str]): Override the cross-encoder model identifier
+                (defaults to ``EmbeddingDefinition.reranker_model``).
+            rerank_candidates (Optional[int]): Number of vector hits to pull before
+                reranking (defaults to ``limit * EmbeddingDefinition.rerank_candidate_multiplier``).
 
         Returns:
             List[ObjectInstance]: A list of ObjectInstances that are semantically
-            similar to the query_text, ordered by similarity.
+            similar to the query_text, ordered by similarity (or by rerank score
+            when reranking is enabled).
 
         Raises:
             NotConnectedError: If the client is not connected to the database.
@@ -885,13 +896,17 @@ class Grizabella:
 
         # Call the db_manager's method that can handle query_text
         # This method in _InstanceManager returns raw results: list[dict[str, Any]]
-        # where dicts contain 'object_instance_id' and '_distance'
+        # where dicts contain 'object_instance_id' and '_distance' (and
+        # '_rerank_score' when reranking ran).
         raw_results = self._db_manager.find_similar_objects_by_embedding(
             embedding_definition_name=embedding_name,
             query_text=query_text,
             limit=limit,
             retrieve_full_objects=False, # We need IDs and scores to process further
             filter_condition=filter_condition,
+            rerank=rerank,
+            rerank_model=rerank_model,
+            rerank_candidates=rerank_candidates,
         )
 
         if not raw_results:
@@ -910,7 +925,8 @@ class Grizabella:
         # as it's not directly callable with a query_text scenario (no source_object_id)
 
         final_results_with_scores: list[tuple[ObjectInstance, float]] = []
-        result_ids_map: dict[uuid.UUID, float] = {}
+        ordered_hits: list[tuple[uuid.UUID, float]] = []
+        reranked = any("_rerank_score" in res for res in raw_results)
 
         for res in raw_results:
             try:
@@ -918,17 +934,24 @@ class Grizabella:
                 if not obj_id_str:
                     continue
                 obj_id = uuid.UUID(obj_id_str)
-                score = float(res.get("_distance", 0.0)) # LanceDB uses _distance
-                result_ids_map[obj_id] = score
+                if reranked:
+                    # Reranked results arrive already ordered by score descending
+                    # (higher is better). Preserve that order.
+                    score = float(res.get("_rerank_score", float("-inf")))
+                else:
+                    score = float(res.get("_distance", 0.0))
+                ordered_hits.append((obj_id, score))
             except (ValueError, KeyError, TypeError) as e:
-                # self._db_manager._logger.warning(...) # Can't access logger directly
-                print(f"Warning: Skipping result due to parsing error: {res}, error: {e}") # Basic print for now
+                self._logger.warning("Skipping result due to parsing error: %s, error: %s", res, e)
                 continue
 
-        if not result_ids_map:
+        if not ordered_hits:
             return []
 
-        sorted_similar_items = sorted(result_ids_map.items(), key=lambda item: item[1])[:limit]
+        if reranked:
+            sorted_similar_items = ordered_hits[:limit]
+        else:
+            sorted_similar_items = sorted(ordered_hits, key=lambda item: item[1])[:limit]
         result_ids_to_fetch = [item[0] for item in sorted_similar_items]
 
         if result_ids_to_fetch:
@@ -945,8 +968,10 @@ class Grizabella:
                         (fetched_objects_map[obj_id_val], _), # Keep score for potential future use
                     )
 
-        # Return only the ObjectInstances, ordered by similarity (which sorted_similar_items already did)
-        return [obj_inst for obj_inst, score in final_results_with_scores]
+        for obj_inst, score in final_results_with_scores:
+            obj_inst.properties["_similarity_score"] = score
+
+        return [obj_inst for obj_inst, _ in final_results_with_scores]
 
     # --- Complex Querying ---
     def execute_complex_query(self, query: ComplexQuery) -> QueryResult:

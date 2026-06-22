@@ -2,6 +2,12 @@
 
 Comprehensive guide to error handling in the Grizabella TypeScript API.
 
+> **Transport note.** Examples below show
+> `serverUrl: 'http://localhost:8000/mcp'` for brevity; this assumes a
+> separately-hosted HTTP/SSE MCP endpoint. The `grizabella-mcp` Python
+> server is stdio-only, and `GrizabellaClient` defaults to
+> `serverUrl: 'stdio'` with an auto-spawned subprocess.
+
 ## Overview
 
 The Grizabella TypeScript API provides a robust error handling framework designed to help developers handle various failure scenarios gracefully. This guide covers error types, handling patterns, best practices, and recovery strategies.

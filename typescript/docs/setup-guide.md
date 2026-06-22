@@ -2,6 +2,14 @@
 
 Complete setup and installation guide for the Grizabella TypeScript API across different environments and platforms.
 
+> **Transport note.** The `grizabella-mcp` Python server ships with the
+> stdio transport. The TypeScript client defaults to `serverUrl: 'stdio'`
+> and spawns the server as a subprocess. Examples in other docs that use
+> `serverUrl: 'http://localhost:8000/mcp'` assume you've separately
+> deployed an HTTP/SSE MCP endpoint in front of Grizabella — replace that
+> URL with `'stdio'` (and supply `serverCommand`) if you're running the
+> out-of-the-box Python server locally.
+
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
@@ -171,7 +179,9 @@ GRIZABELLA_DB_PATH=./data/my-database
 GRIZABELLA_CREATE_IF_NOT_EXISTS=true
 
 # Server Configuration
-GRIZABELLA_SERVER_URL=http://localhost:8000/mcp
+# 'stdio' spawns the Python grizabella-mcp as a subprocess (the default).
+# Use an http(s)://... URL if you have a separately-hosted SSE MCP endpoint.
+GRIZABELLA_SERVER_URL=stdio
 
 # Connection Settings
 GRIZABELLA_TIMEOUT=30000
@@ -189,7 +199,7 @@ Create `.env.example` for documentation:
 # Copy this file to .env and fill in your values
 GRIZABELLA_DB_PATH=./data/my-database
 GRIZABELLA_CREATE_IF_NOT_EXISTS=true
-GRIZABELLA_SERVER_URL=http://localhost:8000/mcp
+GRIZABELLA_SERVER_URL=stdio
 GRIZABELLA_TIMEOUT=30000
 GRIZABELLA_DEBUG=false
 GRIZABELLA_AUTO_RECONNECT=true

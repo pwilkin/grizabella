@@ -46,11 +46,25 @@ After installing from source using Poetry (see above), you can run the UI applic
 poetry run grizabella-ui
 ```
 
+## MCP Server
+
+Grizabella also ships a Model Context Protocol server entry point. After
+`poetry install`, start it with:
+
+```bash
+poetry run grizabella-mcp --db-path /path/to/your/db
+# optional: --use-gpu to enable CUDA-accelerated embeddings and reranking
+```
+
+The server speaks stdio by default and writes a `mcp-server-<timestamp>.log`
+file to the current working directory. See the
+[MCP Server API Guide](./mcp_server_api_guide.md) for the full tool surface.
+
 ## System Dependencies
 
 ### Python Version
 
-Grizabella requires **Python version >=3.10 and <3.14**. Please ensure you have a compatible Python version installed.
+Grizabella requires **Python version >=3.12 and <3.14**. Please ensure you have a compatible Python version installed.
 
 ### Arrow C++ Libraries (for LanceDB)
 

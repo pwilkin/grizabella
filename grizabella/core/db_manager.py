@@ -330,6 +330,9 @@ class GrizabellaDBManager: # pylint: disable=R0904, R0902
         limit: int = 10,
         filter_condition: Optional[str] = None,
         retrieve_full_objects: bool = False,
+        rerank: Optional[bool] = None,
+        rerank_model: Optional[str] = None,
+        rerank_candidates: Optional[int] = None,
     ) -> list[dict[str, Any]]:
         """Finds objects based on vector similarity of their embeddings."""
         if not self.is_connected:
@@ -342,6 +345,9 @@ class GrizabellaDBManager: # pylint: disable=R0904, R0902
             limit=limit,
             filter_condition=filter_condition,
             retrieve_full_objects=retrieve_full_objects,
+            rerank=rerank,
+            rerank_model=rerank_model,
+            rerank_candidates=rerank_candidates,
         )
 
     def _process_raw_similarity_results( # pylint: disable=R0914
@@ -564,6 +570,18 @@ class GrizabellaDBManager: # pylint: disable=R0904, R0902
     def finish_bulk_addition(self) -> None:
         """Finishes a bulk addition operation and generates all pending embeddings."""
         self._instance_manager.finish_bulk_addition()
+        # Flush the graph WAL into the main DB file synchronously, here at the bulk-addition
+        # boundary (between write bursts, after embeddings). This is the SAFE place to do it:
+        # no concurrent Cypher, so it avoids the under-load CHECKPOINT segfault, and being
+        # synchronous it completes before the process can be torn down (so the WAL can't be
+        # left large and then quarantined on the next open -> no graph-data loss, no SQLite/
+        # Kuzu divergence). Mid-write/auto checkpoints stay disabled; this is the only one.
+        try:
+            kuzu = getattr(self._connection_helper, "_kuzu_adapter_instance", None)
+            if kuzu is not None and getattr(kuzu, "_checkpoint_on_finish", True):
+                kuzu.checkpoint()
+        except Exception as e:  # never let a checkpoint failure abort the run
+            logger.warning("finish_bulk_addition: Kuzu checkpoint failed: %s", e)
 
 if __name__ == "__main__":
     logging.basicConfig(

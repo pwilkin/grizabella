@@ -74,7 +74,8 @@ def log_tool_call(func):
                 logger.info(f"📝 Arguments: {actual_args}")
 
         if kwargs:
-            logger.info(f"📝 Keyword Arguments: {kwargs}")
+            brief = {k: repr(v)[:120] for k, v in kwargs.items()}
+            logger.debug(f"📝 Keyword Arguments: {brief}")
 
         # Call the original function
         try:
@@ -356,8 +357,8 @@ async def mcp_find_relations(
     """Finds relation instances based on optional filters."""
     try:
         gb = get_grizabella_client()
-        source_uuid = UUID(source_object_id) if source_object_id else None
-        target_uuid = UUID(target_object_id) if target_object_id else None
+        source_uuid = uuid.UUID(source_object_id) if source_object_id else None
+        target_uuid = uuid.UUID(target_object_id) if target_object_id else None
         return gb.find_relation_instances(
             relation_type_name=relation_type_name,
             source_object_id=source_uuid,
@@ -868,6 +869,52 @@ async def mcp_execute_complex_query(query: ComplexQuery) -> QueryResult:
     except Exception as e: # pylint: disable=broad-except
         msg = f"MCP: Unexpected error executing complex query '{query.description}': {e}"
         raise Exception(msg) from e
+
+
+class FindSimilarByEmbeddingArgs(BaseModel):
+    embedding_definition_name: str
+    query_text: str
+    limit: int = 5
+    filter_condition: Optional[str] = None
+    rerank: Optional[bool] = None
+    rerank_model: Optional[str] = None
+    rerank_candidates: Optional[int] = None
+
+
+@app.tool(
+    name="find_similar_by_embedding",
+    description=(
+        "Finds objects whose embeddings are semantically similar to a query text. "
+        "If the EmbeddingDefinition carries a reranker_model (or rerank_model is supplied), "
+        "the top candidates are re-scored with a cross-encoder before returning the top `limit`.\n\n"
+        "Example:\n"
+        '{\n'
+        '  "args": {\n'
+        '    "embedding_definition_name": "doc_content_embedding",\n'
+        '    "query_text": "treaty of westphalia",\n'
+        '    "limit": 5,\n'
+        '    "rerank": true\n'
+        '  }\n'
+        '}'
+    ),
+)
+@log_tool_call
+async def mcp_find_similar_by_embedding(args: FindSimilarByEmbeddingArgs) -> list[ObjectInstance]:
+    """Text-based semantic search with optional cross-encoder reranking."""
+    try:
+        gb = get_grizabella_client()
+        return gb.find_similar(
+            embedding_name=args.embedding_definition_name,
+            query_text=args.query_text,
+            limit=args.limit,
+            filter_condition=args.filter_condition,
+            rerank=args.rerank,
+            rerank_model=args.rerank_model,
+            rerank_candidates=args.rerank_candidates,
+        )
+    except GrizabellaException as e:
+        msg = f"MCP: Error in find_similar_by_embedding for ED '{args.embedding_definition_name}': {e}"
+        raise GrizabellaException(msg) from e
 
 
 class GetEmbeddingVectorForTextArgs(BaseModel):

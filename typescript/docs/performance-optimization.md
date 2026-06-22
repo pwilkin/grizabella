@@ -2,6 +2,12 @@
 
 Comprehensive guide to optimizing performance when using the Grizabella TypeScript API in production applications.
 
+> **Transport note.** Examples below show
+> `serverUrl: 'http://localhost:8000/mcp'` for brevity; this assumes a
+> separately-hosted HTTP/SSE MCP endpoint. The `grizabella-mcp` Python
+> server is stdio-only, and `GrizabellaClient` defaults to
+> `serverUrl: 'stdio'` with an auto-spawned subprocess.
+
 ## Table of Contents
 
 - [Performance Principles](#performance-principles)

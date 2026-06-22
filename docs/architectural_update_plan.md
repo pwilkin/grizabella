@@ -1,5 +1,9 @@
 # Plan to Update Architectural Documents
 
+> **Historical planning doc.** This was the punch list for a past
+> documentation refresh. It no longer reflects the current state (most
+> items have landed). Kept for audit trail only.
+
 This plan outlines the steps to review and update Grizabella's architectural documentation to align with the current stable state of the codebase.
 
 ## 1. Foundational Design (`docs/foundational_design.md`)

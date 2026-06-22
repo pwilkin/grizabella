@@ -1,5 +1,10 @@
 # Grizabella PySide6 UI - Initial Design Document
 
+> **Historical design doc (v0.1, 2025-06-04).** Preserved for design
+> history; for how the shipped UI actually works see
+> `docs/user_guide/pyside6_ui_guide.md` and the live code under
+> `grizabella/ui/`.
+
 **Version:** 0.1
 **Date:** 2025-06-04
 

@@ -109,6 +109,37 @@ class EmbeddingSearchClause(BaseModel):
         description="If True, indicates that the threshold is for L2 distance (smaller is better) "
                     "and the QueryEngine should not convert distance to cosine similarity.",
     )
+    rerank_query_text: Optional[str] = Field(
+        default=None,
+        description=(
+            "Optional raw text of the query. When the EmbeddingDefinition has a "
+            "reranker_model (or `rerank_model` is provided), the query engine "
+            "oversamples vector hits and re-scores them with a cross-encoder. "
+            "Reranking is skipped when this field is None because cross-encoders "
+            "need text pairs, not just the precomputed query vector."
+        ),
+    )
+    rerank: Optional[bool] = Field(
+        default=None,
+        description=(
+            "Force-enable or force-disable cross-encoder reranking for this "
+            "clause. None (default) means: rerank if a model is configured."
+        ),
+    )
+    rerank_model: Optional[str] = Field(
+        default=None,
+        description=(
+            "Override the reranker model identifier for this clause "
+            "(defaults to EmbeddingDefinition.reranker_model)."
+        ),
+    )
+    rerank_candidates: Optional[int] = Field(
+        default=None,
+        description=(
+            "Number of vector hits to fetch before reranking. "
+            "Defaults to limit * EmbeddingDefinition.rerank_candidate_multiplier."
+        ),
+    )
 
     # @field_validator('similar_to_object_id')
     # def check_similar_to_object_details(cls, v, values):

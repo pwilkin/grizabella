@@ -268,6 +268,26 @@ class EmbeddingDefinition(BaseModel):
         default=None,
         description="Optional description of this embedding definition.",
     )
+    reranker_model: Optional[str] = Field(
+        default=None,
+        description=(
+            "Optional cross-encoder model identifier (e.g. "
+            "'cross-encoder/ms-marco-MiniLM-L-6-v2' or "
+            "'mixedbread-ai/mxbai-rerank-base-v1'). When set, semantic "
+            "searches against this definition can post-process top-K "
+            "vector results with this reranker. Reranking requires the "
+            "query to be provided as text (not just a vector)."
+        ),
+    )
+    rerank_candidate_multiplier: int = Field(
+        default=5,
+        ge=1,
+        description=(
+            "Default oversampling factor when reranking: the vector search "
+            "fetches limit * rerank_candidate_multiplier candidates before "
+            "the cross-encoder re-scores them down to limit results."
+        ),
+    )
     # _created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     # _updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 

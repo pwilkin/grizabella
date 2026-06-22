@@ -131,6 +131,18 @@ export interface EmbeddingDefinition {
 
   /** An optional human-readable description of this embedding definition. */
   description?: string;
+
+  /**
+   * Optional cross-encoder model identifier for post-hoc reranking of
+   * semantic search results (e.g. 'cross-encoder/ms-marco-MiniLM-L-6-v2').
+   * Reranking requires the query as text, not just a vector.
+   */
+  reranker_model?: string;
+
+  /**
+   * Default oversampling factor used when reranking (defaults to 5 server-side).
+   */
+  rerank_candidate_multiplier?: number;
 }
 
 /**
@@ -279,6 +291,8 @@ export interface CreateEmbeddingDefinitionParams {
   embedding_model?: string;
   description?: string;
   dimensions?: number;
+  reranker_model?: string;
+  rerank_candidate_multiplier?: number;
 }
 
 /** Parameters for retrieving an embedding definition. */
@@ -304,12 +318,22 @@ export interface EmbeddingSimilarityResult {
   embedding_vector?: number[];
 }
 
-/** Parameters for searching similar objects with embeddings. */
+/** Parameters for searching similar objects with embeddings, with optional
+ *  cross-encoder reranking. */
 export interface SearchSimilarObjectsWithEmbeddingsParams {
-  text?: string;
-  embedding_vector?: number[];
   embedding_definition_name: string;
+  /** Raw query text. Required when you want cross-encoder reranking. */
+  text?: string;
+  /** Pre-computed query vector. Mutually exclusive with `text`. */
+  embedding_vector?: number[];
   object_type_names?: string[];
   limit?: number;
   threshold?: number;
+  filter_condition?: string;
+  /** Force-enable/disable reranking. `undefined` = auto (enabled if a
+   *  reranker_model is configured on the EmbeddingDefinition or supplied
+   *  here). */
+  rerank?: boolean;
+  rerank_model?: string;
+  rerank_candidates?: number;
 }

@@ -10,11 +10,12 @@ import glob  # Added
 import logging  # Added
 import os  # Added
 import threading  # For logging thread ID
+import time  # For lock-contention retry backoff
 from datetime import datetime
 from typing import Any, Optional
 from uuid import UUID
 
-import real_ladybug as kuzu
+import ladybug as lbug
 
 from grizabella.core.exceptions import DatabaseError, InstanceError, SchemaError, ConfigurationError
 from grizabella.core.models import (
@@ -96,9 +97,56 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
         self._local = threading.local()
         
         # Shared database instance (thread-safe in Kuzu)
-        self._db: Optional[kuzu.Database] = None
+        self._db: Optional[lbug.Database] = None
         self._db_lock = threading.Lock()
-        
+
+        # Periodic WAL checkpointing. ladybug appends every write to a sibling WAL that it
+        # replays on next open. During a large project's write burst the WAL can grow to
+        # ~10+ MB, at which point ladybug 0.16.1 trips a WAL-record assertion
+        # ("UNREACHABLE_CODE") that *aborts the process mid-write* -- losing that project's
+        # graph tail and failing its relationship storage entirely (observed on roche/stada).
+        # We bound the WAL by checkpointing (flush WAL -> .db, truncate) once it grows past a
+        # threshold. Tunable via KUZU_CHECKPOINT_WAL_MB (default 4 MB; 0 disables).
+        # ladybug 0.16.1 SEGFAULTS *inside* CHECKPOINT under load. Verified by pinpoint:
+        # roche dies with a libstdc++ heap-overrun immediately after a mid-write CHECKPOINT
+        # ("about-to-CHECKPOINT wal=4.28MB" is the last log line before the SIGSEGV), while the
+        # very same objects checkpoint fine in other projects -- a native bug in ladybug's
+        # checkpoint serialization, dataset-dependent. So by default we do NOT checkpoint
+        # mid-write at all: KUZU_CHECKPOINT_WAL_MB defaults to 0 (our size-gated checkpoint
+        # off) AND ladybug's own auto-checkpoint is disabled (KUZU_AUTO_CHECKPOINT defaults to
+        # 0) -- its internal CHECKPOINT is the same crash-prone code. The WAL is flushed only
+        # once, at quiescent close, via ladybug's forceCheckpointOnClose (default True): no
+        # concurrent writes there, which avoids the under-load crash. A kill mid-write leaves a
+        # torn WAL that the open-time self-heal quarantines. Env vars do NOT propagate into this
+        # MCP subprocess, so these defaults (not the env) are what actually take effect; set
+        # KUZU_CHECKPOINT_WAL_MB>0 / KUZU_AUTO_CHECKPOINT=1 only if a future ladybug fixes this.
+        self._writes_since_ckpt = 0
+        try:
+            self._ckpt_wal_bytes = int(float(os.environ.get("KUZU_CHECKPOINT_WAL_MB", "0")) * 1024 * 1024)
+        except (TypeError, ValueError):
+            self._ckpt_wal_bytes = 0
+        self._ckpt_stat_interval = 50
+        self._auto_ckpt = os.environ.get("KUZU_AUTO_CHECKPOINT", "0") not in ("0", "false", "False", "no")
+
+        # The SAFE checkpoint: synchronously at finish_bulk_addition (the indexer's flush
+        # boundaries every N files, and once at project end). It runs between write bursts --
+        # after embeddings, with no concurrent Cypher -- so it avoids the under-load crash that
+        # mid-write/auto checkpoints hit (roche proved a quiescent checkpoint is safe). And
+        # because the indexer awaits the finish_bulk_addition MCP call, the WAL is durably
+        # flushed before the process can be torn down -- unlike ladybug's forceCheckpointOnClose,
+        # which a shutdown SIGKILL was interrupting, leaving a multi-MB WAL that the next open
+        # quarantined (graph data lost while SQLite kept it -> the two tiers diverged). This is
+        # what keeps the WAL bounded AND the graph tier complete. Default on; KUZU_CHECKPOINT_ON_FINISH=0 to disable.
+        self._checkpoint_on_finish = os.environ.get("KUZU_CHECKPOINT_ON_FINISH", "1") not in ("0", "false", "False", "no")
+
+        # Maps a node id -> the node table it lives in, so a relation upsert can MERGE on the
+        # correct (source, target) type pair. A relation type may span several pairs (e.g.
+        # CONTAINS: JavaClass->JavaMethod, JavaClass->JavaField, ...) and the rel table is now
+        # created with all of them; resolving the real endpoint types here is what lets every
+        # edge materialize instead of only the first declared pair. Populated cheaply as
+        # objects are upserted; misses (cross-run references) fall back to PK-indexed probes.
+        self._node_table_cache: dict[str, str] = {}
+
         # Initialize database (shared across threads)
         self._init_database()
 
@@ -106,33 +154,135 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
         """Initialize the shared database instance."""
         with self._db_lock:
             if self._db is None:
+                # Clean up stale lock files left behind by a previous unclean shutdown.
+                self._cleanup_stale_files()
                 try:
-                    # Clean up stale lock files
-                    self._cleanup_stale_files()
-                    
                     logger.info(f"ThreadSafeKuzuAdapter: Creating shared Database instance for {self._db_path}")
-                    self._db = kuzu.Database(self._db_path)
+                    self._db = lbug.Database(self._db_path, auto_checkpoint=self._auto_ckpt)
                     logger.info(f"ThreadSafeKuzuAdapter: Shared Database instance created: {self._db}")
                 except Exception as e:
+                    # Lock contention: a previous process hasn't released its fcntl lock on
+                    # the DB file yet (common when projects are indexed back-to-back, each in
+                    # its own short-lived server). This is transient -- retry briefly.
+                    if "could not set lock" in str(e).lower():
+                        if self._retry_open_on_lock():
+                            return
+                        logger.error(
+                            f"ThreadSafeKuzuAdapter: DB lock on {self._db_path} still held "
+                            f"after retries"
+                        )
+                        raise DatabaseError(f"KuzuDB initialization error: {e}") from e
+                    # A process killed mid-write (OOM/SIGKILL/timeout) can leave the
+                    # write-ahead log in a state ladybug cannot replay: it asserts
+                    # ("wal_record.cpp ... UNREACHABLE_CODE") on open instead of discarding
+                    # it, which permanently bricks the graph tier on every later start.
+                    # The main DB file is consistent up to its last checkpoint, so quarantine
+                    # the unreplayable WAL and retry once. We lose only the un-checkpointed
+                    # tail of the killed run, which was never committed anyway.
+                    if self._recover_from_corrupt_wal(e):
+                        try:
+                            self._db = lbug.Database(self._db_path, auto_checkpoint=self._auto_ckpt)
+                            logger.warning(
+                                f"ThreadSafeKuzuAdapter: Recovered database for {self._db_path} "
+                                f"after quarantining an unreplayable WAL"
+                            )
+                            return
+                        except Exception as e2:
+                            logger.error(f"ThreadSafeKuzuAdapter: Recovery retry failed: {e2}")
+                            raise DatabaseError(
+                                f"KuzuDB initialization error after WAL recovery: {e2}"
+                            ) from e2
                     logger.error(f"ThreadSafeKuzuAdapter: Error creating database: {e}")
                     raise DatabaseError(f"KuzuDB initialization error: {e}") from e
 
+    def _retry_open_on_lock(self) -> bool:
+        """Retry opening the DB while another process releases its lock.
+
+        Returns True if the DB was opened, False if it stayed locked through all retries
+        (the caller then raises). Re-raises immediately on any non-lock error.
+        """
+        for attempt in range(1, 6):
+            time.sleep(2)
+            try:
+                self._db = lbug.Database(self._db_path, auto_checkpoint=self._auto_ckpt)
+                logger.warning(
+                    f"ThreadSafeKuzuAdapter: Acquired DB lock for {self._db_path} "
+                    f"on retry {attempt}"
+                )
+                return True
+            except Exception as e:
+                if "could not set lock" not in str(e).lower():
+                    raise
+                logger.info(
+                    f"ThreadSafeKuzuAdapter: DB still locked (retry {attempt}/5): "
+                    f"{self._db_path}"
+                )
+        return False
+
+    def _recover_from_corrupt_wal(self, error: Exception) -> bool:
+        """Quarantine a write-ahead log that ladybug failed to replay on open.
+
+        Acts whenever an open fails AND a WAL file is present. The replay path trips
+        several distinct ladybug failures -- the WAL-record assertion ("UNREACHABLE_CODE")
+        and a binder bug ("Trying to create a vector with ANY type") among them -- so we
+        no longer gate on the error text. This is safe because the WAL is checkpointed
+        into the .db after every project (see finish_bulk_addition), so a leftover WAL
+        only ever holds the current, uncommitted project's tail: dropping it loses
+        nothing that was committed, and the project is simply re-indexed. Lock conflicts
+        are handled separately (before this) so they never reach here. Returns True if a
+        WAL file was moved aside, so the caller can retry opening the database.
+        """
+        # ladybug 0.16.1 keeps several sibling files that an unclean shutdown can leave
+        # unreplayable: the WAL "<db>.wal", the checkpoint-WAL "<db>.wal.checkpoint", and
+        # the shadow file "<db>.shadow". Quarantining only "<db>.wal" left the checkpoint
+        # WAL behind, so the retry replayed *it* and still failed ("Corrupted wal file").
+        # Move them all aside. (Older directory-style DBs keep "*.wal" inside the dir.)
+        candidates: set = set()
+        for suffix in (".wal", ".wal.checkpoint", ".shadow"):
+            candidates.add(self._db_path + suffix)
+        for pattern in (self._db_path + ".wal*", self._db_path + ".shadow*"):
+            candidates.update(glob.glob(pattern))
+        if os.path.isdir(self._db_path):
+            candidates.update(glob.glob(os.path.join(self._db_path, "*.wal*")))
+            candidates.update(glob.glob(os.path.join(self._db_path, "*.shadow*")))
+        # Never re-quarantine our own already-quarantined files.
+        wal_files = sorted(c for c in candidates if os.path.isfile(c) and not c.endswith(".corrupt"))
+
+        moved = False
+        for wal in wal_files:
+            if os.path.isfile(wal):
+                quarantine = wal + ".corrupt"
+                try:
+                    if os.path.exists(quarantine):
+                        os.remove(quarantine)
+                    os.rename(wal, quarantine)
+                    logger.warning(
+                        f"ThreadSafeKuzuAdapter: Quarantined unreplayable WAL {wal} -> "
+                        f"{quarantine} (open failed with: {error})"
+                    )
+                    moved = True
+                except OSError as oe:
+                    logger.error(
+                        f"ThreadSafeKuzuAdapter: Could not quarantine WAL {wal}: {oe}"
+                    )
+        return moved
+
     @property
-    def connection(self) -> kuzu.Connection:
+    def connection(self) -> lbug.Connection:
         """Get thread-local connection.
         
         Returns:
-            kuzu.Connection: Thread-local database connection
+            lbug.Connection: Thread-local database connection
         """
         if not hasattr(self._local, 'conn') or self._local.conn is None:
             self._local.conn = self._create_connection()
         return self._local.conn
         
-    def _create_connection(self) -> kuzu.Connection:
+    def _create_connection(self) -> lbug.Connection:
         """Create a new thread-local connection.
         
         Returns:
-            kuzu.Connection: New database connection for current thread
+            lbug.Connection: New database connection for current thread
         """
         thread_id = threading.get_ident()
         logger.info(f"ThreadSafeKuzuAdapter: Creating connection for thread {thread_id}")
@@ -141,7 +291,7 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
             if self._db is None:
                 raise DatabaseError("Database not initialized")
                 
-            conn = kuzu.Connection(self._db)
+            conn = lbug.Connection(self._db)
             logger.info(f"ThreadSafeKuzuAdapter: Connection created for thread {thread_id}: {conn}")
             return conn
         except Exception as e:
@@ -151,8 +301,14 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
     def _cleanup_stale_files(self):
         """Clean up stale lock and WAL files that might cause connection issues."""
         try:
-            # Clean up lock files
+            # Clean up lock files. ladybug single-file DBs keep the lock as a sibling
+            # file ("<db>.lock"/"<db>.tmp"); directory-style DBs keep "*.lock" inside the
+            # db directory. The original glob only handled the directory layout, so stale
+            # sibling locks/temp files from a killed run were never removed.
             lock_files = glob.glob(os.path.join(self._db_path, "*.lock"), include_hidden=True)
+            for sibling in (self._db_path + ".lock", self._db_path + ".tmp"):
+                if os.path.isfile(sibling):
+                    lock_files.append(sibling)
             if lock_files:
                 logger.info(f"ThreadSafeKuzuAdapter: Found {len(lock_files)} stale lock files. Attempting removal.")
                 for lock_file in lock_files:
@@ -193,6 +349,74 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
         else:
             logger.warning(f"ThreadSafeKuzuAdapter: commit() called but no connection available for {self._db_path}")
 
+    def checkpoint(self) -> None:
+        """Force a WAL checkpoint so committed graph data is flushed into the main DB
+        file. Without this the write-ahead log grows across a project's writes and is
+        replayed by the next short-lived process when it opens the DB -- that replay
+        path occasionally trips a ladybug binder bug ('Trying to create a vector with
+        ANY type'), which then fails every subsequent open. Checkpointing between
+        projects keeps the WAL near-empty and the .db self-contained, so there is
+        nothing to replay (and a kill loses at most the current, uncommitted project)."""
+        with self._db_lock:
+            if self._db is None:
+                return
+        try:
+            self.connection.execute("CHECKPOINT")
+            logger.info(f"ThreadSafeKuzuAdapter: CHECKPOINT completed for {self._db_path}")
+        except Exception as e:
+            logger.warning(f"ThreadSafeKuzuAdapter: CHECKPOINT failed for {self._db_path}: {e}")
+
+    def _maybe_checkpoint(self) -> None:
+        """Checkpoint when the WAL has grown past the configured threshold.
+
+        Called after each committed write (object/relation). Statting the WAL on every
+        single write would be wasteful, so we only check every ``_ckpt_stat_interval``
+        writes; between checks the WAL can overshoot by at most that many writes, which is
+        far below the ~10 MB assertion threshold. Keeps the WAL small so a process killed
+        mid-run loses almost nothing and ladybug never reaches the WAL-record assertion."""
+        if self._ckpt_wal_bytes <= 0:
+            return
+        self._writes_since_ckpt += 1
+        if self._writes_since_ckpt < self._ckpt_stat_interval:
+            return
+        self._writes_since_ckpt = 0
+        wal = self._db_path + ".wal"
+        try:
+            size = os.path.getsize(wal) if os.path.isfile(wal) else 0
+        except OSError:
+            size = 0
+        if size >= self._ckpt_wal_bytes:
+            logger.warning("PINPOINT about-to-CHECKPOINT wal=%d bytes", size)
+            self.checkpoint()
+            logger.warning("PINPOINT checkpoint-done")
+
+    def _resolve_node_table(self, node_id: Any, candidate_types: list[str]) -> Optional[str]:
+        """Return the node table that actually holds ``node_id``, among ``candidate_types``.
+
+        A relation's endpoints can be any of the relation type's declared source/target
+        types, not just the first. We find the real table with a PK-indexed probe per
+        candidate (fast, stops at the first hit) and cache the answer so each id is resolved
+        at most once. Returns None if the id is in none of the candidates (e.g. the endpoint
+        was never indexed), in which case the caller keeps its previous fallback behaviour."""
+        key = str(node_id)
+        cached = self._node_table_cache.get(key)
+        if cached is not None:
+            return cached
+        for tbl in candidate_types:
+            try:
+                r = self.connection.execute(
+                    f"MATCH (n:{tbl} {{id: $id}}) RETURN 1 LIMIT 1",
+                    parameters={"id": node_id},
+                )
+                if isinstance(r, list):
+                    r = r[0] if r else None
+                if r is not None and r.has_next():
+                    self._node_table_cache[key] = tbl
+                    return tbl
+            except Exception:
+                continue
+        return None
+
     def close(self) -> None:
         """Close thread-local connection."""
         thread_id = threading.get_ident()
@@ -220,6 +444,9 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
                     logger.info(f"ThreadSafeKuzuAdapter: Closed shared database instance for {self._db_path}")
                 except Exception as e:
                     logger.error(f"ThreadSafeKuzuAdapter: Error closing database: {e}")
+
+    # No column name workarounds needed — ladybug >= 0.16.1 handles
+    # underscore names and Cypher keywords correctly.
 
     def _map_grizabella_to_kuzu_type(self, prop_type: PropertyDataType) -> str:
         """Maps Grizabella PropertyDataType to Kuzu data type strings."""
@@ -268,8 +495,9 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
                             msg,
                         )
                     continue
-                kuzu_type = self._map_grizabella_to_kuzu_type(prop.data_type)
-                properties_str_parts.append(f"{prop.name} {kuzu_type}")
+                lbug_type = self._map_grizabella_to_kuzu_type(prop.data_type)
+                lbug_col = prop.name
+                properties_str_parts.append(f"{lbug_col} {lbug_type}")
 
             properties_str = ", ".join(properties_str_parts)
             query = f"CREATE NODE TABLE {otd.name} ({properties_str})"
@@ -321,8 +549,9 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
             additional_properties_list = []
             for prop in rtd.properties:
                 if prop.name.lower() not in ["id", "weight", "upsert_date"]:
-                    kuzu_type = self._map_grizabella_to_kuzu_type(prop.data_type)
-                    additional_properties_list.append(f"{prop.name} {kuzu_type}")
+                    lbug_type = self._map_grizabella_to_kuzu_type(prop.data_type)
+                    lcol = prop.name
+                    additional_properties_list.append(f"{lcol} {lbug_type}")
                 else:
                     pass
 
@@ -341,13 +570,25 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
                     msg,
                 )
 
-            source_table_name = rtd.source_object_type_names[0]
-            target_table_name = rtd.target_object_type_names[0]
+            # A relation type can legitimately connect several (source, target) type pairs
+            # (e.g. CONTAINS links JavaClass->JavaMethod, JavaClass->JavaField, Xml->Xml, ...).
+            # ladybug/Kuzu rel tables accept multiple FROM..TO pairs, so declare the full
+            # cross product of the declared source x target types. Previously only the first
+            # pair ([0]->[0]) was created, so every edge whose endpoints were any other pair
+            # was silently dropped (~half of all edges). De-duplicate pairs to stay valid.
+            seen_pairs: set = set()
+            pair_clauses = []
+            for s in rtd.source_object_type_names:
+                for t in rtd.target_object_type_names:
+                    if (s, t) in seen_pairs:
+                        continue
+                    seen_pairs.add((s, t))
+                    pair_clauses.append(f"FROM {s} TO {t}")
+            from_to_pairs = ", ".join(pair_clauses)
 
             query = (
                 f"CREATE REL TABLE {rtd.name} ("
-                f"FROM {source_table_name} "
-                f"TO {target_table_name}, {properties_str})"
+                f"{from_to_pairs}, {properties_str})"
             )
             self.connection.execute(query)
             # Commit the transaction to persist changes
@@ -420,7 +661,7 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
             # conn.execute might return a list if multiple statements were run,
             # but for a single CALL, it should be a single QueryResult.
             # Handle both cases to satisfy Pylance and be robust.
-            actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+            actual_query_result: Optional[lbug.query_result.QueryResult] = None
             if isinstance(raw_query_result, list):
                 if raw_query_result:
                     actual_query_result = raw_query_result[0]
@@ -451,7 +692,7 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
         try:
             raw_query_result = self.connection.execute("CALL SHOW_TABLES() RETURN *;")
             rel_tables = []
-            actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+            actual_query_result: Optional[lbug.query_result.QueryResult] = None
             if isinstance(raw_query_result, list):
                 if raw_query_result:
                     actual_query_result = raw_query_result[0]
@@ -475,16 +716,27 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
         return None
 
     # --- Object Instance Management (Nodes) ---
-    def upsert_object_instance(self, instance: ObjectInstance) -> ObjectInstance:
-        """Upserts a node into the Kuzu node table corresponding to instance.object_type_name.
-        Uses Kuzu's MERGE Cypher clause. 'id' is the primary key for matching.
-        Maps instance.properties to Kuzu node properties.
-        """
+    def upsert_object_instance(self, instance: ObjectInstance) -> ObjectInstance:  # type: ignore[override]
+        """Upserts a node using CREATE+MATCH/SET (avoids real_ladybug MERGE bugs)."""
         if not self.connection:
             msg = "KuzuDB not connected"
             raise DatabaseError(msg)
 
         table_name = instance.object_type_name
+
+        # PINPOINT (diagnostic): log every object right before the ladybug write so the LAST
+        # line in the log before a segfault identifies the crashing object. logging flushes
+        # per-record, so this survives a hard native crash.
+        try:
+            _ps = {k: len(str(v)) for k, v in instance.properties.items()}
+            _bg = max(_ps.items(), key=lambda kv: kv[1]) if _ps else ("", 0)
+            logger.warning(
+                "PINPOINT upsert_obj id=%s type=%s name=%r file=%r big=%s(%d) total=%d",
+                instance.id, table_name, instance.properties.get("name"),
+                instance.properties.get("file_path"), _bg[0], _bg[1], sum(_ps.values()),
+            )
+        except Exception:
+            pass
 
         # Explicitly type params_for_query and props_for_set
         params_for_query: dict[str, Any] = {
@@ -498,29 +750,30 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
         # The id is only used for matching in the MERGE clause
         params_for_query["id_param"] = instance.id
 
-        # Process each property (excluding 'id' as it's handled by the MERGE pattern)
+        # ALL columns must be included in SET to avoid real_ladybug binding bugs.
+        # Column names are mapped to short aliases (k0, k1, ...) to work around
+        # a parser bug with multi-word / underscore column names.
         for key, original_value in instance.properties.items():
-            # Skip the 'id' property as it's handled by the MERGE pattern
             if key.lower() == "id":
                 continue
-                
-            param_name = f"p_{key}"
-            set_clause_parts.append(f"n.{key} = ${param_name}")
-            # Ensure the parameter type matches Kuzu's expectation for the property
-            if isinstance(original_value, UUID):
-                params_for_query[param_name] = original_value # Pass UUID object
+
+            kcol = key
+            set_clause_parts.append(f"n.{kcol} = ${kcol}")
+
+            if original_value is None:
+                params_for_query[kcol] = ""
+            elif isinstance(original_value, UUID):
+                params_for_query[kcol] = original_value
             elif isinstance(original_value, datetime):
-                params_for_query[param_name] = original_value  # Pass datetime object directly
+                params_for_query[kcol] = original_value
             elif isinstance(original_value, str):
-                # Handle datetime strings by converting to datetime objects
                 try:
                     dt_value = datetime.fromisoformat(original_value)
-                    params_for_query[param_name] = dt_value
+                    params_for_query[kcol] = dt_value
                 except (ValueError, TypeError):
-                    # If conversion fails, pass the original string
-                    params_for_query[param_name] = original_value
+                    params_for_query[kcol] = original_value
             else:
-                params_for_query[param_name] = original_value
+                params_for_query[kcol] = original_value
 
         if not set_clause_parts:
             msg = f"KuzuDB: No properties to set for object instance {instance.id} in {table_name}."
@@ -528,17 +781,20 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
 
         set_clause_str_on_create = ", ".join(set_clause_parts)
 
-        # For ON MATCH, exclude setting the 'id' property as it's used for matching.
-        # Only include other properties from instance.properties.
+        # ON MATCH uses the same columns as ON CREATE
         set_clause_parts_on_match_list = []
-        for key, original_value in instance.properties.items(): # Iterate only over instance.properties
-            param_name = f"p_{key}" # Ensure param_name matches those in params_for_query
-            set_clause_parts_on_match_list.append(f"n.{key} = ${param_name}")
+        for key, original_value in instance.properties.items():
+            if key.lower() == "id":
+                continue
+            kcol = key
+            set_clause_parts_on_match_list.append(f"n.{kcol} = ${kcol}")
 
         on_match_cypher_clause = ""
         if set_clause_parts_on_match_list:
             set_clause_str_on_match = ", ".join(set_clause_parts_on_match_list)
             on_match_cypher_clause = f"ON MATCH SET {set_clause_str_on_match}"
+
+        set_clause_str_on_create = ", ".join(set_clause_parts)
 
         query = f"""
             MERGE (n:{table_name} {{id: $id_param}})
@@ -550,70 +806,21 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
         try:
             raw_query_result = self.connection.execute(query, parameters=params_for_query)
 
-            actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+            actual_query_result = None
             if isinstance(raw_query_result, list):
                 if raw_query_result:
                     actual_query_result = raw_query_result[0]
             else:
                 actual_query_result = raw_query_result
 
-            if not actual_query_result or not actual_query_result.has_next():
-                msg = (
-                    f"KuzuDB: Upsert for object instance {instance.id} in "
-                    f"{table_name} did not return the expected ID, indicating a potential issue."
-                )
-                raise InstanceError(
-                    msg,
-                )
+            if actual_query_result and actual_query_result.has_next():
+                actual_query_result.get_next()
 
-            returned_id_val = actual_query_result.get_next()[0]
-
-            # Kuzu might return UUID as kuzu.UUID object or string depending on context/version.
-            # Ensure we compare it correctly with our UUID object.
-            returned_id_obj: Optional[UUID] = None
-            if isinstance(returned_id_val, UUID):
-                returned_id_obj = returned_id_val
-            elif isinstance(returned_id_val, str):
-                try:
-                    returned_id_obj = UUID(returned_id_val)
-                except ValueError as exc:
-                    msg = (
-                        f"KuzuDB: Returned ID '{returned_id_val}' from upsert "
-                        f"for table {table_name} is not a valid UUID string."
-                    )
-                    raise InstanceError(
-                        msg,
-                    ) from exc
-            # Kuzu's internal UUID type might be different, check for a 'value' attribute
-            elif hasattr(returned_id_val, "value") and isinstance(returned_id_val.value, (str, bytes)):  # type: ignore
-                try:
-                    returned_id_obj = UUID(str(returned_id_val.value))  # type: ignore
-                except (ValueError, TypeError) as exc:
-                    msg = (
-                        f"KuzuDB: Returned ID value '{returned_id_val.value}' from kuzu object "  # type: ignore
-                        f"for table {table_name} is not a valid UUID string."
-                    )
-                    raise InstanceError(
-                        msg,
-                    ) from exc
-            else:
-                msg = (
-                    f"KuzuDB: Returned ID from upsert for table {table_name} has unexpected "
-                    f"type {type(returned_id_val)}: {returned_id_val}"
-                )
-                raise InstanceError(
-                    msg,
-                )
-
-            if returned_id_obj != instance.id:
-                pass
-                # This could indicate a serious issue if Kuzu's MERGE behaves unexpectedly
-                # or if there's a type mismatch leading to misinterpretation of ID.
-                # For now, we proceed but this should be monitored.
-
-            # Commit the transaction to persist changes
             self.commit()
-            
+            # Remember which table this id lives in so relation upserts can pick the right
+            # (source, target) pair without a probe query.
+            self._node_table_cache[str(instance.id)] = table_name
+            self._maybe_checkpoint()
             return instance
 
         except Exception as e:
@@ -638,7 +845,7 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
             
             raw_query_result = self.connection.execute(query, parameters=params)
             
-            actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+            actual_query_result: Optional[lbug.query_result.QueryResult] = None
             if isinstance(raw_query_result, list):
                 if raw_query_result:
                     actual_query_result = raw_query_result[0]
@@ -651,12 +858,13 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
             row = actual_query_result.get_next()
             column_names = actual_query_result.get_column_names()
             
-            # Reconstruct the object instance
+            # Reconstruct the object instance, reversing column name mapping
             properties = {}
             for i, value in enumerate(row):
-                col_name = column_names[i]
-                if col_name != 'id':  # Skip the ID column as it's handled separately
-                    properties[col_name] = value
+                raw_col = column_names[i]
+                prop_name = raw_col
+                if prop_name != 'id':
+                    properties[prop_name] = value
 
             return ObjectInstance(
                 id=instance_id,
@@ -770,8 +978,21 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
                 msg,
             )
 
-        src_node_table = rtd.source_object_type_names[0]
-        tgt_node_table = rtd.target_object_type_names[0]
+        # Resolve the endpoints' real node tables (a relation type can span several type
+        # pairs; the rel table now holds them all). Fall back to the first declared type if
+        # an endpoint can't be found -- the MERGE then simply matches nothing, as before.
+        src_node_table = (
+            self._resolve_node_table(instance.source_object_instance_id, rtd.source_object_type_names)
+            or rtd.source_object_type_names[0]
+        )
+        tgt_node_table = (
+            self._resolve_node_table(instance.target_object_instance_id, rtd.target_object_type_names)
+            or rtd.target_object_type_names[0]
+        )
+        logger.warning(
+            "PINPOINT upsert_rel id=%s type=%s %s->%s",
+            instance.id, rel_table_name, src_node_table, tgt_node_table,
+        )
 
         params_for_query: dict[str, Any] = {
             "src_id_param": instance.source_object_instance_id, # Pass UUID object
@@ -800,27 +1021,22 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
                 continue
                 
             if prop.name in instance.properties:
-                param_name = f"p_{prop.name}"
-                set_clause_parts.append(f"r.{prop.name} = ${param_name}")
-                
-                # Get the value from instance properties
+                kcol = prop.name
+                set_clause_parts.append(f"r.{kcol} = ${kcol}")
+
                 original_value = instance.properties[prop.name]
-                
-                # Ensure the parameter type matches Kuzu's expectation
                 if isinstance(original_value, UUID):
-                    params_for_query[param_name] = original_value
+                    params_for_query[kcol] = original_value
                 elif isinstance(original_value, datetime):
-                    params_for_query[param_name] = original_value
+                    params_for_query[kcol] = original_value
                 elif isinstance(original_value, str):
-                    # Handle datetime strings by converting to datetime objects
                     try:
                         dt_value = datetime.fromisoformat(original_value)
-                        params_for_query[param_name] = dt_value
+                        params_for_query[kcol] = dt_value
                     except (ValueError, TypeError):
-                        # If conversion fails, pass the original string
-                        params_for_query[param_name] = original_value
+                        params_for_query[kcol] = original_value
                 else:
-                    params_for_query[param_name] = original_value
+                    params_for_query[kcol] = original_value
 
         # If there are no user-defined properties to set, we still need to create the relationship
         # Kuzu will handle the built-in properties (id, weight, upsert_date) automatically
@@ -831,12 +1047,17 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
             # Use a dummy SET to trigger the MERGE operation
             set_clause_str = "r.weight = r.weight"  # No-op SET clause
 
-        # First try a simpler approach - just create the relationship directly
-        # If nodes don't exist, Kuzu will give an error which we can handle
+        # MERGE (not CREATE) on the relationship id so this is a true upsert: re-writing a
+        # relation with the same deterministic id (e.g. the same edge re-derived in a later
+        # run/process) matches the existing edge instead of appending a duplicate. With CREATE
+        # the graph tier accumulated ~2x duplicate edges across runs even though the id was
+        # set, because the id was never used to match. The id lives in the MERGE pattern, so
+        # it must not also appear in SET (Kuzu rejects setting a merge-key); SET carries only
+        # the user-defined properties (set_clause_str, a no-op when there are none).
         query = f"""
             MATCH (src:{src_node_table} {{id: $src_id_param}}), (tgt:{tgt_node_table} {{id: $tgt_id_param}})
-            CREATE (src)-[r:{rel_table_name}]->(tgt)
-            SET r.id = $rel_id_param, {set_clause_str}
+            MERGE (src)-[r:{rel_table_name} {{id: $rel_id_param}}]->(tgt)
+            SET {set_clause_str}
             RETURN r.id
         """
         logger.debug(f"Kuzu upsert_relation_instance query: {query}")
@@ -845,7 +1066,7 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
         try:
             raw_query_result = self.connection.execute(query, parameters=params_for_query)
 
-            actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+            actual_query_result: Optional[lbug.query_result.QueryResult] = None
             if isinstance(raw_query_result, list):
                 if raw_query_result:
                     actual_query_result = raw_query_result[0]
@@ -883,7 +1104,8 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
 
             # Commit the transaction to persist changes
             self.commit()
-            
+            self._maybe_checkpoint()
+
             return instance
 
         except Exception as e:
@@ -909,7 +1131,7 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
         try:
             raw_query_result = self.connection.execute(query, parameters=params)
 
-            actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+            actual_query_result: Optional[lbug.query_result.QueryResult] = None
             if isinstance(raw_query_result, list):
                 if raw_query_result:
                     actual_query_result = raw_query_result[0]
@@ -1080,7 +1302,7 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
         try:
             raw_query_result = self.connection.execute(final_query, parameters=params)
 
-            actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+            actual_query_result: Optional[lbug.query_result.QueryResult] = None
             if isinstance(raw_query_result, list):
                 if raw_query_result:
                     actual_query_result = raw_query_result[0]
@@ -1322,7 +1544,7 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
                 try:
                     raw_query_result = self.connection.execute(query_str, parameters=params)
 
-                    actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+                    actual_query_result: Optional[lbug.query_result.QueryResult] = None
                     if isinstance(raw_query_result, list):
                         if raw_query_result:
                             actual_query_result = raw_query_result[0]

@@ -8,7 +8,6 @@
  */
 
 
-import { Decimal } from 'decimal.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 
@@ -60,9 +59,6 @@ import type {
   GetEmbeddingVectorForTextParams,
   SearchSimilarObjectsWithEmbeddingsParams,
 } from '../types/index.js';
-
-// Enum imports
-import { PropertyDataType } from '../types/enums';
 
 /**
  * Configuration options for the MCP client connection.
@@ -184,9 +180,11 @@ export class MCPClient {
       if (this.config.serverUrl === 'stdio' && this.config.serverCommand) {
         // Stdio transport for local servers
         const { StdioClientTransport } = await import('@modelcontextprotocol/sdk/client/stdio.js');
+        const finalArgs = this.config.serverArgs || [];
+        process.stderr.write(`MCPClient spawning: ${this.config.serverCommand} ${finalArgs.join(' ')}\n`);
         this.transport = new StdioClientTransport({
           command: this.config.serverCommand,
-          args: this.config.serverArgs || [],
+          args: finalArgs,
         });
       } else if (this.config.serverUrl.startsWith('http')) {
         // HTTP/SSE transport for remote servers
@@ -215,7 +213,7 @@ export class MCPClient {
       this.reconnectAttempts = 0; // Reset reconnect attempts on successful connection
 
       if (this.config.debug) {
-        console.log('Connected to MCP server');
+        console.error('Connected to MCP server');
       }
     } catch (error) {
       this.connectionState = ConnectionState.ERROR;
@@ -264,7 +262,7 @@ export class MCPClient {
     this.connectionState = ConnectionState.DISCONNECTED;
 
     if (this.config.debug) {
-      console.log('Disconnected from MCP server');
+      console.error('Disconnected from MCP server');
     }
   }
 
@@ -300,14 +298,14 @@ export class MCPClient {
       // This is likely a stdio transport
       transportAny.process.on('exit', (code: number, signal: string) => {
         if (this.config.debug) {
-          console.log(`Transport process exited with code ${code}, signal ${signal}`);
+          console.error(`Transport process exited with code ${code}, signal ${signal}`);
         }
         this.handleTransportDisconnect();
       });
       
       transportAny.process.on('error', (error: Error) => {
         if (this.config.debug) {
-          console.log(`Transport process error:`, error);
+          console.error(`Transport process error:`, error);
         }
         this.handleTransportDisconnect();
       });
@@ -319,7 +317,7 @@ export class MCPClient {
    */
   private async handleTransportDisconnect(): Promise<void> {
     if (this.config.debug) {
-      console.log('Transport disconnected, attempting reconnection...');
+      console.error('Transport disconnected, attempting reconnection...');
     }
     
     this.connectionState = ConnectionState.ERROR;
@@ -335,7 +333,7 @@ export class MCPClient {
   private async attemptReconnect(): Promise<void> {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       if (this.config.debug) {
-        console.log(`Max reconnection attempts (${this.maxReconnectAttempts}) reached. Giving up.`);
+        console.error(`Max reconnection attempts (${this.maxReconnectAttempts}) reached. Giving up.`);
       }
       return;
     }
@@ -343,7 +341,7 @@ export class MCPClient {
     this.connectionState = ConnectionState.RECONNECTING;
     
     if (this.config.debug) {
-      console.log(`Attempting reconnection (${this.reconnectAttempts + 1}/${this.maxReconnectAttempts}) in ${this.reconnectDelay}ms...`);
+      console.error(`Attempting reconnection (${this.reconnectAttempts + 1}/${this.maxReconnectAttempts}) in ${this.reconnectDelay}ms...`);
     }
 
     // Create a promise for the reconnection attempt
@@ -374,7 +372,7 @@ export class MCPClient {
       await this.connect();
       
       if (this.config.debug) {
-        console.log('Reconnection successful!');
+        console.error('Reconnection successful!');
       }
       
       this.reconnectAttempts = 0; // Reset on successful reconnection
@@ -387,7 +385,7 @@ export class MCPClient {
       }
     } catch (error) {
       if (this.config.debug) {
-        console.log(`Reconnection attempt failed:`, error);
+        console.error(`Reconnection attempt failed:`, error);
       }
       
       this.reconnectAttempts++;
@@ -424,7 +422,7 @@ export class MCPClient {
      const operation = async (): Promise<T> => {
        try {
          if (this.config.debug) {
-           console.log(`Making tool call: ${toolName}`, JSON.stringify(args, null, 2));
+           console.error(`Making tool call: ${toolName}`, JSON.stringify(args, null, 2));
          }
          const result = await this.client!.callTool({
            name: toolName,
@@ -433,12 +431,12 @@ export class MCPClient {
 
          // Debug: Log the raw result structure for get_embedding_vector_for_text
          if (toolName === 'get_embedding_vector_for_text' && this.config.debug) {
-           console.log(`Raw MCP result for ${toolName}:`, JSON.stringify(result, null, 2));
+           console.error(`Raw MCP result for ${toolName}:`, JSON.stringify(result, null, 2));
          }
 
         // Handle MCP-specific errors
         if (result.isError) {
-          console.log(`Error result from tool ${toolName}:`, JSON.stringify(result, null, 2));
+          console.error(`Error result from tool ${toolName}:`, JSON.stringify(result, null, 2));
           if (result['error']) {
             // Try to parse as MCP error response
             let mcpError;
@@ -447,16 +445,16 @@ export class MCPClient {
             } catch {
               mcpError = { code: -1, message: (result['error'] as { message: string }).message };
             }
-            console.log(`Parsed MCP error for ${toolName}:`, mcpError);
+            console.error(`Parsed MCP error for ${toolName}:`, mcpError);
             throw mapMcpError(mcpError, toolName);
           }
-          console.log(`No error details for failed tool ${toolName}`);
+          console.error(`No error details for failed tool ${toolName}`);
           throw new Error(`Tool call failed: ${toolName}`);
         }
 
         // Debug: Log the final parsed result for get_embedding_vector_for_text
         if (toolName === 'get_embedding_vector_for_text' && this.config.debug) {
-          console.log(`About to parse result for ${toolName}. Raw result structure:`, JSON.stringify(result, null, 2));
+          console.error(`About to parse result for ${toolName}. Raw result structure:`, JSON.stringify(result, null, 2));
         }
 
         // Handle MCP protocol response format
@@ -468,7 +466,7 @@ export class MCPClient {
               return parsedData;
             } catch (_parseError) {
               if (this.config.debug) {
-                console.log(`Failed to parse MCP text content for ${toolName}:`, content.text);
+                console.error(`Failed to parse MCP text content for ${toolName}:`, content.text);
               }
               throw new Error(`Failed to parse MCP text response: ${content.text}`);
             }
@@ -507,13 +505,13 @@ export class MCPClient {
 
         // Debug: Log the final parsed result for get_embedding_vector_for_text
         if (toolName === 'get_embedding_vector_for_text' && this.config.debug) {
-          console.log(`Final parsed result for ${toolName}:`, JSON.stringify(finalResult, null, 2));
-          console.log(`Final result type: ${typeof finalResult}`);
+          console.error(`Final parsed result for ${toolName}:`, JSON.stringify(finalResult, null, 2));
+          console.error(`Final result type: ${typeof finalResult}`);
           if (typeof finalResult === 'object' && finalResult !== null) {
-            console.log(`Final result has vector property: ${'vector' in finalResult}`);
+            console.error(`Final result has vector property: ${'vector' in finalResult}`);
             if ('vector' in finalResult) {
               const vectorValue = (finalResult as { vector?: unknown }).vector;
-              console.log(`Vector value type: ${typeof vectorValue}, isArray: ${Array.isArray(vectorValue)}, length: ${Array.isArray(vectorValue) ? vectorValue.length : 'N/A'}`);
+              console.error(`Vector value type: ${typeof vectorValue}, isArray: ${Array.isArray(vectorValue)}, length: ${Array.isArray(vectorValue) ? vectorValue.length : 'N/A'}`);
             }
           }
         }
@@ -673,7 +671,7 @@ export class MCPClient {
 
      // Debug: Log the raw result structure
      if (this.config.debug) {
-       console.log('getObjectById raw result:', JSON.stringify(rawResult, null, 2));
+       console.error('getObjectById raw result:', JSON.stringify(rawResult, null, 2));
      }
 
      let result: ObjectInstance | null;
@@ -773,7 +771,7 @@ export class MCPClient {
 
     // Debug: Log the raw result structure
     if (this.config.debug) {
-      console.log('getRelation raw result:', JSON.stringify(rawResult, null, 2));
+      console.error('getRelation raw result:', JSON.stringify(rawResult, null, 2));
     }
 
     let result: RelationInstanceList;
@@ -898,7 +896,7 @@ export class MCPClient {
 
     // Debug: Log the raw result structure
     if (this.config.debug) {
-      console.log('getEmbeddingVectorForText raw result:', JSON.stringify(rawResult, null, 2));
+      console.error('getEmbeddingVectorForText raw result:', JSON.stringify(rawResult, null, 2));
     }
 
     let vector: number[];
@@ -963,7 +961,7 @@ export class MCPClient {
 
       // Debug: Log the raw result structure
       if (this.config.debug) {
-        console.log('executeComplexQuery raw result:', JSON.stringify(rawResult, null, 2));
+        console.error('executeComplexQuery raw result:', JSON.stringify(rawResult, null, 2));
       }
 
       let result: QueryResult;
@@ -994,111 +992,103 @@ export class MCPClient {
   /**
    * Finds objects similar to query text using embeddings.
    *
-   * This method implements the findSimilar workflow that requires multiple MCP calls:
-   * 1. Create a temporary object with the query text
-   * 2. Generate embedding for the query text
-   * 3. Search for similar objects using the embedding
-   * 4. Clean up the temporary object
+   * Dispatches directly to the Python MCP server's `find_similar_by_embedding`
+   * tool, which embeds the query text server-side, performs the vector search
+   * in LanceDB, and (when enabled) re-scores the top-K candidates with a
+   * cross-encoder reranker before returning the top `limit` objects.
+   *
+   * If only a pre-computed `embedding_vector` is supplied (no `text`), the
+   * call falls back to an `execute_complex_query` with an
+   * `EmbeddingSearchClause` — that path does not support reranking because
+   * cross-encoders need the raw query text.
    */
   async findSimilar(params: SearchSimilarObjectsWithEmbeddingsParams): Promise<SimilaritySearchResult[]> {
     this.ensureConnected();
 
-    let tempObjectId: string | null = null;
-    const tempObjectType = 'temp_query_object';
-    const tempObjectPrefix = `temp_query_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    if (!params.text && !params.embedding_vector) {
+      throw new QueryError(
+        'findSimilar requires either `text` (preferred, enables reranking) or a precomputed `embedding_vector`.',
+        { operation: 'findSimilar' },
+      );
+    }
 
     try {
-      // Step 1: Create a temporary object to hold the query text
-      const tempObject: ObjectInstance = {
-        id: tempObjectPrefix,
-        object_type_name: tempObjectType,
-        weight: new Decimal('1.0'),
-        upsert_date: new Date(),
-        properties: {
-          text: params.text || '',
-        },
-      };
-
-      // Create the temporary object type if it doesn't exist
-      try {
-        await this.createObjectType({
-          object_type_def: {
-            name: tempObjectType,
-            description: 'Temporary object type for query processing',
-            properties: [
-              {
-                name: 'text',
-                data_type: PropertyDataType.TEXT,
-                is_nullable: false,
-              },
-            ],
-          },
+      if (params.text) {
+        // Preferred path: the server embeds the text, runs the ANN search,
+        // and optionally reranks — all in one MCP tool call.
+        const toolArgs: Record<string, unknown> = {
+          embedding_definition_name: params.embedding_definition_name,
+          query_text: params.text,
+          limit: params.limit ?? 5,
+        };
+        if (params.filter_condition !== undefined) {
+          toolArgs['filter_condition'] = params.filter_condition;
+        }
+        if (params.rerank !== undefined) {
+          toolArgs['rerank'] = params.rerank;
+        }
+        if (params.rerank_model !== undefined) {
+          toolArgs['rerank_model'] = params.rerank_model;
+        }
+        if (params.rerank_candidates !== undefined) {
+          toolArgs['rerank_candidates'] = params.rerank_candidates;
+        }
+        const objects = await this.callTool<ObjectInstance[]>('find_similar_by_embedding', {
+          args: toolArgs,
         });
-      } catch (_error) {
-        // Object type might already exist, continue
+        return objects.map((obj) => ({
+          object_id: obj.id,
+          object_type_name: obj.object_type_name,
+          score: Number(obj.properties?.['_similarity_score'] ?? 0),
+          properties: obj.properties,
+        }));
       }
 
-      await this.upsertObject({ obj: tempObject });
-      tempObjectId = tempObjectPrefix;
-
-      // Step 2: Get embedding vector for the query text
-      await this.callTool<{ vector: number[] }>('get_embedding_vector_for_text', {
-        args: {
-          text_to_embed: params.text,
-          embedding_definition_name: params.embedding_definition_name,
+      // Vector-only path: use execute_complex_query so we can pass a
+      // pre-computed vector through EmbeddingSearchClause. No reranking.
+      const queryResult = await this.callTool<{
+        object_instances: ObjectInstance[];
+        errors?: string[];
+      }>('execute_complex_query', {
+        query: {
+          description: 'findSimilar (vector-only)',
+          components: [
+            {
+              object_type_name: params.object_type_names?.[0] ?? '',
+              embedding_searches: [
+                {
+                  embedding_definition_name: params.embedding_definition_name,
+                  similar_to_payload: params.embedding_vector,
+                  limit: params.limit ?? 5,
+                  ...(params.threshold !== undefined ? { threshold: params.threshold } : {}),
+                },
+              ],
+            },
+          ],
         },
       });
-
-      // Step 3: Search for similar objects using the embedding
-      // Note: We use the search_similar_objects tool with the temp object
-      const similarObjects = await this.callTool<Array<[ObjectInstance, number]>>('search_similar_objects', {
-        object_id: tempObjectId,
-        type_name: tempObjectType,
-        limit: params.limit,
-        threshold: params.threshold,
-      });
-
-      // Step 4: Transform results to SimilaritySearchResult format
-      const results: SimilaritySearchResult[] = similarObjects.map(([obj, score]) => ({
+      return (queryResult.object_instances ?? []).map((obj) => ({
         object_id: obj.id,
         object_type_name: obj.object_type_name,
-        score: score,
+        score: 0,
         properties: obj.properties,
       }));
-
-      return results;
-
     } catch (error) {
-      // Re-throw with more context
       throw new QueryError(
         `findSimilar operation failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
         {
           operation: 'findSimilar',
           context: {
             embedding_definition_name: params.embedding_definition_name,
-            text: params.text,
+            has_text: Boolean(params.text),
+            has_vector: Boolean(params.embedding_vector),
             limit: params.limit,
-            threshold: params.threshold,
+            rerank: params.rerank,
+            rerank_model: params.rerank_model,
           },
         },
-        error instanceof Error ? error : new Error(String(error))
+        error instanceof Error ? error : new Error(String(error)),
       );
-    } finally {
-      // Step 5: Clean up temporary object
-      if (tempObjectId) {
-        try {
-          await this.deleteObject({
-            object_id: tempObjectId,
-            type_name: tempObjectType,
-          });
-        } catch (cleanupError) {
-          // Log cleanup error but don't fail the operation
-          if (this.config.debug) {
-            console.warn('Failed to cleanup temporary object:', cleanupError);
-          }
-          
-        }
-      }
     }
   }
 }

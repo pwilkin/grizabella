@@ -6,22 +6,27 @@ This guide provides a detailed walkthrough of the Grizabella Python API, coverin
 
 The primary entry point to interacting with Grizabella is the `Grizabella` class from the [`grizabella.api.client`][] module.
 
-### `Grizabella(db_name_or_path: Union[str, Path] = "default", create_if_not_exists: bool = True)`
+### `Grizabella(db_name_or_path: Union[str, Path] = "default", create_if_not_exists: bool = True, use_gpu: bool = False)`
 
 **Parameters:**
 
 * `db_name_or_path` (Union[str, Path], optional):
   * Specifies the database instance to connect to.
-  * If a string like `"my_db"` is provided, Grizabella manages it in a default location (e.g., `~/.grizabella/databases/my_db`).
-  * If a `pathlib.Path` object or a string representing a full path is provided, Grizabella uses that specific directory.
-  * Defaults to `"default"`, which uses `~/.grizabella/databases/default`.
+  * If a string like `"my_db"` is provided, Grizabella manages it under `~/.grizabella/db_instances/my_db`.
+  * If a `pathlib.Path` object or a string representing an absolute filesystem path is provided, Grizabella uses that specific directory as-is.
+  * Defaults to `"default"`, which resolves to `~/.grizabella/db_instances/default_db`.
 * `create_if_not_exists` (bool, optional):
   * If `True` (the default), the database directory and necessary files will be created if they don't already exist.
   * If `False` and the database does not exist, an error will likely occur upon trying to connect or perform operations.
+* `use_gpu` (bool, optional):
+  * If `True`, the embedding model and the optional cross-encoder reranker attempt to use CUDA. Requires a functioning PyTorch CUDA install.
+  * Defaults to `False`.
 
 **Default Behavior:**
 
-Initializing `Grizabella()` without arguments connects to (or creates) a database named "default" in the standard Grizabella data directory.
+Initializing `Grizabella()` without arguments connects to (or creates) the `default_db` instance under `~/.grizabella/db_instances/`.
+
+Multiple `Grizabella` clients pointing at the same resolved path share a single underlying `GrizabellaDBManager` via a reference-counted singleton factory, so it is cheap to construct per-request clients inside services.
 
 **Usage with `with` Statement:**
 
@@ -38,7 +43,7 @@ db_path = Path("./my_grizabella_db")
 try:
     with Grizabella(db_name_or_path=db_path, create_if_not_exists=True) as gz:
         # The connection is now active within this block
-        print(f"Successfully connected to Grizabella database at: {gz._db_manager.db_path}")
+        print(f"Successfully connected to Grizabella database at: {gz.db_name_or_path}")
 
         # You can now perform operations, e.g., list object types
         object_types = gz.list_object_types()
@@ -81,7 +86,7 @@ user_type_def = ObjectTypeDefinition(
         PropertyDefinition(name="email", data_type=PropertyDataType.TEXT, is_unique=True),
         PropertyDefinition(name="full_name", data_type=PropertyDataType.TEXT, is_nullable=True),
         PropertyDefinition(name="join_date", data_type=PropertyDataType.DATETIME),
-        PropertyDefinition(name="is_active", data_type=PropertyDataType.BOOLEAN, default=True) # Default not directly in model, but conceptual
+        PropertyDefinition(name="is_active", data_type=PropertyDataType.BOOLEAN, is_nullable=False),  # PropertyDefinition has no `default` field; set values explicitly when upserting instances.
     ]
 )
 
@@ -181,14 +186,20 @@ with Grizabella(db_name_or_path="user_guide_db") as gz:
         print("Created 'User' object type for embedding example.")
 
 
-    # Define an Embedding Definition for the "profile_bio" property of "User"
+    # Define an Embedding Definition for the "profile_bio" property of "User".
+    # `embedding_model` is resolved through the LanceDB embedding registry; if
+    # you do not prefix it with a provider, `huggingface` is assumed.
+    # `reranker_model` is optional — when set, semantic searches can re-score
+    # the top vector hits with a cross-encoder.
     user_bio_embedding_def = EmbeddingDefinition(
         name="user_profile_bio_sbert",
         object_type_name="User",
         source_property_name="profile_bio",
-        embedding_model="sentence-transformers/all-MiniLM-L6-v2", # Example model
-        dimensions=384, # Example dimension for the chosen model
-        description="Embeds user profile bios using Sentence-BERT for similarity search."
+        embedding_model="huggingface/sentence-transformers/all-MiniLM-L6-v2",
+        dimensions=384,
+        reranker_model="cross-encoder/ms-marco-MiniLM-L-6-v2",  # optional
+        rerank_candidate_multiplier=5,  # oversample 5x before reranking
+        description="Embeds user profile bios for similarity search, with optional reranking."
     )
 
     try:
@@ -295,7 +306,7 @@ with Grizabella(db_name_or_path="user_guide_db") as gz:
         target_object_type_names=["Post"],
         properties=[
             PropertyDefinition(name="authored_date", data_type=PropertyDataType.DATETIME),
-            PropertyDefinition(name="is_primary_author", data_type=PropertyDataType.BOOLEAN, default=True)
+            PropertyDefinition(name="is_primary_author", data_type=PropertyDataType.BOOLEAN),  # no `default=` kwarg — set the value on each RelationInstance
         ]
     )
 
@@ -533,13 +544,35 @@ with Grizabella(db_name_or_path="user_guide_db") as gz:
         print(f"Error adding relation: {e}")
 ```
 
-#### `get_relation(...)` and `delete_relation(...)`
+#### `get_relation(from_object_id: str, to_object_id: str, relation_type_name: str) -> List[RelationInstance]`
 
-* **Note:** As per the [`grizabella.api.client`][] source, `get_relation` and `delete_relation` methods that take `from_object_id`, `to_object_id`, and `relation_type_name` are currently marked as `NotImplementedError`. The underlying DB manager expects a `relation_id`.
-    For now, to manage relations by ID, you would typically:
-    1. Find relations using `get_outgoing_relations` or `get_incoming_relations`.
-    2. Identify the specific `RelationInstance` and use its `id` with the underlying `_db_manager` methods (though direct `_db_manager` access is not the public API).
-    This section will be updated if the public API for `get_relation` and `delete_relation` by ID or by source/target/type is fully implemented.
+* **Purpose:** Retrieves relations of a given type between two specific objects
+  (identified by UUID strings). Returns all matching relations — useful because
+  multiple parallel relations of the same type may exist between the same pair.
+
+    ```python
+    with Grizabella(db_name_or_path="user_guide_db") as gz:
+        rels = gz.get_relation(
+            from_object_id=str(author_obj.id),
+            to_object_id=str(post_obj.id),
+            relation_type_name="AUTHORED",
+        )
+        for rel in rels:
+            print(rel.id, rel.properties)
+    ```
+
+#### `delete_relation(relation_type_name: str, relation_id: str) -> bool`
+
+* **Purpose:** Deletes a single relation by its type name and UUID. Returns
+  `True` if the row was actually removed from SQLite and/or the Kuzu graph,
+  `False` if it wasn't found.
+
+    ```python
+    gz.delete_relation(relation_type_name="AUTHORED", relation_id=str(rel.id))
+    ```
+
+For bulk lookups by source/target/relation-type/property filters (rather than a
+specific two-object pair), see `query_relations(...)` on the client.
 
 #### `get_outgoing_relations(object_id: str, type_name: str, relation_type_name: Optional[str] = None) -> List[RelationInstance]`
 
@@ -650,69 +683,53 @@ Grizabella provides several ways to query your data, from simple object lookups 
 
   * The `filter_criteria` currently supports exact matches. For more complex conditions (e.g., >, <, LIKE), you would typically use the `execute_complex_query` method or if the underlying `query_object_instances` in `DBManager` evolves to support richer conditions directly through `find_objects`.
 
-### Embedding Similarity Search (`search_similar_objects`)
+### Embedding Similarity Search (`find_similar`)
 
-* **Signature:** `def search_similar_objects(self, object_id: str, type_name: str, n_results: int = 5, search_properties: Optional[List[str]] = None) -> List[Tuple[ObjectInstance, float]]:`
-* **Purpose:** Searches for objects similar to a given object, typically using embeddings.
-* **Note:** The client API's `search_similar_objects` is currently marked as `NotImplementedError` because its signature (taking `object_id`, `type_name`) differs from the underlying DBManager's `find_similar_objects_by_embedding` which expects an `embedding_definition_name` and a `query_vector` or `query_text`.
-    The examples below are *conceptual* for how a fully implemented `find_similar` (as requested in the prompt) might work, assuming it maps to the DBManager's capabilities.
+* **Signature:**
+  `def find_similar(self, embedding_name: str, query_text: str, limit: int = 5, filter_condition: Optional[str] = None, rerank: Optional[bool] = None, rerank_model: Optional[str] = None, rerank_candidates: Optional[int] = None) -> list[ObjectInstance]:`
+* **Purpose:** Runs a semantic search against a given `EmbeddingDefinition`.
+  The query text is embedded with the same model that produced the stored
+  vectors, a top-K ANN lookup runs on LanceDB, and full `ObjectInstance`s
+  are fetched from SQLite for the hits.
+* **Reranking:** If the `EmbeddingDefinition` carries a `reranker_model`
+  (or you pass `rerank_model=` explicitly), the top candidates are
+  post-processed with a cross-encoder for sharper relevance:
+  * `rerank=None` (default) — rerank automatically iff a model is configured.
+  * `rerank=True` — force reranking; combined with `rerank_model` lets you
+    rerank definitions that don't otherwise have a model configured.
+  * `rerank=False` — skip reranking even if a model is configured.
+  * `rerank_candidates` — how many vector hits to fetch before reranking.
+    Defaults to `limit * EmbeddingDefinition.rerank_candidate_multiplier`.
+* **Example — plain vector search:**
 
-    **Conceptual `find_similar` (if it were implemented to match DBManager):**
+    ```python
+    with Grizabella(db_name_or_path="user_guide_db") as gz:
+        similar_users = gz.find_similar(
+            embedding_name="user_profile_bio_sbert",
+            query_text="Looking for software engineers passionate about Python.",
+            limit=3,
+        )
+        for user in similar_users:
+            print(f"  - ID: {user.id}, Username: {user.properties.get('username')}")
+    ```
 
-    Let's assume a hypothetical `find_similar_by_definition` method in the client:
-    `def find_similar_by_definition(self, embedding_definition_name: str, query_text: Optional[str] = None, query_vector: Optional[List[float]] = None, limit: int = 5, filter_condition: Optional[Dict[str, Any]] = None, retrieve_full_objects: bool = True) -> List[Tuple[ObjectInstance, float]]:`
+* **Example — force-enable reranking with an explicit model:**
 
-  * **Example using `query_text` (Conceptual):**
+    ```python
+    similar_users = gz.find_similar(
+        embedding_name="user_profile_bio_sbert",
+        query_text="experienced backend engineer for high-throughput APIs",
+        limit=5,
+        rerank=True,
+        rerank_model="mixedbread-ai/mxbai-rerank-base-v1",
+        rerank_candidates=50,  # oversample before cross-encoding
+    )
+    ```
 
-```python
-        # CONCEPTUAL EXAMPLE - Method does not exist with this signature in current client
-        # Assuming 'gz' is an active Grizabella client and "user_profile_bio_sbert" embedding def exists
-        # with Grizabella(db_name_or_path="user_guide_db") as gz:
-        #     search_text = "Looking for software engineers passionate about Python."
-        #     try:
-        #         similar_users = gz.find_similar_by_definition( # Hypothetical method
-        #             embedding_definition_name="user_profile_bio_sbert",
-        #             query_text=search_text,
-        #             limit=3
-        #         )
-        #         if similar_users:
-        #             print(f"Users with bios similar to '{search_text}':")
-        #             for user, score in similar_users:
-        #                 print(f"  - ID: {user.id}, Username: {user.properties.get('username')}, Score: {score:.4f}")
-        #                 print(f"    Bio: {user.properties.get('profile_bio')[:100]}...") # Show part of bio
-        #         else:
-        #             print("No similar users found.")
-        #     except Exception as e:
-        #         print(f"Error during conceptual similarity search: {e}")
-```
-
-* **Example using `query_vector` (Conceptual):**
-
-```python
-        # CONCEPTUAL EXAMPLE
-        # import numpy as np # For generating a dummy vector
-        # with Grizabella(db_name_or_path="user_guide_db") as gz:
-        #     # Assume 'user_profile_bio_sbert' has dimensions 384
-        #     dummy_vector = np.random.rand(384).tolist()
-        #     try:
-        #         similar_users_by_vector = gz.find_similar_by_definition( # Hypothetical method
-        #             embedding_definition_name="user_profile_bio_sbert",
-        #             query_vector=dummy_vector,
-        #             limit=2
-        #         )
-        #         if similar_users_by_vector:
-        #             print("Users similar to the provided vector:")
-        #             for user, score in similar_users_by_vector:
-        #                 print(f"  - ID: {user.id}, Score: {score:.4f}")
-        #         else:
-        #             print("No users found similar to the vector.")
-        #     except Exception as e:
-        #         print(f"Error during conceptual vector similarity search: {e}")
-```
-
-* **Example with `limit` and `filter_condition` (Conceptual):**
-        The `filter_condition` would likely be a dictionary similar to `find_objects`' `filter_criteria`, applied *after* the similarity search to the candidate objects, or potentially pushed down to the vector DB if supported.
-        The `retrieve_full_objects` parameter (boolean) would control whether the full `ObjectInstance` is returned or perhaps just IDs and scores.
+* **Note on legacy method:** The client also exposes `search_similar_objects(object_id, type_name, ...)`
+  for "find objects similar to *this* object", which uses the given object's stored embedding as the query
+  vector. Because this path doesn't have access to the original query text, it does not currently invoke
+  the reranker.
 
 ### Complex Queries (`execute_complex_query`)
 
@@ -742,7 +759,7 @@ Grizabella provides several ways to query your data, from simple object lookups 
             gz.create_object_type(ObjectTypeDefinition(name="User", properties=[
                 PropertyDefinition(name="user_id", data_type=PropertyDataType.TEXT, is_primary_key=True),
                 PropertyDefinition(name="username", data_type=PropertyDataType.TEXT),
-                PropertyDefinition(name="is_active", data_type=PropertyDataType.BOOLEAN, default=True)
+                PropertyDefinition(name="is_active", data_type=PropertyDataType.BOOLEAN, is_nullable=False)
             ]))
         if not gz.get_object_type_definition("Post"):
             gz.create_object_type(ObjectTypeDefinition(name="Post", properties=[
@@ -888,4 +905,64 @@ Grizabella provides several ways to query your data, from simple object lookups 
   * `object_instances`: A list of `ObjectInstance`s that match the entire complex query. These instances will be of the `object_type_name` specified in the *first* component of your `ComplexQuery` if not otherwise specified by future features like explicit return types.
   * `errors`: A list of strings, containing any error messages encountered during query planning or execution. Check this list to debug issues.
 
-This detailed guide should help you effectively use the Grizabella Python API. Remember to consult the specific docstrings in the source code for the most up-to-date details on parameters and behavior.
+#### Reranking inside a Complex Query
+
+`EmbeddingSearchClause` carries the same rerank knobs as
+`Grizabella.find_similar`. If you provide the raw `rerank_query_text`, the
+query engine oversamples the vector step and cross-encodes the candidates
+before handing the surviving IDs to the next step (graph traversal,
+relational filter, etc.).
+
+```python
+from grizabella.core.query_models import (
+    ComplexQuery, QueryComponent, EmbeddingSearchClause, GraphTraversalClause, RelationalFilter,
+)
+
+# Vector for the query (obtained via `get_embedding_vector_for_text` or
+# your own encoder). For brevity here we reuse the LanceDB-side model:
+query_text = "Python performance tips"
+query_vec = gz._db_manager._connection_helper.lancedb_adapter.get_embedding_model(
+    "sentence-transformers/all-MiniLM-L6-v2"
+).compute_query_embeddings([query_text])[0]
+
+query = ComplexQuery(
+    description="Active users who authored posts semantically close to 'Python performance tips'.",
+    components=[
+        QueryComponent(
+            object_type_name="Post",
+            embedding_searches=[
+                EmbeddingSearchClause(
+                    embedding_definition_name="post_content_embed",
+                    similar_to_payload=list(query_vec),
+                    limit=5,
+                    # Rerank-specific fields:
+                    rerank_query_text=query_text,
+                    rerank=True,                    # None/True/False
+                    # rerank_model="...",           # optional per-call override
+                    # rerank_candidates=50,         # optional oversampling override
+                ),
+            ],
+            graph_traversals=[
+                GraphTraversalClause(
+                    relation_type_name="AUTHORED",
+                    direction="incoming",
+                    target_object_type_name="User",
+                    target_object_properties=[
+                        RelationalFilter(property_name="is_active", operator="==", value=True),
+                    ],
+                ),
+            ],
+        ),
+    ],
+)
+result = gz.execute_complex_query(query)
+```
+
+When reranking runs, the threshold field on the clause is skipped (the units
+change from cosine distance to cross-encoder scores), and candidate output is
+ordered by rerank score descending.
+
+This detailed guide should help you effectively use the Grizabella Python API.
+Consult the source docstrings in [`grizabella.core.models`][],
+[`grizabella.core.query_models`][], and [`grizabella.api.client`][] for the
+authoritative parameter descriptions.

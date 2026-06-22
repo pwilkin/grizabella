@@ -1,5 +1,10 @@
 # Grizabella Memory Leak Fix - Comprehensive Connection Management Design
 
+> **Historical design doc.** Preserved as the design rationale behind
+> the connection pool, DB-manager factory, and resource monitor that
+> landed in `grizabella.core`. For current behavior consult those
+> modules directly — docs here are not kept in sync with code changes.
+
 ## Problem Analysis
 
 ### Root Cause Identification

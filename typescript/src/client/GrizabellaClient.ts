@@ -142,26 +142,45 @@ export class GrizabellaClient {
    * ```
    */
   constructor(config: GrizabellaClientConfig) {
-    process.stderr.write('=== GrizabellaClient constructor called with config: ' + JSON.stringify(config, null, 2) + '\n');
+    if (config.debug) {
+      process.stderr.write('=== GrizabellaClient constructor called with config: ' + JSON.stringify(config, null, 2) + '\n');
+    }
 
     // Store and resolve database configuration
     this._dbNameOrPath = GrizabellaClient.resolveDatabasePath(config.dbNameOrPath ?? 'default');
     this._createIfNotExists = config.createIfNotExists ?? true;
 
-    // Build the MCP server command with database path
+    // Resolve MCP server transport + command.
+    //
+    // The Grizabella Python MCP server speaks stdio, so by default we spawn
+    // `grizabella-mcp --db-path <db>` as a subprocess. Resolution order for
+    // the serverCommand:
+    //   1. explicit config.serverCommand
+    //   2. $GRIZABELLA_MCP_COMMAND env var
+    //   3. 'grizabella-mcp' on PATH
+    // An HTTP/SSE URL can be supplied instead by passing serverUrl: 'http(s)://...'.
+    const serverUrl = config.serverUrl ?? 'stdio';
+    const isStdio = serverUrl === 'stdio';
     const dbPath = String(this._dbNameOrPath);
-    const serverCommand = `/devel/alt/grizabella/.venv/bin/python`;
-    const serverArgs = [`-m`, `grizabella.mcp.server`, `--db-path`, dbPath];
+    const defaultServerCommand =
+      process.env['GRIZABELLA_MCP_COMMAND']?.trim() || 'grizabella-mcp';
+    const serverCommand = isStdio
+      ? (config.serverCommand ?? defaultServerCommand)
+      : (config.serverCommand ?? '');
+    const serverArgs = isStdio
+      ? (config.serverArgs ?? ['--db-path', dbPath, ...(config.useGpu ? ['--use-gpu'] : [])])
+      : (config.serverArgs ?? []);
+    process.stderr.write(`GrizabellaClient: config.serverArgs=${JSON.stringify(config.serverArgs)}, resolved serverArgs=${JSON.stringify(serverArgs)}, useGpu=${config.useGpu}\n`);
 
     // Build complete configuration with defaults
     this._config = {
       dbNameOrPath: this._dbNameOrPath,
       createIfNotExists: this._createIfNotExists,
-      serverUrl: 'stdio', // Use stdio transport
-      serverCommand: serverCommand, // Store the command to start the server
-      serverArgs: serverArgs, // Store the arguments for the server command
+      serverUrl,
+      serverCommand,
+      serverArgs,
       timeout: config.timeout ?? 30000,
-      debug: config.debug ?? true, // Enable debug mode to see response structure
+      debug: config.debug ?? false,
       useGpu: config.useGpu ?? false,
       autoReconnect: config.autoReconnect ?? true,
       maxReconnectAttempts: config.maxReconnectAttempts ?? 5,
@@ -255,9 +274,9 @@ export class GrizabellaClient {
    *
    * @example
    * ```typescript
+   * // Default: spawn the Python grizabella-mcp server over stdio.
    * const client = new GrizabellaClient({
    *   dbNameOrPath: 'my-database',
-   *   serverUrl: 'http://localhost:8000/mcp',
    * });
    *
    * await client.connect();
@@ -1282,27 +1301,30 @@ export class GrizabellaClient {
    * @throws NotConnectedError if not connected
    * @throws QueryError if the embedding definition is not found or invalid
    *
+   * @param options - Extra options: filter_condition (pre-ANN WHERE),
+   *   rerank (force on/off), rerank_model (override), rerank_candidates
+   *   (oversample count).
+   *
    * @example
    * ```typescript
-   * // Find documents similar to a query
+   * // Plain semantic search.
    * const similarDocs = await client.findSimilar(
    *   'document_embedding',
    *   'machine learning and artificial intelligence',
-   *   10
+   *   10,
    * );
    *
-   * console.log('Found', similarDocs.length, 'similar documents');
-   * similarDocs.forEach(result => {
-   *   console.log('Document:', result.object.properties.title);
-   *   console.log('Similarity score:', result.score);
-   * });
-   *
-   * // Find products with filtering
-   * const similarProducts = await client.findSimilar(
-   *   'product_embedding',
-   *   'wireless bluetooth headphones',
+   * // With cross-encoder reranking (requires a reranker_model on the
+   * // EmbeddingDefinition, or pass rerank_model here).
+   * const reranked = await client.findSimilar(
+   *   'document_embedding',
+   *   'state machine optimizations',
    *   5,
-   *   'price < 100'
+   *   {
+   *     rerank: true,
+   *     rerank_candidates: 50,
+   *     rerank_model: 'cross-encoder/ms-marco-MiniLM-L-6-v2',
+   *   },
    * );
    * ```
    */
@@ -1310,7 +1332,12 @@ export class GrizabellaClient {
     embeddingName: string,
     queryText: string,
     limit?: number,
-    // filterCondition?: string  // Parameter is defined in the interface but not used in the implementation
+    options?: {
+      filter_condition?: string;
+      rerank?: boolean;
+      rerank_model?: string;
+      rerank_candidates?: number;
+    },
   ): Promise<SimilaritySearchResult[]> {
     this.ensureConnected();
 
@@ -1322,23 +1349,27 @@ export class GrizabellaClient {
       throw new ValidationError('queryText is required and cannot be empty');
     }
 
-    // Call the MCP client method that handles the complex workflow
-    // Build params object conditionally to avoid passing undefined values
     const params: SearchSimilarObjectsWithEmbeddingsParams = {
+      embedding_definition_name: embeddingName,
       text: queryText,
-      embedding_definition_name: embeddingName
     };
-    
     if (limit !== undefined) {
       params.limit = limit;
     }
-    
-    // Note: Not adding threshold parameter since with 'exactOptionalPropertyTypes: true',
-    // we can't pass undefined. The parameter is optional in the interface.
-    
-    const results = await this._mcpClient.findSimilar(params);
+    if (options?.filter_condition !== undefined) {
+      params.filter_condition = options.filter_condition;
+    }
+    if (options?.rerank !== undefined) {
+      params.rerank = options.rerank;
+    }
+    if (options?.rerank_model !== undefined) {
+      params.rerank_model = options.rerank_model;
+    }
+    if (options?.rerank_candidates !== undefined) {
+      params.rerank_candidates = options.rerank_candidates;
+    }
 
-    return results;
+    return await this._mcpClient.findSimilar(params);
   }
 
   /**
@@ -1513,29 +1544,35 @@ export class GrizabellaClient {
    * @throws ValidationError if configuration is invalid
    */
   private validateConfiguration(): void {
-    if (!this._config.serverUrl) {
-      throw new ConnectionError('Server URL or command is required');
+    const { serverUrl, serverCommand } = this._config;
+    if (!serverUrl) {
+      throw new ConnectionError('Server URL is required');
     }
 
-    // Validate server URL format
     try {
-      if (this._config.serverUrl.startsWith('http')) {
-        new URL(this._config.serverUrl);
+      if (serverUrl === 'stdio') {
+        // Stdio transport: a serverCommand must have been resolved.
+        if (!serverCommand || !serverCommand.trim()) {
+          throw new Error(
+            "serverUrl is 'stdio' but no serverCommand was provided. " +
+            'Install `grizabella-mcp` (poetry install) so it is on PATH, ' +
+            'or supply serverCommand/serverArgs explicitly.',
+          );
+        }
+      } else if (serverUrl.startsWith('http://') || serverUrl.startsWith('https://')) {
+        // HTTP/SSE transport: URL must parse.
+        // eslint-disable-next-line no-new
+        new URL(serverUrl);
       } else {
-        // For stdio commands, ensure it's not empty and looks like a command
-        if (!this._config.serverUrl.trim()) {
-          throw new Error('Invalid server command');
-        }
-        // Basic validation for command format
-        if (!this._config.serverUrl.includes('grizabella.mcp.server')) {
-          console.warn('Server command does not appear to be a Grizabella MCP server command');
-        }
+        throw new Error(
+          `Unsupported serverUrl '${serverUrl}'. Expected 'stdio' or an http(s) URL.`,
+        );
       }
     } catch (error) {
       throw new ConnectionError(
-        `Invalid server URL/command format: ${this._config.serverUrl}`,
-        { host: this._config.serverUrl },
-        error instanceof Error ? error : new Error(String(error))
+        `Invalid server configuration: ${serverUrl}`,
+        { host: serverUrl },
+        error instanceof Error ? error : new Error(String(error)),
       );
     }
 
@@ -1600,17 +1637,15 @@ export class GrizabellaClient {
  *
  * ### 2. Context Manager Pattern (TypeScript 5.2+)
  * ```typescript
- * // Using static connect method
+ * // Using static connect method (default: stdio transport)
  * await using client = await GrizabellaClient.connect({
  *   dbNameOrPath: 'my-database',
- *   serverUrl: 'http://localhost:8000/mcp',
  * });
  * // Client automatically connects and disconnects
  *
  * // Using constructor with await using
  * await using client = new GrizabellaClient({
  *   dbNameOrPath: 'my-database',
- *   serverUrl: 'http://localhost:8000/mcp',
  * });
  * await client.connect(); // Must call connect explicitly
  * // Client automatically disconnects via Symbol.asyncDispose
@@ -1654,7 +1689,6 @@ export class GrizabellaClient {
  * ```typescript
  * const client = new GrizabellaClient({
  *   dbNameOrPath: 'my-database',
- *   serverUrl: 'http://localhost:8000/mcp',
  * });
  *
  * console.log('State:', client.getConnectionState());
@@ -1665,15 +1699,23 @@ export class GrizabellaClient {
  *
  * ### 6. Configuration Options
  * ```typescript
+ * // Stdio transport (the default). Override serverCommand to pin a
+ * // specific interpreter or virtualenv.
  * const client = new GrizabellaClient({
  *   dbNameOrPath: './data/my-database',
- *   serverUrl: 'http://localhost:8000/mcp',
  *   createIfNotExists: true,
  *   timeout: 10000,
  *   debug: true,
  *   autoReconnect: true,
  *   maxReconnectAttempts: 3,
  *   reconnectDelay: 2000,
+ *   serverCommand: '/opt/venvs/grizabella/bin/grizabella-mcp',
+ * });
+ *
+ * // HTTP/SSE transport for a remotely-hosted MCP endpoint.
+ * const remote = new GrizabellaClient({
+ *   dbNameOrPath: 'remote-db',
+ *   serverUrl: 'https://grizabella.example.com/mcp',
  * });
  * ```
  *

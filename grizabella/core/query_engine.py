@@ -437,15 +437,47 @@ class QueryExecutor:
                     )
                 elif step.step_type == "lancedb_search":
                     emb_clause = step.details["embedding_search_clause"]
+                    ed_def = self._db_manager.get_embedding_definition(
+                        emb_clause.embedding_definition_name,
+                    )
+                    rerank_model_name: Optional[str] = None
+                    rerank_candidates: int = emb_clause.limit
+                    if ed_def is not None and emb_clause.rerank_query_text is not None:
+                        from grizabella.core.reranker import resolve_reranker_config
+                        rerank_enabled, rerank_model_name, rerank_candidates = resolve_reranker_config(
+                            embedding_definition_reranker=ed_def.reranker_model,
+                            embedding_definition_multiplier=ed_def.rerank_candidate_multiplier,
+                            rerank=emb_clause.rerank,
+                            rerank_model=emb_clause.rerank_model,
+                            rerank_candidates=emb_clause.rerank_candidates,
+                            limit=emb_clause.limit,
+                        )
+                        if not rerank_enabled:
+                            rerank_model_name = None
+                            rerank_candidates = emb_clause.limit
+
                     results_with_distance = self._db_manager.lancedb_adapter.find_object_ids_by_similarity(
                         embedding_definition_name=emb_clause.embedding_definition_name,
                         query_vector=emb_clause.similar_to_payload,
-                        limit=emb_clause.limit,
+                        limit=rerank_candidates,
                         initial_ids=input_ids,
                     )
-                    # Apply thresholding
+
+                    if rerank_model_name is not None and results_with_distance:
+                        results_with_distance = self._rerank_hits(
+                            hits=results_with_distance,
+                            ed_def=ed_def,  # type: ignore[arg-type]
+                            query_text=emb_clause.rerank_query_text,  # type: ignore[arg-type]
+                            rerank_model_name=rerank_model_name,
+                            limit=emb_clause.limit,
+                        )
+
+                    # Apply thresholding (L2 distance or cosine similarity). When
+                    # reranking ran, distances are now cross-encoder scores
+                    # (higher is better) and thresholding is skipped to avoid
+                    # mixing unit systems.
                     step_output_ids = []
-                    if emb_clause.threshold is not None:
+                    if emb_clause.threshold is not None and rerank_model_name is None:
                         for res_id, distance in results_with_distance:
                             if emb_clause.is_l2_distance:
                                 if distance <= emb_clause.threshold:
@@ -487,3 +519,52 @@ class QueryExecutor:
                 return set()
 
         return set(current_ids if current_ids is not None else [])
+
+    def _rerank_hits(  # pylint: disable=R0913
+        self,
+        hits: list[tuple[UUID, float]],
+        ed_def: Any,
+        query_text: str,
+        rerank_model_name: str,
+        limit: int,
+    ) -> list[tuple[UUID, float]]:
+        """Re-score LanceDB hits with a cross-encoder; falls back to vector order on error."""
+        from grizabella.core.reranker import get_reranker, rerank as rerank_pairs
+        from grizabella.core.exceptions import DatabaseError, EmbeddingError, SchemaError
+
+        candidate_ids = [hit_id for hit_id, _ in hits]
+        try:
+            instances = self._db_manager.sqlite_adapter.get_objects_by_ids(
+                ed_def.object_type_name, candidate_ids,
+            )
+        except (DatabaseError, SchemaError) as e:
+            logger.warning(
+                "Rerank: failed to fetch source objects for ED '%s'; "
+                "falling back to vector ranking. Error: %s",
+                ed_def.name, e,
+            )
+            return hits[:limit]
+
+        text_by_id: dict[UUID, Optional[str]] = {}
+        for instance in instances:
+            value = instance.properties.get(ed_def.source_property_name)
+            text_by_id[instance.id] = None if value is None else str(value)
+
+        ordered_texts = [text_by_id.get(hit_id) for hit_id, _ in hits]
+        try:
+            conn_helper = getattr(self._db_manager, "_connection_helper", None)
+            use_gpu = bool(getattr(conn_helper, "_use_gpu", False)) if conn_helper else False
+            model = get_reranker(rerank_model_name, use_gpu=use_gpu)
+            scores = rerank_pairs(model, query_text, ordered_texts)
+        except EmbeddingError as e:
+            logger.warning(
+                "Rerank failed for ED '%s' (%s); returning vector-ranked results.",
+                ed_def.name, e,
+            )
+            return hits[:limit]
+
+        scored: list[tuple[float, UUID]] = []
+        for (hit_id, _), score in zip(hits, scores):
+            scored.append((score, hit_id))
+        scored.sort(key=lambda item: item[0], reverse=True)
+        return [(hit_id, score) for score, hit_id in scored[:limit]]

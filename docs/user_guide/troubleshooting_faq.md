@@ -19,23 +19,24 @@ This section provides solutions to common problems and answers to frequently ask
   * Alternatively, you might be able to install a pre-built `pyarrow` wheel that includes these, but system-wide installation is often more reliable for `lancedb`.
 
 * **Python version incompatibilities:**
-  * Grizabella is developed and tested with Python 3.9+. Using older versions might lead to unexpected errors.
+  * Grizabella requires **Python >=3.12 and <3.14**. Older 3.x versions (including 3.11) are not supported.
   * Ensure your Poetry environment is configured to use a compatible Python version. You can specify this in your `pyproject.toml` or when creating the environment with `poetry env use <python_version>`.
 
 ### Connection Issues (UI/API)
 
 * **"Cannot connect to database" / Default database not found:**
-  * **Check Path:** Verify that the database path specified (or the default path `~/.grizabella/default_db`) exists and is accessible.
+  * **Check Path:** Verify that the database path specified (or the default path `~/.grizabella/db_instances/default_db`) exists and is accessible.
   * **Permissions:** Ensure Grizabella has read/write permissions for the database directory and its files.
-  * **Default Database:** If you haven't specified a custom path, Grizabella looks for a database at `~/.grizabella/default_db`. If this is your first time running Grizabella or if this directory was removed, it might not exist. The application should create it on first valid schema definition, but if you encounter issues, ensure the parent directory `~/.grizabella` is writable.
+  * **Default Database:** If you haven't specified a custom path, Grizabella looks for a database under `~/.grizabella/db_instances/default_db`. It is created automatically by `Grizabella(create_if_not_exists=True)` (the default) — just make sure the parent directory `~/.grizabella` is writable.
 
 ### Schema Definition Errors
 
 * **Common mistakes when defining `ObjectTypeDefinition`, `EmbeddingDefinition`, `RelationTypeDefinition`:**
-  * **Referencing non-existent types:** Ensure that any `ObjectType` referenced in a `RelationTypeDefinition` (as `from_type` or `to_type`) or in an `EmbeddingDefinition` (as `object_type_name`) has already been defined.
-  * **Incorrect property types:** Property types in `ObjectTypeDefinition` must be valid Python types (e.g., `str`, `int`, `float`, `bool`, `list`, `dict`) or Pydantic models.
-  * **Naming conventions:** While not strictly errors, adhere to consistent naming for clarity.
-  * **Embedding source fields:** Ensure the `source_fields` in an `EmbeddingDefinition` exist as properties in the corresponding `ObjectTypeDefinition`.
+  * **Referencing non-existent types:** Ensure that any `ObjectType` referenced in a `RelationTypeDefinition` (in `source_object_type_names` / `target_object_type_names`) or in an `EmbeddingDefinition` (as `object_type_name`) has already been defined.
+  * **Incorrect property data types:** `PropertyDefinition.data_type` must be a `PropertyDataType` enum value (`TEXT`, `INTEGER`, `FLOAT`, `BOOLEAN`, `DATETIME`, `BLOB`, `JSON`, `UUID`). Bare Python types (`str`, `int`, etc.) and Pydantic models are not accepted.
+  * **Naming conventions:** While not strictly errors, adhere to consistent naming for clarity — PascalCase for object types, UPPER_SNAKE_CASE for relation types, snake_case for embedding definitions.
+  * **Embedding source property:** `EmbeddingDefinition.source_property_name` (singular) must name a property that exists on the referenced `ObjectTypeDefinition` and should be of type `TEXT`.
+  * **Reranker model:** `EmbeddingDefinition.reranker_model` is optional — when set, semantic searches can post-process top-K results with a cross-encoder. If you misspell the model identifier, the reranker fails to load and the server logs a warning and falls back to plain vector ranking.
 
 ### Embedding Generation Failures
 
@@ -62,19 +63,22 @@ This section provides solutions to common problems and answers to frequently ask
 ## FAQ (Frequently Asked Questions)
 
 * **Q: How do I specify a custom database location?**
-  * A: You can set the `GRIZABELLA_DB_PATH` environment variable to your desired directory path before launching Grizabella. Alternatively, some Grizabella components or the API client might allow specifying the path programmatically.
+  * A: Pass `db_name_or_path=` when constructing `Grizabella`, or launch the MCP server with `--db-path /path/to/db`. The `GRIZABELLA_DB_PATH` environment variable is honored only by the MCP server. Bare names resolve to `~/.grizabella/db_instances/<name>`; absolute paths are used as-is.
 
 * **Q: What embedding models are supported?**
-  * A: By default, Grizabella is configured to use a model like `Colbert` (or a similar high-quality SentenceTransformer model). However, you can specify any SentenceTransformer model identifier from the Hugging Face Hub when defining an `EmbeddingDefinition`. Grizabella will then attempt to download and use that model.
+  * A: Any model available through the LanceDB embedding registry — primarily Hugging Face sentence-transformers and ONNX models. The default `EmbeddingDefinition.embedding_model` is `huggingface/mixedbread-ai/mxbai-embed-large-v1`. Prefix the identifier with a provider name (e.g. `huggingface/...`) to force a specific registry provider; plain identifiers default to `huggingface`.
+
+* **Q: What reranker models are supported?**
+  * A: Any cross-encoder loadable by `sentence-transformers.CrossEncoder`. Common choices: `cross-encoder/ms-marco-MiniLM-L-6-v2` (fast, MS MARCO trained), `BAAI/bge-reranker-v2-m3` (multilingual, higher quality), `mixedbread-ai/mxbai-rerank-base-v1`. Set `reranker_model` on the `EmbeddingDefinition` to enable it by default for semantic searches, or pass `rerank_model=` per call. Reranking needs `query_text` — it cannot work from a pre-computed vector alone because cross-encoders score text pairs.
 
 * **Q: Can I have multiple embedding definitions for the same object type?**
-  * A: Yes. You can define multiple `EmbeddingDefinition`s for a single `ObjectType`. Each definition can use different source fields and/or a different embedding model, allowing for diverse semantic representations of your objects.
+  * A: Yes. You can define multiple `EmbeddingDefinition`s for a single `ObjectType`. Each definition can use a different source property and/or a different embedding model, allowing for diverse semantic representations of your objects.
 
-* **Q: How is data consistency maintained across the three layers (SQLite, LanceDB, Kùzu)?**
-  * A: The Grizabella API and its core `DBManager` orchestrate operations across the different database layers. When an object is created, updated, or deleted, `DBManager` ensures that corresponding changes are made in the structured data store (SQLite), the vector store (LanceDB for embeddings), and the graph store (Kùzu for relations) as needed, based on your schema definitions.
+* **Q: How is data consistency maintained across the three layers (SQLite, LanceDB, LadybugDB)?**
+  * A: The Grizabella API and its core `GrizabellaDBManager` orchestrate operations across the three layers. Object and relation metadata are persisted to SQLite (the authoritative store), vector embeddings to LanceDB, and graph edges to LadybugDB (the successor to Kuzu — still imported internally under the `kuzu` alias). When an object is upserted, updated, or deleted, the manager writes to each layer as needed based on the schema.
 
 * **Q: Where can I report bugs or ask for help?**
-  * A: Please report bugs, suggest features, or ask for help by creating an issue on our GitHub repository: [`https://github.com/pwilkin/grizabella/issues`](https://github.com/pwilkin/grizabella/issues) (Note: This is a placeholder URL).
+  * A: Please open an issue on the GitHub repository: <https://github.com/pwilkin/grizabella/issues>.
 
 
 ## Connection Management Best Practices
@@ -112,8 +116,8 @@ This section provides solutions to common problems and answers to frequently ask
  * Monitor memory usage during long-running operations to detect potential leaks early.
 
 * **Resource monitoring:**
-  * Grizabella includes a resource monitoring dashboard accessible via the web interface for real-time monitoring of CPU, memory, connections, and threads.
-  * Use the monitoring tools to track resource usage patterns and identify potential issues.
+  * `grizabella.core.resource_monitor` tracks CPU, memory, open-connection, and thread-count metrics in a background thread. Metrics are emitted to the Grizabella logger (file output when running under the MCP server) — there is no built-in web dashboard.
+  * Use those logs, along with the MCP server log files it drops in the working directory, to spot resource regressions.
 
 ### Threading and Concurrency
 

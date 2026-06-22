@@ -2,6 +2,21 @@
 
 Complete API reference for the Grizabella TypeScript client library.
 
+> **Transport note.** The `grizabella-mcp` Python server speaks stdio by
+> default; the `GrizabellaClient` sets `serverUrl: 'stdio'` internally
+> and launches the server as a subprocess via `serverCommand`. Any
+> example in this reference that shows `serverUrl: 'http://…'` assumes a
+> separately-hosted HTTP/SSE MCP endpoint.
+
+> **Reranker note.** The underlying `EmbeddingDefinition` model now
+> supports optional `reranker_model` and `rerank_candidate_multiplier`
+> fields (cross-encoder post-processing for semantic search). At the
+> time of writing, the TypeScript client does not yet surface these
+> fields — see `docs/user_guide/mcp_server_api_guide.md` on the Python
+> side for the end-to-end flow, and invoke the MCP tool
+> `find_similar_by_embedding` directly via the low-level MCP transport
+> if you need reranking from TS before the high-level wrapper lands.
+
 ## Table of Contents
 
 - [GrizabellaClient](#grizabellaclient)

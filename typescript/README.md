@@ -52,12 +52,18 @@ yarn add grizabella-typescript-api
 ```typescript
 import { GrizabellaClient } from 'grizabella-typescript-api';
 
-// Create and connect to a database
+// Create and connect to a database. The Grizabella MCP server speaks
+// stdio, so we spawn it as a subprocess via `serverCommand`.
 await using client = await GrizabellaClient.connect({
   dbNameOrPath: 'my-knowledge-base',
   createIfNotExists: true,
   useGpu: true, // Enable GPU acceleration
   debug: true,
+  serverUrl: 'stdio',
+  serverCommand: {
+    command: 'poetry',
+    args: ['run', 'grizabella-mcp', '--db-path', './my-knowledge-base'],
+  },
 });
 
 // Client automatically connects and will disconnect when scope ends
@@ -192,10 +198,15 @@ console.log(`Found ${similarPeople.length} similar people`);
 ### Connection Management
 
 ```typescript
-// Manual connection management
+// Manual connection management (stdio transport — the default for
+// `grizabella-mcp`).
 const client = new GrizabellaClient({
   dbNameOrPath: 'my-database',
-  serverUrl: 'http://localhost:8000/mcp',
+  serverUrl: 'stdio',
+  serverCommand: {
+    command: 'poetry',
+    args: ['run', 'grizabella-mcp', '--db-path', './my-database'],
+  },
 });
 
 await client.connect();
@@ -205,11 +216,18 @@ await client.close();
 // Context manager pattern (TypeScript 5.2+)
 await using client = new GrizabellaClient({
   dbNameOrPath: 'my-database',
-  serverUrl: 'http://localhost:8000/mcp',
+  serverUrl: 'stdio',
+  serverCommand: {
+    command: 'poetry',
+    args: ['run', 'grizabella-mcp', '--db-path', './my-database'],
+  },
 });
 // Client automatically connects
 // ... use client
 // Client automatically disconnects
+
+// HTTP/SSE is supported too — set `serverUrl` to an `http(s)://...` URL
+// for a remote Grizabella MCP server that exposes the HTTP transport.
 ```
 
 ### Error Handling

@@ -2,6 +2,13 @@
 
 Comprehensive guide to common issues and their solutions when using the Grizabella TypeScript API.
 
+> **Transport note.** Many snippets below show
+> `serverUrl: 'http://localhost:8000/mcp'`. That corresponds to a
+> separately-hosted HTTP/SSE MCP endpoint; the `grizabella-mcp` Python
+> server is stdio-only out of the box, and `GrizabellaClient` defaults
+> to `serverUrl: 'stdio'` with an auto-spawned subprocess. Swap the
+> URL for `'stdio'` (plus a `serverCommand`) when running locally.
+
 ## Table of Contents
 
 - [Installation Issues](#installation-issues)

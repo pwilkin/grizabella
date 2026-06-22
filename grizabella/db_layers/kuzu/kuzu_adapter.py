@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Any, Optional
 from uuid import UUID
 
-import real_ladybug as kuzu
+import ladybug as lbug
 
 from grizabella.core.exceptions import DatabaseError, InstanceError, SchemaError, ConfigurationError
 from grizabella.core.models import (
@@ -75,8 +75,8 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
             db_path_obj = db_path_obj.with_suffix('.db')
             logger.info(f"KuzuAdapter: Added .db extension, using {db_path_obj}")
         
-        self.db: Optional[kuzu.Database] = None
-        self.conn: Optional[kuzu.Connection] = None
+        self.db: Optional[lbug.Database] = None
+        self.conn: Optional[lbug.Connection] = None
         # Store the actual path as a Path object for consistent handling
         self._db_path_obj = db_path_obj
         super().__init__(str(db_path_obj), config)
@@ -117,10 +117,10 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
                     except OSError as e:
                         logger.warning(f"KuzuAdapter: Could not remove WAL file {wal_file}: {e}")
             logger.info(f"KuzuAdapter: Lock checks finished, starting connection in thread ID: {threading.get_ident()}.")
-            self.db = kuzu.Database(self.db_path)
-            logger.info(f"KuzuAdapter: kuzu.Database() successful in thread ID: {threading.get_ident()}. DB object: {self.db}")
-            self.conn = kuzu.Connection(self.db)
-            logger.info(f"KuzuAdapter: kuzu.Connection() successful in thread ID: {threading.get_ident()}. Connection object: {self.conn}")
+            self.db = lbug.Database(self.db_path)
+            logger.info(f"KuzuAdapter: lbug.Database() successful in thread ID: {threading.get_ident()}. DB object: {self.db}")
+            self.conn = lbug.Connection(self.db)
+            logger.info(f"KuzuAdapter: lbug.Connection() successful in thread ID: {threading.get_ident()}. Connection object: {self.conn}")
         except Exception as e:
             logger.error(f"KuzuAdapter: Error during _connect in thread ID: {threading.get_ident()}: {e}", exc_info=True)
             msg = f"KuzuDB connection error to {self.db_path}: {e}"
@@ -345,7 +345,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
             # conn.execute might return a list if multiple statements were run,
             # but for a single CALL, it should be a single QueryResult.
             # Handle both cases to satisfy Pylance and be robust.
-            actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+            actual_query_result: Optional[lbug.query_result.QueryResult] = None
             if isinstance(raw_query_result, list):
                 if raw_query_result:
                     actual_query_result = raw_query_result[0]
@@ -376,7 +376,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
         try:
             raw_query_result = self.conn.execute("CALL SHOW_TABLES() RETURN *;")
             rel_tables = []
-            actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+            actual_query_result: Optional[lbug.query_result.QueryResult] = None
             if isinstance(raw_query_result, list):
                 if raw_query_result:
                     actual_query_result = raw_query_result[0]
@@ -496,7 +496,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
 
             raw_query_result = self.conn.execute(query, parameters=params_for_query)
 
-            actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+            actual_query_result: Optional[lbug.query_result.QueryResult] = None
             if isinstance(raw_query_result, list):
                 if raw_query_result:
                     actual_query_result = raw_query_result[0]
@@ -587,7 +587,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
             # Ensure params is passed correctly as a dictionary
             raw_query_result = self.conn.execute(query, parameters=params)
 
-            actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+            actual_query_result: Optional[lbug.query_result.QueryResult] = None
             if isinstance(raw_query_result, list):
                 if raw_query_result:
                     actual_query_result = raw_query_result[0]
@@ -698,7 +698,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
         try:
             raw_query_result = self.conn.execute(query, parameters=params)
 
-            actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+            actual_query_result: Optional[lbug.query_result.QueryResult] = None
             if isinstance(raw_query_result, list):
                 if raw_query_result:
                     actual_query_result = raw_query_result[0]
@@ -888,7 +888,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
         logger.debug(f"KuzuAdapter: Checking source node existence with query: {check_src_query} and params: {{'src_id_param': instance.source_object_instance_id}}")
         src_exists_result = self.conn.execute(check_src_query, parameters={"src_id_param": instance.source_object_instance_id})
 
-        actual_src_exists_result: Optional[kuzu.query_result.QueryResult] = None
+        actual_src_exists_result: Optional[lbug.query_result.QueryResult] = None
         if isinstance(src_exists_result, list):
             if src_exists_result:
                 actual_src_exists_result = src_exists_result[0]
@@ -905,7 +905,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
         logger.debug(f"KuzuAdapter: Checking target node existence with query: {check_tgt_query} and params: {{'tgt_id_param': instance.target_object_instance_id}}")
         tgt_exists_result = self.conn.execute(check_tgt_query, parameters={"tgt_id_param": instance.target_object_instance_id})
 
-        actual_tgt_exists_result: Optional[kuzu.query_result.QueryResult] = None
+        actual_tgt_exists_result: Optional[lbug.query_result.QueryResult] = None
         if isinstance(tgt_exists_result, list):
             if tgt_exists_result:
                 actual_tgt_exists_result = tgt_exists_result[0]
@@ -930,7 +930,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
         try:
             raw_query_result = self.conn.execute(query, parameters=params_for_query)
 
-            actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+            actual_query_result: Optional[lbug.query_result.QueryResult] = None
             if isinstance(raw_query_result, list):
                 if raw_query_result:
                     actual_query_result = raw_query_result[0]
@@ -994,7 +994,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
         try:
             raw_query_result = self.conn.execute(query, parameters=params)
 
-            actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+            actual_query_result: Optional[lbug.query_result.QueryResult] = None
             if isinstance(raw_query_result, list):
                 if raw_query_result:
                     actual_query_result = raw_query_result[0]
@@ -1197,7 +1197,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
         try:
             raw_query_result = self.conn.execute(final_query, parameters=params)
 
-            actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+            actual_query_result: Optional[lbug.query_result.QueryResult] = None
             if isinstance(raw_query_result, list):
                 if raw_query_result:
                     actual_query_result = raw_query_result[0]
@@ -1317,7 +1317,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
         try:
             raw_query_result = self.conn.execute(query, parameters=params)
 
-            actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+            actual_query_result: Optional[lbug.query_result.QueryResult] = None
             if isinstance(raw_query_result, list):
                 if raw_query_result:
                     actual_query_result = raw_query_result[0]
@@ -1447,7 +1447,7 @@ class KuzuAdapter(BaseDBAdapter):  # pylint: disable=R0904
                 try:
                     raw_query_result = self.conn.execute(query_str, parameters=params)
 
-                    actual_query_result: Optional[kuzu.query_result.QueryResult] = None
+                    actual_query_result: Optional[lbug.query_result.QueryResult] = None
                     if isinstance(raw_query_result, list):
                         if raw_query_result:
                             actual_query_result = raw_query_result[0]

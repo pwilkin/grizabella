@@ -1,156 +1,166 @@
 # Getting Started with Grizabella
 
-This guide will help you take your first steps with Grizabella, whether you're using it as a Python library, interacting with the PySide6 UI, or connecting via the MCP server.
+This guide walks through your first steps with Grizabella, whether you're
+using it as a Python library, through the PySide6 UI, or via the MCP server.
 
 ## Using Grizabella as a Library (Python API)
 
-The Grizabella Python API provides a powerful way to integrate its multi-layer database capabilities into your applications.
-
-Here's a short example demonstrating basic operations:
-
 ```python
+from uuid import uuid4
+
 from grizabella.api import Grizabella
-from grizabella.core.models import ObjectTypeDefinition, PropertyDefinition, DataType
+from grizabella.core.models import (
+    EmbeddingDefinition,
+    ObjectInstance,
+    ObjectTypeDefinition,
+    PropertyDataType,
+    PropertyDefinition,
+)
 
-# 1. Initialize and connect to Grizabella
-# This will use the default database path (~/.grizabella/default_grizabella.db)
-# or create it if it doesn't exist.
-# For more robust error handling, wrap in try...finally or use a 'with' statement.
+# 1. Open a Grizabella database. Passing a bare name ("default") resolves to
+#    a per-user data directory; passing a Path uses it as-is.
+with Grizabella(db_name_or_path="my_db", use_gpu=False) as client:
 
-print("Initializing Grizabella client...")
-client = Grizabella(use_gpu=True) # Enable GPU acceleration
-
-try:
-    print("Connecting to the database...")
-    client.connect()
-    print("Successfully connected.")
-
-    # 2. Define a simple Object Type
-    print("Defining 'Note' object type...")
-    note_type_def = ObjectTypeDefinition(
+    # 2. Define an object type (like a table / node label).
+    note_otd = ObjectTypeDefinition(
         name="Note",
         description="A simple text note.",
         properties=[
-            PropertyDefinition(name="title", data_type=DataType.STRING, is_required=True),
-            PropertyDefinition(name="content", data_type=DataType.TEXT),
-        ]
+            PropertyDefinition(name="title",   data_type=PropertyDataType.TEXT, is_nullable=False),
+            PropertyDefinition(name="content", data_type=PropertyDataType.TEXT),
+        ],
     )
-    client.create_object_type(note_type_def)
-    print(f"Object type '{note_type_def.name}' created.")
+    client.create_object_type(note_otd)
 
-    # 3. Create an Object Instance of this type
-    print("Creating an instance of 'Note'...")
-    note_instance_data = {
-        "title": "My First Note",
-        "content": "This is a test note created using the Grizabella Python API."
-    }
-    # The create_object_instance method returns the created object with its assigned ID
-    created_note = client.create_object_instance(object_type_name="Note", data=note_instance_data)
-    print(f"Created note with ID: {created_note.id}")
-    print(f"  Title: {created_note.data['title']}")
-    print(f"  Content: {created_note.data['content']}")
+    # 3. (Optional) Define an embedding over the 'content' property, with an
+    #    optional cross-encoder reranker that will be applied to semantic
+    #    searches automatically when a query_text is supplied.
+    client.create_embedding_definition(EmbeddingDefinition(
+        name="note_content_embedding",
+        object_type_name="Note",
+        source_property_name="content",
+        embedding_model="huggingface/mixedbread-ai/mxbai-embed-large-v1",
+        reranker_model="cross-encoder/ms-marco-MiniLM-L-6-v2",  # optional
+    ))
 
+    # 4. Upsert an ObjectInstance. Note the field is `properties`, not `data`.
+    note = client.upsert_object(ObjectInstance(
+        id=uuid4(),
+        object_type_name="Note",
+        properties={"title": "My First Note", "content": "Hello Grizabella!"},
+    ))
+    print(f"Stored note {note.id} (upserted at {note.upsert_date})")
 
-    # 4. Retrieve the object
-    print(f"Retrieving note with ID: {created_note.id}...")
-    retrieved_note = client.get_object_instance(object_type_name="Note", instance_id=created_note.id)
+    # 5. Retrieve by id + type.
+    fetched = client.get_object_by_id(str(note.id), "Note")
+    assert fetched is not None
+    print(fetched.properties["title"])
 
-    if retrieved_note:
-        print("Successfully retrieved note:")
-        print(f"  ID: {retrieved_note.id}")
-        print(f"  Type: {retrieved_note.object_type_name}")
-        print(f"  Title: {retrieved_note.data['title']}")
-        print(f"  Content: {retrieved_note.data['content']}")
-        print(f"  Created at: {retrieved_note.created_at}")
-        print(f"  Updated at: {retrieved_note.updated_at}")
-    else:
-        print(f"Could not retrieve note with ID: {created_note.id}")
+    # 6. Semantic search. If the EmbeddingDefinition carries a reranker_model,
+    #    or rerank=True + rerank_model is supplied, the top candidates are
+    #    cross-encoded before the final top-`limit` are returned.
+    hits = client.find_similar(
+        embedding_name="note_content_embedding",
+        query_text="a friendly greeting",
+        limit=5,
+        rerank=True,              # force-on; None auto-enables when a model is configured
+        rerank_candidates=50,     # oversample before reranking
+    )
+    for hit in hits:
+        print(hit.properties.get("title"))
 
-    # 5. Bulk Addition Example
-    print("Starting bulk addition...")
+    # 7. Bulk mode: defer embedding generation for high-throughput ingests.
     client.begin_bulk_addition()
-    # ... add many objects ...
-    client.finish_bulk_addition()
-    print("Bulk addition completed.")
-
-finally:
-    # 5. Close the connection
-    print("Closing the database connection...")
-    client.close()
-    print("Connection closed.")
-
-# Alternative using a 'with' statement for automatic connection management:
-#
-# with Grizabella() as client_with:
-#     # ... perform operations ...
-#     pass # Connection is automatically closed here
+    for _ in range(100):
+        client.upsert_object(ObjectInstance(
+            id=uuid4(),
+            object_type_name="Note",
+            properties={"title": "bulk", "content": "…"},
+        ))
+    client.finish_bulk_addition()  # all deferred embeddings computed here
 ```
 
-This snippet covers:
+Key things to remember:
 
-* Initializing the `Grizabella` client.
-* Connecting to the database (which also handles schema migrations).
-* Defining an `ObjectTypeDefinition` for a "Note".
-* Creating an `ObjectInstance` of that "Note".
-* Retrieving the created `ObjectInstance` by its ID.
-* Closing the database connection.
+* The `Grizabella` context manager calls `connect()` / `close()` for you.
+  Multiple clients pointing at the same path share a single underlying
+  `GrizabellaDBManager` via a reference-counted singleton factory.
+* `ObjectInstance.properties` holds the actual data; `MemoryInstance` (the
+  base) provides `id`, `weight`, and `upsert_date`. There is no separate
+  `created_at` / `updated_at`.
+* Property data types come from `PropertyDataType` (TEXT, INTEGER, FLOAT,
+  BOOLEAN, DATETIME, BLOB, JSON, UUID) — there is no `DataType` enum.
+* `use_gpu=True` routes both sentence-transformer embedding and cross-encoder
+  reranking through CUDA when available.
 
-Explore the API documentation for more advanced features like creating relations, managing embeddings, and performing complex queries.
+See [Python API Detailed Guide](./python_api_detailed.md) for relations,
+embeddings, and complex queries.
 
-## Using the PySide6 UI (Brief Overview)
+## Using the PySide6 UI
 
-The Grizabella PySide6 UI provides a graphical way to interact with your Grizabella databases.
+Launch with:
 
-1. **Launch the UI:**
-    If you installed Grizabella from source using Poetry, run:
+```bash
+poetry run grizabella-ui
+```
 
-    ```bash
-    poetry run grizabella-ui
-    ```
+The **Connection View** lets you connect to the default Grizabella database
+(under your user data directory) or pick/create one via "Browse". Once
+connected, the main window exposes:
 
-2. **Connection View:**
-    Upon launching, you'll see the **Connection View**.
-    * **Default Database:** You can connect to the default Grizabella database (usually located at `~/.grizabella/default_grizabella.db`). If it doesn't exist, Grizabella will offer to create it for you.
-    * **Specify Path:** Alternatively, you can click "Browse" to select an existing Grizabella database file or choose a location for a new one.
-    * Click "Connect" to open the database.
+* **Schema editors** for Object Types and Relation Types — define names,
+  properties, and allowed source/target types.
+* **Embedding Definitions** for attaching vector (and optional reranker)
+  models to object-type properties.
+* **Object / Relation Explorers** to create, edit, and browse instances.
+* A **Query** view for running semantic searches and complex queries.
 
-3. **Basic Navigation (Post-Connection):**
-    Once connected, the main window will appear.
-    * **Schema Editor (Object Types / Relation Types):** Navigate to the "Object Types" or "Relation Types" sections (often tabs or sidebar items) to define your data structures. You can create new types, add properties, and define their data types.
-    * **Object Explorer / Relation Explorer:** After defining your schemas, go to the "Object Explorer" or "Relation Explorer" to create instances of your object and relation types. You can fill in their properties and see them listed.
+See [PySide6 UI Guide](./pyside6_ui_guide.md) for a tour.
 
-    This provides a very high-level overview. The UI offers more detailed views for managing embeddings, executing queries, and exploring data. Refer to the full UI guide for comprehensive instructions.
+## Using the MCP Server
 
-## Using the MCP Server (Brief Overview)
+Grizabella's MCP server speaks the Model Context Protocol over **stdio**
+(it is not an HTTP server). Clients spawn it as a subprocess:
 
-The Grizabella MCP (Model Context Protocol) server allows other applications or AI agents to interact with Grizabella programmatically over a network interface.
+```bash
+poetry run grizabella-mcp --db-path /path/to/db
+# optional: --use-gpu
+```
 
-1. **Launch the MCP Server:**
-    If you installed Grizabella from source using Poetry, run:
+Any MCP-compatible client can then connect over stdio. For example, in
+Python:
 
-    ```bash
-    poetry run grizabella-mcp
-    ```
+```python
+import asyncio
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
 
-    By default, the server will start (e.g., on `http://localhost:8000` - check the server startup logs for the exact address and port).
+async def main():
+    params = StdioServerParameters(
+        command="poetry",
+        args=["run", "grizabella-mcp", "--db-path", "/tmp/my_db"],
+    )
+    async with stdio_client(params) as (reader, writer):
+        async with ClientSession(reader, writer) as session:
+            await session.initialize()
+            tools = await session.list_tools()
+            print([t.name for t in tools.tools])
+            result = await session.call_tool(
+                "find_similar_by_embedding",
+                {
+                    "args": {
+                        "embedding_definition_name": "note_content_embedding",
+                        "query_text": "a friendly greeting",
+                        "limit": 5,
+                        "rerank": True,
+                    },
+                },
+            )
+            print(result)
 
-2. **Interacting with the MCP Server (Conceptual Example):**
-    You can interact with the MCP server using any HTTP client, such as `curl` or a programmatic client in your preferred language. The exact tools and request formats will depend on the MCP tools exposed by Grizabella.
+asyncio.run(main())
+```
 
-    Here's a *conceptual* example using `curl` to list available object types (assuming an MCP tool named `list_object_types` exists and the server is on `localhost:8000`):
-
-    ```bash
-    # This is a hypothetical example. The actual tool name and parameters may differ.
-    curl -X POST http://localhost:8000/mcp \
-         -H "Content-Type: application/json" \
-         -d '{
-               "tool_name": "list_object_types",
-               "arguments": {}
-             }'
-    ```
-
-    The server would respond with a JSON payload containing the list of object types or an error if the request is invalid or the tool doesn't exist.
-
-    **Note:** The specific MCP tools available and their request/response schemas are defined within the Grizabella MCP server implementation. You'll need to refer to the Grizabella MCP documentation (or inspect its capabilities if it provides a discovery mechanism) for actual tool names and argument structures. A common basic tool might be to get schema information or list instances of a certain type.
-
-This section provides a starting point. As you delve deeper, consult the API reference, UI guides, and MCP server documentation for detailed information on all of Grizabella's capabilities.
+See [MCP Server API Guide](./mcp_server_api_guide.md) for the full tool
+catalog (schema management, instance CRUD, semantic search, complex
+queries, reranking).

@@ -1,5 +1,13 @@
 # Grizabella Memory Leak Fix - Implementation Specification
 
+> **Historical design doc.** This spec was written for the memory-leak
+> remediation that introduced the connection pool, DB-manager factory,
+> and resource monitor. That work has shipped — the authoritative
+> source is the code under `grizabella/core/connection_pool.py`,
+> `grizabella/core/db_manager_factory.py`, and
+> `grizabella/core/resource_monitor.py`. Code snippets here may drift
+> from the live implementation.
+
 ## Implementation Overview
 
 This document provides detailed implementation specifications for each component of the memory leak fix solution. Each section includes concrete code examples, file locations, and integration points.

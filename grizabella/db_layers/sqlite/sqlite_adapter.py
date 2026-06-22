@@ -670,10 +670,13 @@ class SQLiteAdapter(BaseDBAdapter):  # pylint: disable=R0904
                         msg,
                     )
 
-                where_clauses.append(f'"{key}" = ?')
-                query_values.append(
-                    self._serialize_value(value, data_type),  # type: ignore
-                )
+                serialized = self._serialize_value(value, data_type)  # type: ignore
+                if isinstance(serialized, str) and ("%" in serialized or "*" in serialized):
+                    where_clauses.append(f'"{key}" LIKE ?')
+                    query_values.append(serialized.replace("*", "%"))
+                else:
+                    where_clauses.append(f'"{key}" = ?')
+                    query_values.append(serialized)
 
         sql = f'SELECT * FROM "{table_name}"'
         if where_clauses:
@@ -797,8 +800,33 @@ class SQLiteAdapter(BaseDBAdapter):  # pylint: disable=R0904
     def get_relation_instance(
         self, relation_type_name: str, relation_id: UUID,
     ) -> Optional[RelationInstance]:  # Changed type hint
-        """Placeholder for getting relation instance metadata from SQLite."""
-        return None
+        """Retrieves a single relation instance by type + id from SQLite."""
+        if not self.conn:
+            msg = "SQLite connection not established."
+            raise DatabaseError(msg)
+        try:
+            cursor = self.conn.execute(
+                "SELECT * FROM _grizabella_relation_instances "
+                "WHERE id = ? AND relation_type_name = ? LIMIT 1",
+                (str(relation_id), relation_type_name),
+            )
+            row = cursor.fetchone()
+            if row is None:
+                return None
+            from decimal import Decimal as PyDecimal
+            properties = json.loads(row["properties"]) if row["properties"] else {}
+            return RelationInstance(
+                id=UUID(row["id"]),
+                relation_type_name=row["relation_type_name"],
+                source_object_instance_id=UUID(row["source_object_instance_id"]),
+                target_object_instance_id=UUID(row["target_object_instance_id"]),
+                weight=PyDecimal(str(row["weight"])),
+                upsert_date=datetime.fromisoformat(row["upsert_date"]),
+                properties=properties,
+            )
+        except sqlite3.Error as e:
+            msg = f"Error fetching relation instance '{relation_id}': {e}"
+            raise DatabaseError(msg) from e
 
     def find_relation_instances(  # pylint: disable=R0913, R0917
         self,
@@ -858,8 +886,21 @@ class SQLiteAdapter(BaseDBAdapter):  # pylint: disable=R0904
     def delete_relation_instance(
         self, relation_type_name: str, relation_id: UUID,
     ) -> bool:
-        """Placeholder for deleting relation instance metadata from SQLite."""
-        return True
+        """Deletes a relation instance row from SQLite. Returns True if a row was removed."""
+        if not self.conn:
+            msg = "SQLite connection not established."
+            raise DatabaseError(msg)
+        try:
+            with self.conn:
+                cursor = self.conn.execute(
+                    "DELETE FROM _grizabella_relation_instances "
+                    "WHERE id = ? AND relation_type_name = ?",
+                    (str(relation_id), relation_type_name),
+                )
+            return cursor.rowcount > 0
+        except sqlite3.Error as e:
+            msg = f"Error deleting relation instance '{relation_id}': {e}"
+            raise DatabaseError(msg) from e
 
     # BaseDBAdapter abstract methods that need concrete implementation
     # or to be managed by GrizabellaDBManager
@@ -1007,10 +1048,13 @@ class SQLiteAdapter(BaseDBAdapter):  # pylint: disable=R0904
                         msg,
                     )
 
-                where_clauses.append(f'"{key}" = ?')
-                query_values.append(
-                    self._serialize_value(value, data_type),  # type: ignore
-                )
+                serialized = self._serialize_value(value, data_type)  # type: ignore
+                if isinstance(serialized, str) and ("%" in serialized or "*" in serialized):
+                    where_clauses.append(f'"{key}" LIKE ?')
+                    query_values.append(serialized.replace("*", "%"))
+                else:
+                    where_clauses.append(f'"{key}" = ?')
+                    query_values.append(serialized)
 
         sql = f'SELECT * FROM "{table_name}"'
         if where_clauses:

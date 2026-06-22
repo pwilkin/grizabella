@@ -24,6 +24,24 @@ export interface EmbeddingDefinition {
 
   /** An optional human-readable description of this embedding definition. */
   description?: string;
+
+  /**
+   * Optional cross-encoder model identifier (e.g.
+   * 'cross-encoder/ms-marco-MiniLM-L-6-v2' or
+   * 'mixedbread-ai/mxbai-rerank-base-v1'). When set, semantic searches
+   * against this definition can post-process the top-K vector hits with
+   * this reranker. Reranking requires the query to be provided as text
+   * (not just a pre-computed vector).
+   */
+  reranker_model?: string;
+
+  /**
+   * Default oversampling factor used when reranking: the vector search
+   * fetches `limit * rerank_candidate_multiplier` candidates before the
+   * cross-encoder re-scores them down to `limit` results. Defaults to 5
+   * on the server side when omitted.
+   */
+  rerank_candidate_multiplier?: number;
 }
 
 /**
@@ -90,8 +108,34 @@ export interface EmbeddingSimilarityResult {
 
 /** Parameters for searching similar objects with embeddings. */
 export interface SearchSimilarObjectsWithEmbeddingsParams {
-  source_object_id: string;
-  source_object_type_name: string;
+  /** The EmbeddingDefinition to search against. */
   embedding_definition_name: string;
-  n_results: number;
+
+  /** Raw text of the query; required when `embedding_vector` is not supplied
+   *  and required for reranking (cross-encoders need text pairs). */
+  text?: string;
+
+  /** Pre-computed query vector. Mutually exclusive with `text`. */
+  embedding_vector?: number[];
+
+  /** Maximum number of results to return. Defaults to 5. */
+  limit?: number;
+
+  /** Optional LanceDB WHERE clause applied before ANN search. */
+  filter_condition?: string;
+
+  /** Optional similarity score threshold (cosine unless `is_l2_distance`). */
+  threshold?: number;
+
+  /** Force-enable or force-disable cross-encoder reranking. `undefined`
+   *  auto-enables if the EmbeddingDefinition carries a reranker_model or
+   *  `rerank_model` is supplied. */
+  rerank?: boolean;
+
+  /** Override the cross-encoder model identifier for this call only. */
+  rerank_model?: string;
+
+  /** Number of vector hits to pull before reranking (defaults to
+   *  limit * EmbeddingDefinition.rerank_candidate_multiplier). */
+  rerank_candidates?: number;
 }

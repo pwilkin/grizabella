@@ -1,5 +1,14 @@
 # Grizabella Project: Foundational Design Proposal
 
+> **Historical design doc.** This is the original pre-implementation
+> design proposal and is preserved here for context only. For the
+> *current* architecture and public API, see `CLAUDE.md` and
+> `docs/user_guide/*.md`. Notable divergences from this proposal: the
+> graph backend is now LadybugDB (imported internally under the `kuzu`
+> alias); `GrizabellaDBManager` is accessed through a reference-counted
+> singleton factory; the query engine exposes an `EmbeddingSearchClause`
+> with optional cross-encoder reranker hooks.
+
 This document outlines the proposed initial design for the Grizabella project, covering project structure, dependency management, core data models, database location/connection management, and object identification.
 
 ## 1. Python Project Directory Structure

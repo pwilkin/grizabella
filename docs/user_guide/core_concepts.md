@@ -6,9 +6,11 @@ This document explains the fundamental concepts in Grizabella, providing a found
 
 A Grizabella database instance is a self-contained environment where your schema definitions and data are stored. When you initialize the Grizabella client, you specify which database instance to connect to.
 
-- **Default Path:** If you initialize `Grizabella()` without specifying a `db_name_or_path`, it will connect to or create a database named "default" in a standard Grizabella data directory (e.g., `~/.grizabella/databases/default`).
-- **Named Instances:** You can use a simple string name like `"my_project_db"`. Grizabella will manage this database within its standard data directory (e.g., `~/.grizabella/databases/my_project_db`).
-- **Custom Paths:** You can provide a full file system path (as a string or `pathlib.Path` object) to a directory where you want the database to be stored. This gives you full control over the location of your database files.
+- **Default Path:** If you initialize `Grizabella()` without specifying a `db_name_or_path` (or pass `"default"`), it resolves to the instance named `default_db` under `~/.grizabella/db_instances/default_db`.
+- **Named Instances:** You can use a simple string name like `"my_project_db"`. Grizabella will manage it under `~/.grizabella/db_instances/my_project_db`.
+- **Custom Paths:** You can provide a full file system path (as a string or `pathlib.Path` object) to a directory where you want the database to be stored. Absolute paths are used as-is.
+
+Inside each instance directory, Grizabella keeps three sibling subtrees — one per storage layer: `sqlite_data/` (metadata + instances), `lancedb_data/` (vector tables), and `kuzu_data.db` (graph; the LadybugDB file).
 
 ```python
 from grizabella import Grizabella
@@ -104,9 +106,11 @@ Embedding Definitions specify how vector embeddings should be generated and stor
 - `name`: A unique name for this embedding configuration (e.g., "product_description_embedding"). Conventionally, snake_case.
 - `object_type_name`: The name of the `ObjectTypeDefinition` this embedding applies to (e.g., "Product").
 - `source_property_name`: The name of the property within the `object_type_name` whose content will be used to generate the embedding (e.g., "description"). This property should typically be of `PropertyDataType.TEXT`.
-- `embedding_model`: An identifier for the embedding model to be used (e.g., a Hugging Face model name like "sentence-transformers/all-MiniLM-L6-v2").
+- `embedding_model`: An identifier for the embedding model to be used (e.g., a Hugging Face model name like `"huggingface/mixedbread-ai/mxbai-embed-large-v1"`). Grizabella resolves the identifier through the LanceDB embedding registry; prefix with `provider:` to select a specific provider, otherwise `huggingface` is assumed.
 - `dimensions`: (Optional, integer) The expected dimensionality of the embedding vector. If `None`, the system may attempt to infer it from the model.
 - `description`: An optional human-readable description.
+- `reranker_model`: (Optional, string) A cross-encoder model identifier (e.g. `"cross-encoder/ms-marco-MiniLM-L-6-v2"` or `"mixedbread-ai/mxbai-rerank-base-v1"`). When set, semantic searches against this definition can post-process the top-K vector hits with a cross-encoder for sharper relevance. Reranking requires the query to be supplied as text, not just a pre-computed vector, because cross-encoders need text pairs.
+- `rerank_candidate_multiplier`: (Integer, default 5) Oversampling factor applied when reranking — the vector search fetches `limit * multiplier` hits before the cross-encoder re-scores them down to `limit` results.
 
 **Example (conceptual):**
 

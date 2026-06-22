@@ -131,13 +131,28 @@ class _ConnectionHelper:  # pylint: disable=R0902
                 from grizabella.db_layers.kuzu.thread_safe_kuzu_adapter import ThreadSafeKuzuAdapter
                 self._kuzu_adapter_instance = ThreadSafeKuzuAdapter(db_path=self.kuzu_path)
                 self._logger.info("_ConnectionHelper: KuzuAdapter initialized.")
-            except (ImportError, Exception) as e:
+            except ImportError as e:
+                # The graph library genuinely isn't installed -> degrade to SQLite+LanceDB.
                 self._logger.warning(
-                    "_ConnectionHelper: Failed to initialize KuzuAdapter: %s. "
-                    "Kuzu/Ladybug functionality will be unavailable.",
+                    "_ConnectionHelper: Kuzu/Ladybug not installed; graph functionality "
+                    "will be unavailable: %s",
                     e,
                 )
                 self._kuzu_adapter_instance = None
+            except Exception as e:
+                # The graph library IS present but the database would not open (e.g. a
+                # corrupt WAL the adapter could not recover from). Fail loud instead of
+                # degrading: silently continuing on a graph-less connection previously
+                # caused entire indexing runs to write relation-free data -- and grind on
+                # cleanup loops for hours -- without anyone noticing.
+                self._logger.error(
+                    "_ConnectionHelper: KuzuAdapter present but the graph database failed "
+                    "to open: %s. Refusing to continue with a degraded (graph-less) "
+                    "connection.",
+                    e,
+                    exc_info=True,
+                )
+                raise
 
             self._adapters_are_connected = True
             self._logger.info("_ConnectionHelper: Adapters connected successfully (some may be missing).")
@@ -289,13 +304,11 @@ class _SchemaManager:
         """Ensures Kuzu node table exists for the given OTD."""
         self._logger.info(f"_SchemaManager: Ensuring Kuzu node table for OTD '{otd.name}'.")
         try:
-            # First check if the node table already exists in Kuzu
             existing_tables = self._conn_helper.kuzu_adapter.list_object_types()
             if otd.name in existing_tables:
                 self._logger.debug(f"Kuzu node table for OTD '{otd.name}' already exists. Skipping creation.")
                 return
 
-            # If not, create it
             self._conn_helper.kuzu_adapter.create_node_table(otd)
             self._logger.info(
                 "_SchemaManager: Kuzu node table created for OTD '%s'.",
@@ -704,8 +717,6 @@ class _SchemaManager:
 
         # Now ensure the relation table itself exists
         try:
-            # KuzuAdapter.create_rel_table should be idempotent or handle "already exists"
-            # It internally calls list_relation_types to check if table exists.
             self._conn_helper.kuzu_adapter.create_rel_table(rtd)
             self._logger.info(
                 "_SchemaManager: Kuzu relation table ensured/created for RTD '%s'.",
@@ -868,8 +879,14 @@ class _InstanceManager:
             # First upsert in SQLite
             self._conn_helper.sqlite_adapter.upsert_object_instance(instance)
             
-            # Then upsert in Kuzu for graph operations
-            self._conn_helper.kuzu_adapter.upsert_object_instance(instance)
+            # LadybugDB graph upsert — non-fatal, SQLite is authoritative
+            try:
+                self._conn_helper.kuzu_adapter.upsert_object_instance(instance)
+            except Exception as lbug_err:
+                self._logger.warning(
+                    "LadybugDB graph upsert failed for '%s' (non-fatal): %s",
+                    instance.id, lbug_err,
+                )
             
             # Generate and upsert embeddings if applicable, unless in bulk mode
             if self._bulk_mode:
@@ -1038,53 +1055,94 @@ class _InstanceManager:
                     if not source_texts:
                         continue
 
+                    device = "GPU (CUDA)" if self._conn_helper._use_gpu else "CPU"
                     self._logger.info(
-                        "Generating bulk embeddings for %d instances of type '%s' using definition '%s'",
-                        len(source_texts), type_name, embedding_def.name
+                        "Generating bulk embeddings for %d instances of type '%s' "
+                        "using definition '%s' on %s",
+                        len(source_texts), type_name, embedding_def.name, device,
                     )
 
-                    # Load model
                     embedding_model = self._conn_helper.lancedb_adapter.get_embedding_model(
                         embedding_def.embedding_model
                     )
 
-                    # Batch generate embeddings
-                    if hasattr(embedding_model, 'compute_source_embeddings'):
-                        vectors = embedding_model.compute_source_embeddings(source_texts)
-                    elif hasattr(embedding_model, 'compute_query_embeddings'):
-                        vectors = embedding_model.compute_query_embeddings(source_texts)
-                    else:
-                        raise EmbeddingError(
-                            f"Embedding model '{embedding_def.embedding_model}' does not have "
-                            "compute_source_embeddings or compute_query_embeddings method"
-                        )
+                    # Use sentence-transformers encode() directly for proper GPU batching.
+                    # LanceDB's TransformersEmbeddingFunction.compute_source_embeddings
+                    # encodes one text at a time, wasting GPU parallelism.
+                    all_vectors: list = []
+                    total = len(source_texts)
+                    st_model = None
+                    try:
+                        from sentence_transformers import SentenceTransformer
+                        model_name = embedding_def.embedding_model
+                        if model_name and model_name.startswith("huggingface/"):
+                            model_name = model_name[len("huggingface/"):]
+                        st_device = "cuda" if self._conn_helper._use_gpu else "cpu"
+                        st_model = SentenceTransformer(model_name, device=st_device, trust_remote_code=True)
+                        self._logger.info("Using SentenceTransformer.encode() for efficient batching")
+                    except Exception:
+                        self._logger.info("SentenceTransformer not available, falling back to LanceDB encoding")
 
-                    if len(vectors) != len(valid_instances):
+                    if st_model is not None:
+                        BATCH_SIZE = 64
+                        for batch_start in range(0, total, BATCH_SIZE):
+                            batch_end = min(batch_start + BATCH_SIZE, total)
+                            batch_vectors = st_model.encode(
+                                source_texts[batch_start:batch_end],
+                                batch_size=BATCH_SIZE,
+                                show_progress_bar=False,
+                                normalize_embeddings=False,
+                            )
+                            all_vectors.extend(batch_vectors.tolist() if hasattr(batch_vectors, 'tolist') else batch_vectors)
+                            if total > BATCH_SIZE and batch_end % (BATCH_SIZE * 10) == 0:
+                                self._logger.info(
+                                    "  Embedded %d/%d (%.0f%%)",
+                                    batch_end, total, 100.0 * batch_end / total,
+                                )
+                    else:
+                        compute_fn = getattr(embedding_model, 'compute_source_embeddings', None) or \
+                                     getattr(embedding_model, 'compute_query_embeddings', None)
+                        if not compute_fn:
+                            raise EmbeddingError(
+                                f"Embedding model '{embedding_def.embedding_model}' has no "
+                                "compute_source_embeddings or compute_query_embeddings method"
+                            )
+                        BATCH_SIZE = 512
+                        for batch_start in range(0, total, BATCH_SIZE):
+                            batch_end = min(batch_start + BATCH_SIZE, total)
+                            batch_vectors = compute_fn(source_texts[batch_start:batch_end])
+                            all_vectors.extend(batch_vectors)
+                            if total > BATCH_SIZE:
+                                self._logger.info(
+                                    "  Embedded %d/%d (%.0f%%)",
+                                    batch_end, total, 100.0 * batch_end / total,
+                                )
+
+                    if len(all_vectors) != len(valid_instances):
                         raise EmbeddingError(
-                            f"Bulk embedding generation size mismatch: got {len(vectors)}, "
+                            f"Bulk embedding generation size mismatch: got {len(all_vectors)}, "
                             f"expected {len(valid_instances)}"
                         )
 
-                    # Create EmbeddingInstances
                     embedding_instances = []
-                    for i, vector in enumerate(vectors):
-                        instance = valid_instances[i]
-                        source_text = source_texts[i]
-                        
-                        # Convert vector to list if needed
+                    for i, vector in enumerate(all_vectors):
+                        inst = valid_instances[i]
+                        src = source_texts[i]
                         if hasattr(vector, 'tolist'):
                             vector = vector.tolist()
-                        
                         embedding_instances.append(EmbeddingInstance(
-                            object_instance_id=instance.id,
+                            object_instance_id=inst.id,
                             embedding_definition_name=embedding_def.name,
                             vector=vector,
-                            source_text_preview=source_text[:100] if len(source_text) > 100 else source_text,
+                            source_text_preview=src[:100] if len(src) > 100 else src,
                         ))
 
-                    # Bulk upsert to LanceDB
                     self._conn_helper.lancedb_adapter.upsert_embedding_instances_bulk(
                         embedding_instances, embedding_def
+                    )
+                    self._logger.info(
+                        "Completed bulk embeddings for '%s' (%d vectors stored)",
+                        embedding_def.name, len(embedding_instances),
                     )
 
                 except Exception as e:
@@ -1183,7 +1241,7 @@ class _InstanceManager:
             )
             raise
 
-    def find_similar_objects_by_embedding( # pylint: disable=R0913
+    def find_similar_objects_by_embedding( # pylint: disable=R0913,R0914
         self,
         embedding_definition_name: str,
         query_text: Optional[str] = None,
@@ -1191,8 +1249,25 @@ class _InstanceManager:
         limit: int = 5,
         filter_condition: Optional[str] = None,
         retrieve_full_objects: bool = False,
+        rerank: Optional[bool] = None,
+        rerank_model: Optional[str] = None,
+        rerank_candidates: Optional[int] = None,
     ) -> list[dict[str, Any]]:
-        """Finds objects based on vector similarity of their embeddings."""
+        """Finds objects based on vector similarity of their embeddings.
+
+        If the EmbeddingDefinition carries a ``reranker_model`` (or the caller
+        supplies ``rerank_model``) and ``query_text`` is provided, the vector
+        search pulls ``rerank_candidates`` results (default: ``limit *
+        EmbeddingDefinition.rerank_candidate_multiplier``) and re-scores them
+        with a cross-encoder. The rerank score replaces ``_distance`` for
+        ordering and is also emitted as ``_rerank_score``.
+        """
+        from grizabella.core.reranker import (
+            get_reranker,
+            rerank as rerank_pairs,
+            resolve_reranker_config,
+        )
+
         ed_def = self._schema_manager.get_embedding_definition(embedding_definition_name)
         if not ed_def:
             msg = f"ED '{embedding_definition_name}' not found."
@@ -1207,7 +1282,24 @@ class _InstanceManager:
             if query_text is not None and query_vector is not None:
                 msg = "Provide either query_text or query_vector, not both."
                 raise ValueError(msg)
-            
+
+            rerank_enabled, effective_rerank_model, candidate_limit = resolve_reranker_config(
+                embedding_definition_reranker=ed_def.reranker_model,
+                embedding_definition_multiplier=ed_def.rerank_candidate_multiplier,
+                rerank=rerank,
+                rerank_model=rerank_model,
+                rerank_candidates=rerank_candidates,
+                limit=limit,
+            )
+            if rerank_enabled and query_text is None:
+                self._logger.warning(
+                    "Reranker configured for ED '%s' but query_text is None; "
+                    "skipping rerank step (needs raw text to cross-encode).",
+                    embedding_definition_name,
+                )
+                rerank_enabled = False
+            search_limit = candidate_limit if rerank_enabled else limit
+
             # If query_text is provided, generate the embedding vector
             if query_text is not None and query_vector is None:
                 try:
@@ -1219,7 +1311,7 @@ class _InstanceManager:
                 except Exception as e:
                     msg = f"Failed to generate query vector: {e}"
                     raise EmbeddingError(msg) from e
-            
+
             # Validate vector dimensions if both query_vector and embedding definition have dimensions
             if query_vector is not None and ed_def.dimensions is not None:
                 if len(query_vector) != ed_def.dimensions:
@@ -1228,19 +1320,30 @@ class _InstanceManager:
                         f"'{ed_def.name}' dim ({ed_def.dimensions})."
                     )
                     raise EmbeddingError(msg)
-            
+
             # Use query_similar_embeddings for similarity search
             results = self._conn_helper.lancedb_adapter.query_similar_embeddings(
                 embedding_definition_name=embedding_definition_name,
                 query_vector=query_vector,  # type: ignore[arg-type]  # Validated above to not be None
-                limit=limit,
+                limit=search_limit,
                 filter_condition=filter_condition,
             )
-            
+
+            if rerank_enabled and results:
+                results = self._rerank_results(
+                    results=results,
+                    ed_def=ed_def,
+                    query_text=query_text,  # type: ignore[arg-type]
+                    rerank_model_name=effective_rerank_model,  # type: ignore[arg-type]
+                    limit=limit,
+                    reranker_loader=get_reranker,
+                    rerank_fn=rerank_pairs,
+                )
+
             # Log warning if retrieve_full_objects was requested but not implemented
             if retrieve_full_objects:
                 self._logger.warning("retrieve_full_objects=True is not fully implemented yet. Returning raw LanceDB results.")
-            
+
             return results
         except (DatabaseError, EmbeddingError) as e:
             self._logger.error(
@@ -1248,6 +1351,77 @@ class _InstanceManager:
                 embedding_definition_name, e, exc_info=True,
             )
             raise
+
+    def _rerank_results(  # pylint: disable=R0913,R0914
+        self,
+        results: list[dict[str, Any]],
+        ed_def: EmbeddingDefinition,
+        query_text: str,
+        rerank_model_name: str,
+        limit: int,
+        reranker_loader: Any,
+        rerank_fn: Any,
+    ) -> list[dict[str, Any]]:
+        """Re-score the LanceDB hits with a cross-encoder and keep the top ``limit``.
+
+        Fetches the source property value for every candidate from SQLite (the
+        LanceDB ``source_text_preview`` column is capped at 100 chars and is
+        too short for meaningful cross-encoder scoring).
+        """
+        candidate_ids: list[UUID] = []
+        id_to_idx: dict[UUID, int] = {}
+        for idx, res in enumerate(results):
+            obj_id_str = res.get("object_instance_id")
+            if not obj_id_str:
+                continue
+            try:
+                obj_id = UUID(str(obj_id_str))
+            except (ValueError, TypeError):
+                continue
+            candidate_ids.append(obj_id)
+            id_to_idx[obj_id] = idx
+
+        if not candidate_ids:
+            return results[:limit]
+
+        try:
+            instances = self._conn_helper.sqlite_adapter.get_objects_by_ids(
+                ed_def.object_type_name, candidate_ids,
+            )
+        except (DatabaseError, SchemaError) as e:
+            self._logger.warning(
+                "Rerank: failed to fetch source objects for ED '%s'; "
+                "falling back to vector ranking. Error: %s",
+                ed_def.name, e,
+            )
+            return results[:limit]
+
+        texts_per_result: list[Optional[str]] = [None] * len(results)
+        for instance in instances:
+            idx = id_to_idx.get(instance.id)
+            if idx is None:
+                continue
+            value = instance.properties.get(ed_def.source_property_name)
+            texts_per_result[idx] = None if value is None else str(value)
+
+        try:
+            model = reranker_loader(rerank_model_name, use_gpu=self._conn_helper._use_gpu)
+            scores = rerank_fn(model, query_text, texts_per_result)
+        except EmbeddingError as e:
+            self._logger.warning(
+                "Rerank failed for ED '%s' (%s); returning vector-ranked results.",
+                ed_def.name, e,
+            )
+            return results[:limit]
+
+        scored: list[tuple[float, dict[str, Any]]] = []
+        for idx, res in enumerate(results):
+            score = scores[idx] if idx < len(scores) else float("-inf")
+            enriched = dict(res)
+            enriched["_rerank_score"] = score
+            scored.append((score, enriched))
+        scored.sort(key=lambda item: item[0], reverse=True)
+        return [item[1] for item in scored[:limit]]
 
     def add_relation_instance(self, instance: RelationInstance) -> RelationInstance:
         """Persists the RelationInstance to SQLite (for metadata) and Kuzu (for graph operations)."""
@@ -1263,8 +1437,14 @@ class _InstanceManager:
             # First add to SQLite for metadata persistence
             self._conn_helper.sqlite_adapter.add_relation_instance(instance)
             
-            # Then add to Kuzu for graph operations
-            self._conn_helper.kuzu_adapter.upsert_relation_instance(instance, rtd)
+            # LadybugDB graph relation upsert — non-fatal, SQLite is authoritative
+            try:
+                self._conn_helper.kuzu_adapter.upsert_relation_instance(instance, rtd)
+            except Exception as lbug_err:
+                self._logger.warning(
+                    "LadybugDB relation upsert failed for '%s' (non-fatal): %s",
+                    instance.id, lbug_err,
+                )
             
             self._logger.debug(
                 "Added relation instance '%s' of type '%s'.",

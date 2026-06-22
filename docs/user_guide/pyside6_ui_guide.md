@@ -18,7 +18,7 @@ Upon launching, the first view you'll encounter is the **Connection View**. This
 
 [Screenshot of Connection View]
 
-* **Default Database:** To connect to the default Grizabella database, simply click the "Connect" button. The application will attempt to connect to the database at the default location (`~/.grizabella/default_db`).
+* **Default Database:** To connect to the default Grizabella database, simply click the "Connect" button. The application will attempt to connect to the database at the default location (`~/.grizabella/db_instances/default_db`).
 * **Named Database:** If you have a named database (e.g., `my_project_db`), you can type its name into the "Database Name or Path" field and click "Connect". Grizabella will look for this database within its standard database directory.
 * **Custom Path:** To connect to a database at a specific file system path, you can either type the full path into the "Database Name or Path" field or use the "Browse" button.
 * **Browse Functionality:** Clicking the "Browse" button opens a file dialog, allowing you to navigate to and select your Grizabella database directory.
@@ -55,10 +55,10 @@ This view allows you to manage the different types of objects (nodes) in your gr
   * **Description:** A user-provided description of the Object Type.
   * **Properties Table:** A table listing all properties defined for this Object Type, including their:
     * Name
-    * Data Type (e.g., `string`, `integer`, `float`, `boolean`, `list<string>`, `vector<float>`)
-    * Primary Key (PK): Indicates if the property is part of the primary key.
+    * Data Type — one of `TEXT`, `INTEGER`, `FLOAT`, `BOOLEAN`, `DATETIME`, `BLOB`, `JSON`, `UUID` (from `PropertyDataType`).
+    * Primary Key (PK): Indicates if the property is the domain-level primary key for this object type. Only one property per type can be marked PK; the system always stores a UUID `id` on every instance.
     * Nullable: Indicates if the property can have null values.
-    * Default Value: The default value for the property, if any.
+    * Indexed / Unique: Backend-level hints applied where supported.
 * **"New Object Type" Button:**
   * Clicking this button opens the `ObjectTypeDialog`.
   * [Screenshot of ObjectTypeDialog]
@@ -69,10 +69,12 @@ This view allows you to manage the different types of objects (nodes) in your gr
       * Use the "Add Property" button to add a new row to the table.
       * For each property, you can specify:
         * **Name:** The property's name.
-        * **Data Type:** Select from a dropdown of supported data types.
-        * **PK:** Check this box if the property is a primary key.
+        * **Data Type:** Select from the `PropertyDataType` dropdown.
+        * **PK:** Check this box if the property is the object type's primary key.
         * **Nullable:** Check this box if the property can be null.
-        * **Default:** Optionally, provide a default value.
+        * **Indexed / Unique:** Optional flags applied by the underlying stores.
+
+      (`PropertyDefinition` has no `default` field — set initial values on each `ObjectInstance` when you upsert it.)
       * Use the "Remove Selected Property" button to delete a property from the list.
   * Click "OK" to create the new Object Type or "Cancel" to discard.
 * **"Edit Selected" Button:** Select an Object Type from the list and click this button to open the `ObjectTypeDialog` pre-filled with its current details, allowing you to modify it.
@@ -91,11 +93,13 @@ This view manages how embeddings are generated and stored for your objects. Embe
   * [Screenshot of EmbeddingDefinitionDialog]
   * **`EmbeddingDefinitionDialog` Fields:**
     * **Name:** A unique name for this embedding definition.
-    * **Object Type:** A dropdown list to select the Object Type for which this embedding will be generated.
-    * **Source Property:** A dropdown list of properties from the selected Object Type. This list is dynamically populated based on the chosen Object Type. This property's value will be used as input to the embedding model.
-    * **Model:** Specify the embedding model to be used (e.g., `all-MiniLM-L6-v2`).
-    * **Dimensions:** The dimensionality of the embedding vector produced by the model.
-    * **Description:** An optional description for this embedding definition.
+    * **Object Type:** A dropdown to select the Object Type for which this embedding will be generated.
+    * **Source Property:** A dropdown of properties from the selected Object Type (dynamically populated based on the chosen type). This property's value is what the embedding model encodes.
+    * **Model:** The embedding model identifier (default: `mixedbread-ai/mxbai-embed-large-v1`). Models are resolved through the LanceDB registry; prefix with a provider name to force a specific provider, otherwise `huggingface` is assumed.
+    * **Dimensions (Optional):** The dimensionality of the embedding vector — if omitted, Grizabella tries to infer it from the model on first use.
+    * **Description:** An optional human-readable description.
+
+    > Note: the underlying `EmbeddingDefinition` model also supports `reranker_model` and `rerank_candidate_multiplier` fields for cross-encoder reranking. These are currently configured via the Python/MCP API; the PySide6 dialog does not yet expose them.
   * Click "OK" to create or "Cancel" to discard.
 * **"Edit Selected" Button:** (Placeholder for future functionality) Currently, editing might involve deleting and recreating.
 * **"Delete Selected" Button:** Deletes the selected Embedding Definition after confirmation.
