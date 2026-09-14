@@ -1,5 +1,5 @@
 import pytest
-import real_ladybug as kuzu
+import ladybug as kuzu
 import shutil
 from pathlib import Path
 from typing import Dict, Optional, Any # Added Any
@@ -31,7 +31,7 @@ def kuzu_adapter_fixture():
         shutil.rmtree(TEMP_KUZU_DB_DIR)
     TEMP_KUZU_DB_DIR.mkdir(parents=True, exist_ok=True)
     
-    # For real_ladybug, use a file path instead of directory path
+    # For ladybug, use a file path instead of directory path
     db_file_path = TEMP_KUZU_DB_DIR / "test_database.db"
     
     adapter = KuzuAdapter(db_path=str(db_file_path))
@@ -157,7 +157,7 @@ def test_kuzu_adapter_init_connect_close():
         shutil.rmtree(TEMP_KUZU_DB_DIR)
     TEMP_KUZU_DB_DIR.mkdir(parents=True, exist_ok=True)
     
-    # For real_ladybug, we need to pass a file path, not directory path
+    # For ladybug, we need to pass a file path, not directory path
     db_file_path = TEMP_KUZU_DB_DIR / "test_database.db"
     
     adapter = KuzuAdapter(db_path=str(db_file_path))

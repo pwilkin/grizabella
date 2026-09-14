@@ -7,7 +7,7 @@ import logging
 
 # Ensure kuzu is importable, or mock it if not available in the test environment
 try:
-    import real_ladybug as kuzu
+    import ladybug as kuzu
 except ImportError:
     kuzu = MagicMock()
 
@@ -39,8 +39,8 @@ class TestKuzuAdapterConnect(unittest.TestCase):
         shutil.rmtree(self.test_dir)
         logger.info(f"TestKuzuAdapterConnect: tearDown removed test_dir: {self.test_dir}")
 
-    @patch('real_ladybug.Database')
-    @patch('real_ladybug.Connection')
+    @patch('ladybug.Database')
+    @patch('ladybug.Connection')
     def test_connect_with_existing_lockfile(self, mock_kuzu_connection, mock_kuzu_database):
         """Test that _connect removes an existing lockfile and connects."""
         logger.info("TestKuzuAdapterConnect: Running test_connect_with_existing_lockfile")
@@ -72,8 +72,8 @@ class TestKuzuAdapterConnect(unittest.TestCase):
         self.assertIsNotNone(adapter.conn, "Connection object should be set.")
         logger.info("TestKuzuAdapterConnect: test_connect_with_existing_lockfile PASSED")
 
-    @patch('real_ladybug.Database')
-    @patch('real_ladybug.Connection')
+    @patch('ladybug.Database')
+    @patch('ladybug.Connection')
     def test_connect_no_lockfile(self, mock_kuzu_connection, mock_kuzu_database):
         """Test that _connect works correctly when no lockfile is present."""
         logger.info("TestKuzuAdapterConnect: Running test_connect_no_lockfile")

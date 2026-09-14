@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "grizabella"
-version = "0.7.0"
+version = "0.8.0"
 description = "A tri-layer memory framework for LLM solutions."
 authors = ["Grizabella Project Contributors <contributors@example.com>"]
 readme = "README.md"
@@ -29,7 +29,11 @@ python = ">=3.12, <3.14" # Specify a compatible Python version
 pydantic = "^2.12.0"  # litellm 1.83.x pins pydantic to 2.12.5
 lancedb = "^0.30.2"
 sentence-transformers = "^5.1.0"
-ladybug = "^0.17.1"  # 0.17.x fixes a native SIGSEGV on the per-row MERGE write path (unguarded PK-visibility check, upstream 435f244)
+ladybug = "^0.20.4"  # 0.18.0 reworked the WAL (group commits, stored record lengths) and
+                     # 0.19.0 defaults throwOnWalReplayFailure=false, so a torn WAL tail no
+                     # longer refuses the database outright — the failure our open-time
+                     # self-heal exists to paper over. 0.17.x fixed the per-row MERGE SIGSEGV
+                     # (upstream 435f244); 0.18.1/0.20.1 fix further native crashes.
 pandas = "^2.3.3" # Added for ladybug adapter query result handling
 fastmcp = ">=2.10.6,<2.14"  # 2.14 hangs on ListToolsRequest — retry after upstream fix
 PySide6 = "^6.9.0"

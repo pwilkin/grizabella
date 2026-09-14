@@ -40,6 +40,19 @@ from grizabella.db_layers.common.base_adapter import BaseDBAdapter
 
 logger = logging.getLogger(__name__)
 
+
+def _is_storage_version_mismatch(error: Exception) -> bool:
+    """Does this open failure mean the file was written by another storage format?
+
+    ladybug reports it as e.g. "Trying to read a database file with a different
+    version. Database file version: 39, Current build storage version: 47". Matched
+    on the stable part of the phrasing rather than the numbers, which change with
+    every format bump.
+    """
+    text = str(error).lower()
+    return "different version" in text and "storage version" in text
+
+
 class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
     """Thread-safe Kuzu adapter with proper connection isolation.
     
@@ -222,16 +235,32 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
     def _recover_from_corrupt_wal(self, error: Exception) -> bool:
         """Quarantine a write-ahead log that ladybug failed to replay on open.
 
-        Acts whenever an open fails AND a WAL file is present. The replay path trips
-        several distinct ladybug failures -- the WAL-record assertion ("UNREACHABLE_CODE")
-        and a binder bug ("Trying to create a vector with ANY type") among them -- so we
-        no longer gate on the error text. This is safe because the WAL is checkpointed
+        Acts whenever an open fails AND a WAL file is present, EXCEPT on a storage
+        format mismatch (see below). The replay path trips several distinct ladybug
+        failures -- the WAL-record assertion ("UNREACHABLE_CODE") and a binder bug
+        ("Trying to create a vector with ANY type") among them -- so we otherwise
+        do not gate on the error text. This is safe because the WAL is checkpointed
         into the .db after every project (see finish_bulk_addition), so a leftover WAL
         only ever holds the current, uncommitted project's tail: dropping it loses
         nothing that was committed, and the project is simply re-indexed. Lock conflicts
         are handled separately (before this) so they never reach here. Returns True if a
         WAL file was moved aside, so the caller can retry opening the database.
         """
+        # A storage-version mismatch is NOT a torn WAL and quarantining cannot fix it:
+        # the version lives in the .db header, so the retry fails identically. Worse,
+        # it is the one case where the WAL is probably still intact -- the PREVIOUS
+        # ladybug could replay it -- so destroying it turns a recoverable "you upgraded
+        # the engine" into real data loss the moment anyone rolls back. Bail out and let
+        # the caller raise; the database has to be recreated (or the engine downgraded).
+        if _is_storage_version_mismatch(error):
+            logger.error(
+                f"ThreadSafeKuzuAdapter: {self._db_path} was written by a different "
+                f"ladybug storage format ({error}). Leaving the WAL untouched -- "
+                f"recreate the graph database with this engine, or reinstall the "
+                f"version that wrote it."
+            )
+            return False
+
         # ladybug 0.16.1 keeps several sibling files that an unclean shutdown can leave
         # unreplayable: the WAL "<db>.wal", the checkpoint-WAL "<db>.wal.checkpoint", and
         # the shadow file "<db>.shadow". Quarantining only "<db>.wal" left the checkpoint
