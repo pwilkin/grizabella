@@ -22,6 +22,7 @@ from grizabella.core.models import (
     ObjectInstance,
     ObjectTypeDefinition,
     PropertyDataType,
+    PropertyDefinition,
     RelationInstance,
     RelationTypeDefinition,
 )
@@ -524,10 +525,11 @@ class ThreadSafeSQLiteAdapter(SQLiteAdapter):
 
     def _row_to_object_instance(
         self, row: sqlite3.Row, otd: ObjectTypeDefinition,
+        properties: Optional[list[PropertyDefinition]] = None,
     ) -> ObjectInstance:
-        """Converts a sqlite3.Row to an ObjectInstance."""
+        """Converts a sqlite3.Row to an ObjectInstance (with only ``properties``, when given)."""
         props = {}
-        for prop_def in otd.properties:
+        for prop_def in otd.properties if properties is None else properties:
             props[prop_def.name] = self._deserialize_value(
                 row[prop_def.name], prop_def.data_type,
             )
@@ -670,14 +672,20 @@ class ThreadSafeSQLiteAdapter(SQLiteAdapter):
         query_dict: dict[str, Any],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
+        properties: Optional[list[str]] = None,
     ) -> list[ObjectInstance]:
-        """Queries object instances based on a dictionary of conditions."""
+        """Queries object instances based on a dictionary of conditions.
+
+        ``properties`` returns only those properties of each object (its id,
+        weight and upsert date always come back).
+        """
         otd = self.load_object_type_definition(object_type_name)
         if not otd:
             msg = f"ObjectTypeDefinition '{object_type_name}' not found."
             raise SchemaError(msg)
 
         table_name = self._get_safe_table_name(object_type_name)
+        projection = self._projected_properties(otd, properties)
 
         where_clauses = ["1=1"]  # Start with a tautology
         params = []
@@ -702,7 +710,7 @@ class ThreadSafeSQLiteAdapter(SQLiteAdapter):
         offset_clause = f"OFFSET {offset}" if offset is not None else ""
 
         sql = (
-            f'SELECT * FROM "{table_name}" WHERE {where_clause} '
+            f'SELECT {self._select_list(projection)} FROM "{table_name}" WHERE {where_clause} '
             f"{limit_clause} {offset_clause}"
         )
 
@@ -710,7 +718,7 @@ class ThreadSafeSQLiteAdapter(SQLiteAdapter):
             cursor = self.conn.execute(sql, tuple(params))
             instances = []
             for row in cursor:
-                instances.append(self._row_to_object_instance(row, otd))
+                instances.append(self._row_to_object_instance(row, otd, projection))
             return instances
         except sqlite3.Error as e:
             msg = f"Error querying instances from '{table_name}': {e}"

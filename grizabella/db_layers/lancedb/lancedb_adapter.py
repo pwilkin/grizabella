@@ -1,9 +1,12 @@
 """Grizabella adapter for LanceDB, handling vector embeddings."""
 
 import logging  # Added import
+import math
 import os
 import re
 import threading  # For logging and synchronization
+import time
+from datetime import timedelta
 from typing import TYPE_CHECKING, Any, Optional
 from uuid import UUID
 
@@ -43,10 +46,40 @@ try:
 except ImportError:
     LANCEDB_EMBEDDING_REGISTRY = None # Define it as None if import fails
 
-# Constants for LanceDB index creation
-MIN_ROWS_FOR_LANCEDB_PQ_TRAINING = 256  # Based on LanceDB error message for PQ
-DEFAULT_LANCEDB_NUM_PARTITIONS = 4      # Default for IVF
-DEFAULT_LANCEDB_NUM_SUB_VECTORS = 32    # Default for PQ
+# --- Table maintenance ---
+# Each write used to append a one-row fragment plus a manifest listing every
+# fragment, and nothing compacted. A knowledge base of 6k vectors reached 5,973
+# fragments and 8,936 manifests (3.0 GB of manifests for 25 MB of vectors): a
+# search scanned every fragment (184 ms; 5 ms once compacted), and Lance's own
+# auto-cleanup, which runs every 20 commits, read every manifest, stalling
+# about one upsert in ten for 30 s. Tables are now compacted after
+# COMPACT_AFTER_WRITES writes, or by a background pass once writes have been
+# quiet for MAINTENANCE_IDLE_S, and versions older than CLEANUP_OLDER_THAN_S
+# are removed. Compacting that table takes 50 ms but rewrites all 25 MB, which
+# stays on disk until the cleanup; a few dozen small fragments cost a search
+# about 2 ms. Hence a long quiet period and a short retention.
+DEFAULT_COMPACT_AFTER_WRITES = 64
+DEFAULT_MAINTENANCE_INTERVAL_S = 60.0  # 0 disables the background pass
+DEFAULT_MAINTENANCE_IDLE_S = 300.0
+DEFAULT_CLEANUP_OLDER_THAN_S = 600.0
+
+# On that table, compacted (5,983 rows of 1024 dims), a flat scan took 3 ms and
+# is exact. IVF_FLAT took 1.6 ms but lost 3% of the top 52 (8% of the top 208)
+# at the default probes; IVF_HNSW_SQ lost 21%. Lance itself asks for ~256 rows
+# per partition. So the index waits until a flat scan costs something.
+DEFAULT_INDEX_MIN_ROWS = 50_000
+MIN_ROWS_PER_PARTITION = 256
+# IVF_FLAT keeps the distances exact, and in the metric unindexed searches
+# have always used (squared L2): callers calibrate relevance on those numbers.
+VECTOR_INDEX_TYPE = "IVF_FLAT"
+VECTOR_INDEX_METRIC = "l2"
+VECTOR_INDEX_PREFIX = "vector_ivf_flat_p"  # + the partition count it was trained with
+MIN_NPROBES = 20
+# Every optimize() adds a delta segment to the index, even with no new rows,
+# and a search reads each one. Past this many, the index is rebuilt.
+MAX_INDEX_SEGMENTS = 8
+
+_SETTING_ENV_PREFIX = "GRIZABELLA_LANCEDB_"
 
 if TYPE_CHECKING:
     import lancedb  # For type hints only
@@ -83,12 +116,38 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
         db: Optional[Any] # Runtime can be Any if lancedb is not available
 
     def __init__(self, db_uri: str, config: Optional[dict[str, Any]] = None, use_gpu: bool = False) -> None:
-        """Initializes the LanceDB adapter."""
+        """Initializes the LanceDB adapter.
+
+        ``config`` may set ``compact_after_writes``, ``maintenance_interval_s``,
+        ``maintenance_idle_s``, ``cleanup_older_than_s`` and ``index_min_rows``;
+        each can also come from ``GRIZABELLA_LANCEDB_<NAME>`` in the environment.
+        """
         self.db = None # Initialize db attribute
         self._model_lock = threading.Lock()  # Lock for model loading
         self._model_cache: dict[str, Any] = {}
         self._use_gpu = use_gpu
+        # Writes, maintenance and searches on tables. Searches take it too: a
+        # cleanup may delete the files of the version a concurrent search reads.
+        self._table_lock = threading.RLock()
+        self._pending_writes: dict[str, int] = {}
+        self._last_write_at = 0.0
+        self._index_partitions: dict[str, int] = {}
+        self._stop_maintenance = threading.Event()
+        self._maintenance_thread: Optional[threading.Thread] = None
+        settings = config or {}
+        self.compact_after_writes = int(self._setting(settings, "compact_after_writes", DEFAULT_COMPACT_AFTER_WRITES))
+        self.maintenance_interval_s = float(self._setting(settings, "maintenance_interval_s", DEFAULT_MAINTENANCE_INTERVAL_S))
+        self.maintenance_idle_s = float(self._setting(settings, "maintenance_idle_s", DEFAULT_MAINTENANCE_IDLE_S))
+        self.cleanup_older_than_s = float(self._setting(settings, "cleanup_older_than_s", DEFAULT_CLEANUP_OLDER_THAN_S))
+        self.index_min_rows = int(self._setting(settings, "index_min_rows", DEFAULT_INDEX_MIN_ROWS))
         super().__init__(db_path=db_uri, config=config)
+        self._start_maintenance_thread()
+
+    @staticmethod
+    def _setting(config: dict[str, Any], name: str, default: Any) -> Any:
+        if config.get(name) is not None:
+            return config[name]
+        return os.environ.get(_SETTING_ENV_PREFIX + name.upper(), default)
 
     def _connect(self) -> None:
         """Establish a connection to the LanceDB database."""
@@ -113,6 +172,11 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
     def close(self) -> None:
         """Close the LanceDB database connection (if applicable)."""
         logger.info(f"LanceDBAdapter: close() called in thread ID: {threading.get_ident()} for db_uri: {self.db_path}. DB object state: {'Exists' if self.db else 'None'}")
+        self._stop_maintenance.set()
+        thread = self._maintenance_thread
+        if thread is not None and thread is not threading.current_thread():
+            thread.join(timeout=30)
+        self._maintenance_thread = None
         if self.db:
             # LanceDB connection objects don't have an explicit close() method in the same way
             # as traditional DB drivers. Setting to None helps with garbage collection and
@@ -157,8 +221,11 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
                 vector: _VECTOR_CLASS(ed.dimensions) # type: ignore
                 source_text_preview: Optional[str] = None
 
-            self.db.create_table(table_name, schema=DynamicSchema, mode="create")
-            logger.info(f"LanceDB: Table '{table_name}' created. Index creation deferred to upsert_embedding_instance.")
+            with self._table_lock:
+                self.db.create_table(table_name, schema=DynamicSchema, mode="create")
+                self._pending_writes.pop(table_name, None)
+                self._index_partitions.pop(table_name, None)
+            logger.info(f"LanceDB: Table '{table_name}' created.")
 
         except Exception as e: # pylint: disable=W0718
             msg = (
@@ -178,7 +245,10 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
             if table_name not in self.db.list_tables().tables:
                 return
 
-            self.db.drop_table(table_name)
+            with self._table_lock:
+                self.db.drop_table(table_name)
+                self._pending_writes.pop(table_name, None)
+                self._index_partitions.pop(table_name, None)
         except Exception as e: # pylint: disable=W0718
             msg = f"LanceDB: Error dropping table '{table_name}': {e}"
             raise DatabaseError(msg) from e
@@ -332,7 +402,7 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
         instance: EmbeddingInstance,
         embedding_definition: Optional[EmbeddingDefinition] = None,
     ) -> EmbeddingInstance:
-        """Adds or updates an embedding record in the LanceDB table."""
+        """Adds or replaces the embedding record of ``instance.object_instance_id``."""
         if embedding_definition is None:
             msg = (
                 "LanceDBAdapter.upsert_embedding_instance "
@@ -347,17 +417,6 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
             msg = "LanceDB runtime components not available. Cannot upsert EI."
             raise DatabaseError(msg)
         table_name = self._sanitize_table_name(embedding_definition.name)
-        try:
-            # Re-open the table on each write to ensure we have the latest version
-            tbl = self.db.open_table(table_name)
-        except Exception as e: # pylint: disable=W0718
-            msg = (
-                f"LanceDB: Table '{table_name}' for ED '{embedding_definition.name}' not found. "
-                f"Cannot upsert. Error: {e}"
-            )
-            raise DatabaseError(
-                msg,
-            ) from e
 
         if (embedding_definition.dimensions and
                 len(instance.vector) != embedding_definition.dimensions):
@@ -369,71 +428,40 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
                 msg,
             )
 
-        data_to_add = {
+        row = {
             "object_instance_id": str(instance.object_instance_id),
             "vector": instance.vector,
             "source_text_preview": instance.source_text_preview,
         }
 
-        try:
-            tbl.add([data_to_add])
-
-            # After adding data, attempt to create/update a cosine index.
-            current_rows: Any = "unknown" # Initialize to handle potential pre-assignment errors
+        with self._table_lock:
+            tbl = self._open_table_for_write(table_name, embedding_definition.name)
             try:
-                current_rows = tbl.count_rows()
-                logger.info(f"LanceDB: Table '{table_name}' now has {current_rows} rows. Evaluating index strategy.")
-
-                # For E2E testing with small datasets, effectively disable index creation
-                # to observe default brute-force search behavior.
-                if current_rows >= 999999:  # Effectively always false for E2E test
-                    logger.info(f"LanceDB: Sufficient data ({current_rows} rows). Attempting IVF_PQ cosine index for '{table_name}'.")
-                    tbl.create_index(
-                        metric="cosine",
-                        vector_column_name="vector",
-                        num_partitions=DEFAULT_LANCEDB_NUM_PARTITIONS,
-                        num_sub_vectors=DEFAULT_LANCEDB_NUM_SUB_VECTORS,
-                        replace=True,
-                    )
-                    logger.info(f"LanceDB: IVF_PQ cosine index creation/update successfully attempted for '{table_name}'.")
-                else:
-                    logger.info(
-                        f"LanceDB: Data rows ({current_rows}) below threshold (999999) for '{table_name}'. "
-                        f"Skipping index creation to observe default brute-force search metric.",
-                    )
-                    # No tbl.create_index() call here for this diagnostic step.
-            except Exception as index_e: # pylint: disable=W0718
-                # Log index creation error but don't let it fail the upsert operation itself
-                logger.error(
-                    f"LanceDB: Error creating/updating cosine index for table '{table_name}' (rows: {current_rows}): {index_e}",
-                    exc_info=True,
-                )
-            return instance
-        except Exception as e: # pylint: disable=W0718
-            msg = f"LanceDB: Error upserting EI to table '{table_name}': {e}"
-            raise DatabaseError(msg) from e
+                self._merge_rows(tbl, [row])
+            except Exception as e: # pylint: disable=W0718
+                msg = f"LanceDB: Error upserting EI to table '{table_name}': {e}"
+                raise DatabaseError(msg) from e
+            self._note_write(table_name)
+        return instance
 
     def upsert_embedding_instances_bulk(
         self,
         instances: list[EmbeddingInstance],
         embedding_definition: EmbeddingDefinition,
     ) -> None:
-        """Adds or updates multiple embedding records in the LanceDB table in a single operation."""
+        """Adds or replaces many embedding records in one commit."""
         if not instances:
             return
 
         if self.db is None:
             msg = "LanceDB not connected. Cannot bulk upsert EIs."
             raise DatabaseError(msg)
-        
-        table_name = self._sanitize_table_name(embedding_definition.name)
-        try:
-            tbl = self.db.open_table(table_name)
-        except Exception as e:
-            msg = f"LanceDB: Table '{table_name}' for ED '{embedding_definition.name}' not found. Error: {e}"
-            raise DatabaseError(msg) from e
 
-        data_to_add = []
+        table_name = self._sanitize_table_name(embedding_definition.name)
+
+        # One row per object: a batch naming an object twice would otherwise
+        # insert it twice (merge_insert does not reject duplicate source rows).
+        rows_by_id: dict[str, dict[str, Any]] = {}
         for instance in instances:
             if (embedding_definition.dimensions and
                     len(instance.vector) != embedding_definition.dimensions):
@@ -442,19 +470,210 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
                     f"Expected {embedding_definition.dimensions}, got {len(instance.vector)}."
                 )
                 raise EmbeddingError(msg)
-            
-            data_to_add.append({
+
+            rows_by_id[str(instance.object_instance_id)] = {
                 "object_instance_id": str(instance.object_instance_id),
                 "vector": instance.vector,
                 "source_text_preview": instance.source_text_preview,
-            })
+            }
 
+        with self._table_lock:
+            tbl = self._open_table_for_write(table_name, embedding_definition.name)
+            try:
+                self._merge_rows(tbl, list(rows_by_id.values()))
+                logger.info(f"LanceDB: Bulk upserted {len(rows_by_id)} EIs to table '{table_name}'.")
+            except Exception as e:
+                msg = f"LanceDB: Error bulk upserting EIs to table '{table_name}': {e}"
+                raise DatabaseError(msg) from e
+            self._note_write(table_name)
+
+    def _open_table_for_write(self, table_name: str, definition_name: str) -> Any:
         try:
-            tbl.add(data_to_add)
-            logger.info(f"LanceDB: Bulk added {len(data_to_add)} EIs to table '{table_name}'.")
-        except Exception as e:
-            msg = f"LanceDB: Error bulk upserting EIs to table '{table_name}': {e}"
+            return self.db.open_table(table_name)  # type: ignore[union-attr]
+        except Exception as e: # pylint: disable=W0718
+            msg = (
+                f"LanceDB: Table '{table_name}' for ED '{definition_name}' not found. "
+                f"Cannot upsert. Error: {e}"
+            )
             raise DatabaseError(msg) from e
+
+    @staticmethod
+    def _merge_rows(tbl: Any, rows: list[dict[str, Any]]) -> None:
+        # One commit per write, replacing the object's row in place. Callers
+        # used to delete the old row and append a new one: two commits, and a
+        # new fragment every time.
+        (
+            tbl.merge_insert("object_instance_id")
+            .when_matched_update_all()
+            .when_not_matched_insert_all()
+            .execute(rows)
+        )
+
+    # --- Maintenance ---
+
+    def _note_write(self, table_name: str) -> None:
+        """Counts a write; compacts at once when enough have piled up. Caller holds the lock."""
+        self._pending_writes[table_name] = self._pending_writes.get(table_name, 0) + 1
+        self._last_write_at = time.monotonic()
+        if self.compact_after_writes > 0 and self._pending_writes[table_name] >= self.compact_after_writes:
+            try:
+                self.optimize_table(table_name)
+            except Exception as e: # pylint: disable=W0718
+                # The write itself succeeded; a failed compaction is retried later.
+                logger.error(f"LanceDB: Compacting '{table_name}' after a write failed: {e}", exc_info=True)
+
+    def optimize_table(
+        self, table_name: str, cleanup_older_than_s: Optional[float] = None,
+    ) -> dict[str, Any]:
+        """Compacts one table, updates or builds its vector index, and removes old versions.
+
+        Returns what changed: rows, fragments before and after, whether an
+        index was (re)built, and the seconds it took.
+        """
+        if self.db is None:
+            msg = "LanceDB not connected. Cannot optimize."
+            raise DatabaseError(msg)
+        older_than = self.cleanup_older_than_s if cleanup_older_than_s is None else cleanup_older_than_s
+        started = time.monotonic()
+        with self._table_lock:
+            tbl = self.db.open_table(table_name)
+            fragments_before = self._fragment_count(tbl)
+            tbl.optimize(cleanup_older_than=timedelta(seconds=max(0.0, older_than)))
+            indexed = self._ensure_vector_index(table_name, tbl)
+            self._pending_writes[table_name] = 0
+            report = {
+                "table": table_name,
+                "rows": tbl.count_rows(),
+                "fragments_before": fragments_before,
+                "fragments_after": self._fragment_count(tbl),
+                "version": tbl.version,
+                "index_built": indexed,
+                "index_partitions": self._index_partitions.get(table_name, 0),
+                "seconds": round(time.monotonic() - started, 3),
+            }
+        logger.info(f"LanceDB: Optimized table: {report}")
+        return report
+
+    def optimize_all(self, cleanup_older_than_s: Optional[float] = None) -> list[dict[str, Any]]:
+        """Runs :meth:`optimize_table` on every table."""
+        return [self.optimize_table(name, cleanup_older_than_s) for name in self.list_embedding_tables()]
+
+    @staticmethod
+    def _fragment_count(tbl: Any) -> int:
+        try:
+            return int(tbl.stats()["fragment_stats"]["num_fragments"])
+        except Exception: # pylint: disable=W0718
+            return -1
+
+    @staticmethod
+    def _wanted_partitions(rows: int) -> int:
+        return max(1, min(int(math.sqrt(rows)), rows // MIN_ROWS_PER_PARTITION))
+
+    def _vector_indices(self, tbl: Any) -> list[Any]:
+        return [i for i in tbl.list_indices() if "vector" in list(getattr(i, "columns", []))]
+
+    def _ensure_vector_index(self, table_name: str, tbl: Any) -> bool:
+        """Builds the vector index past ``index_min_rows``, and rebuilds it once the table has
+        grown enough to want twice the partitions, or once it has piled up delta segments.
+        Returns whether it built one.
+        """
+        current = self._read_index_partitions(table_name, tbl)
+        if self.index_min_rows <= 0:
+            return False
+        rows = tbl.count_rows()
+        if rows < self.index_min_rows:
+            return False
+        wanted = self._wanted_partitions(rows)
+        if current and wanted < 2 * current and self._index_segments(tbl) <= MAX_INDEX_SEGMENTS:
+            return False
+        # Each delta segment is listed under the index's name; drop the name once.
+        for name in dict.fromkeys(index.name for index in self._vector_indices(tbl)):
+            tbl.drop_index(name)
+        tbl.create_index(
+            metric=VECTOR_INDEX_METRIC,
+            vector_column_name="vector",
+            index_type=VECTOR_INDEX_TYPE,
+            num_partitions=wanted,
+            replace=True,
+            name=f"{VECTOR_INDEX_PREFIX}{wanted}",
+        )
+        self._index_partitions[table_name] = wanted
+        logger.info(f"LanceDB: Built {VECTOR_INDEX_TYPE} index on '{table_name}' ({rows} rows, {wanted} partitions).")
+        return True
+
+    def _index_segments(self, tbl: Any) -> int:
+        indices = self._vector_indices(tbl)
+        if not indices:
+            return 0
+        try:
+            stats = tbl.index_stats(indices[0].name)
+            return int(stats.num_indices) if stats is not None else 0
+        except Exception: # pylint: disable=W0718
+            return 0
+
+    def _read_index_partitions(self, table_name: str, tbl: Any) -> int:
+        """The partition count of the table's vector index (0 if none), read once per table."""
+        if table_name not in self._index_partitions:
+            partitions = 0
+            for index in self._vector_indices(tbl):
+                name = str(getattr(index, "name", ""))
+                if name.startswith(VECTOR_INDEX_PREFIX):
+                    try:
+                        partitions = int(name[len(VECTOR_INDEX_PREFIX):])
+                    except ValueError:
+                        partitions = 0
+                else:
+                    # An index this adapter did not name: probe generously.
+                    partitions = 4 * MIN_NPROBES
+            self._index_partitions[table_name] = partitions
+        return self._index_partitions[table_name]
+
+    def _tune_search(self, query: Any, table_name: str, tbl: Any) -> Any:
+        """Probes half the partitions of an IVF index (at least MIN_NPROBES), for recall."""
+        partitions = self._read_index_partitions(table_name, tbl)
+        if partitions:
+            query = query.nprobes(max(MIN_NPROBES, math.ceil(partitions / 2)))
+        return query
+
+    def _start_maintenance_thread(self) -> None:
+        if self.db is None or self.maintenance_interval_s <= 0:
+            return
+        self._maintenance_thread = threading.Thread(
+            target=self._maintenance_loop, name="grizabella-lancedb-maintenance", daemon=True,
+        )
+        self._maintenance_thread.start()
+
+    def _maintenance_loop(self) -> None:
+        first = True
+        wait = min(self.maintenance_interval_s, self.maintenance_idle_s)
+        while not self._stop_maintenance.wait(wait):
+            try:
+                self.run_maintenance(check_fragmentation=first)
+                first = False
+            except Exception as e: # pylint: disable=W0718
+                logger.error(f"LanceDB: Background maintenance failed: {e}", exc_info=True)
+            wait = self.maintenance_interval_s
+
+    def run_maintenance(self, check_fragmentation: bool = False) -> list[dict[str, Any]]:
+        """One background pass: compacts tables written to since their last compaction once
+        writes have been quiet for ``maintenance_idle_s``. With ``check_fragmentation`` (the
+        first pass after opening), also any table left fragmented by an earlier run.
+        """
+        if self.db is None:
+            return []
+        reports = []
+        with self._table_lock:
+            if self._stop_maintenance.is_set() or self.db is None:
+                return []
+            quiet = time.monotonic() - self._last_write_at >= self.maintenance_idle_s
+            for name in self.list_embedding_tables():
+                due = quiet and self._pending_writes.get(name, 0) > 0
+                if not due and check_fragmentation:
+                    threshold = max(2, self.compact_after_writes)
+                    due = self._fragment_count(self.db.open_table(name)) > threshold
+                if due:
+                    reports.append(self.optimize_table(name))
+        return reports
 
     def get_embedding_instance(
         self, embedding_definition_name: str, object_instance_id: UUID,
@@ -476,18 +695,26 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
             raise DatabaseError(msg)
 
         table_name = self._sanitize_table_name(embedding_definition_name)
-        try:
-            # Re-open the table on each read to ensure we have the latest version
-            tbl = self.db.open_table(table_name)
-        except Exception: # TableNotFoundError # pylint: disable=W0718
-            return []
+        with self._table_lock:
+            try:
+                # Re-opened on each call: it is how a search sees another process's
+                # writes, and costs nothing measurable once the table is compacted.
+                tbl = self.db.open_table(table_name)
+            except Exception: # TableNotFoundError # pylint: disable=W0718
+                return []
+            try:
+                query_result = tbl.search() \
+                    .where(f"object_instance_id = '{object_instance_id!s}'") \
+                    .select(["object_instance_id", "vector", "source_text_preview"]) \
+                    .to_list()
+            except Exception as e: # pylint: disable=W0718
+                msg = (
+                    f"LanceDB: Error retrieving EIs from table "
+                                    f"'{table_name}': {e}"
+                )
+                raise DatabaseError(msg) from e
 
         try:
-            query_result = tbl.search() \
-                .where(f"object_instance_id = '{object_instance_id!s}'") \
-                .select(["object_instance_id", "vector", "source_text_preview"]) \
-                .to_list()
-
             instances = []
             for record in query_result:
                 instances.append(
@@ -516,21 +743,22 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
             raise DatabaseError(msg)
 
         table_name = self._sanitize_table_name(embedding_definition_name)
-        try:
-            # Re-open the table on each write to ensure we have the latest version
-            tbl = self.db.open_table(table_name)
-        except Exception: # TableNotFoundError # pylint: disable=W0718
-            return
+        with self._table_lock:
+            try:
+                tbl = self.db.open_table(table_name)
+            except Exception: # TableNotFoundError # pylint: disable=W0718
+                return
 
-        try:
-            delete_condition = f"object_instance_id = '{object_instance_id!s}'"
-            tbl.delete(delete_condition)
-        except Exception as e: # pylint: disable=W0718
-            msg = (
-                f"LanceDB: Error deleting EIs from table "
-                                f"'{table_name}': {e}"
-            )
-            raise DatabaseError(msg) from e
+            try:
+                delete_condition = f"object_instance_id = '{object_instance_id!s}'"
+                tbl.delete(delete_condition)
+            except Exception as e: # pylint: disable=W0718
+                msg = (
+                    f"LanceDB: Error deleting EIs from table "
+                                    f"'{table_name}': {e}"
+                )
+                raise DatabaseError(msg) from e
+            self._note_write(table_name)
 
     def find_similar_embeddings(
         self, embedding_definition_name: str, vector: list[float], top_k: int = 5,
@@ -560,40 +788,50 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
         query_vector: list[float],
         limit: int = 10,
         filter_condition: Optional[str] = None,
+        columns: Optional[list[str]] = None,
     ) -> list[dict[str, Any]]:
-        """Queries the LanceDB table for embeddings similar to the query_vector."""
+        """Queries the LanceDB table for embeddings similar to the query_vector.
+
+        ``columns`` limits the row to those columns plus ``_distance``; by
+        default every column comes back, the vector included (4 KB a row at
+        1024 dimensions, which made up 80% of the time of an 800-row search).
+        """
         if self.db is None:
             msg = "LanceDB not connected. Cannot query similar embeddings."
             raise DatabaseError(msg)
 
         table_name = self._sanitize_table_name(embedding_definition_name)
-        try:
-            # Re-open the table on each read to ensure we have the latest version
-            tbl = self.db.open_table(table_name)
-        except Exception as e: # pylint: disable=W0718
-            msg = (
-                f"LanceDB: Table '{table_name}' for ED '{embedding_definition_name}' not found. "
-                f"Error: {e}"
-            )
-            raise SchemaError(
-                msg,
-            ) from e
+        with self._table_lock:
+            try:
+                tbl = self.db.open_table(table_name)
+            except Exception as e: # pylint: disable=W0718
+                msg = (
+                    f"LanceDB: Table '{table_name}' for ED '{embedding_definition_name}' not found. "
+                    f"Error: {e}"
+                )
+                raise SchemaError(
+                    msg,
+                ) from e
 
-        try:
-            # Metric will be determined by the index (if created by upsert) or LanceDB default.
-            search_query = tbl.search(query_vector)
+            try:
+                # Squared L2 unless an index says otherwise; ours are built with it too.
+                search_query = self._tune_search(tbl.search(query_vector), table_name, tbl)
 
-            if filter_condition:
-                search_query = search_query.where(filter_condition)
+                if filter_condition:
+                    search_query = search_query.where(filter_condition)
 
-            search_query = search_query.limit(limit)
-            return search_query.to_list()
+                if columns:
+                    wanted = list(dict.fromkeys([*columns, "_distance"]))
+                    search_query = search_query.select(wanted)
 
-        except Exception as e: # pylint: disable=W0718
-            msg = f"LanceDB: Error querying similar embeddings in table '{table_name}': {e}"
-            raise DatabaseError(
-                msg,
-            ) from e
+                search_query = search_query.limit(limit)
+                return search_query.to_list()
+
+            except Exception as e: # pylint: disable=W0718
+                msg = f"LanceDB: Error querying similar embeddings in table '{table_name}': {e}"
+                raise DatabaseError(
+                    msg,
+                ) from e
 
     def find_object_ids_by_similarity(
         self,
@@ -609,79 +847,78 @@ class LanceDBAdapter(BaseDBAdapter): # pylint: disable=R0904
             raise DatabaseError(msg)
 
         table_name = self._sanitize_table_name(embedding_definition_name)
-        try:
-            # Re-open the table on each read to ensure we have the latest version
-            tbl = self.db.open_table(table_name)
-        except Exception as e: # pylint: disable=W0718
-            msg = (
-                f"LanceDB: Table '{table_name}' for ED '{embedding_definition_name}' not found. "
-                f"Error: {e}"
-            )
-            raise SchemaError(
-                msg,
-            ) from e
+        with self._table_lock:
+            try:
+                tbl = self.db.open_table(table_name)
+            except Exception as e: # pylint: disable=W0718
+                msg = (
+                    f"LanceDB: Table '{table_name}' for ED '{embedding_definition_name}' not found. "
+                    f"Error: {e}"
+                )
+                raise SchemaError(
+                    msg,
+                ) from e
 
-        try:
-            # Metric will be determined by the index (if created by upsert) or LanceDB default.
-            search_query = tbl.search(query_vector)
+            try:
+                search_query = self._tune_search(tbl.search(query_vector), table_name, tbl)
 
-            # LanceDB's Python API `where` clause is for filtering on attributes *before* ANN search.
-            # If `initial_ids` are provided, we need to perform the ANN search first,
-            # then filter the results.
-            # The `filter_condition` parameter from the design doc would also apply to attributes
-            # in the LanceDB table.
+                # LanceDB's Python API `where` clause is for filtering on attributes *before* ANN search.
+                # If `initial_ids` are provided, we need to perform the ANN search first,
+                # then filter the results.
+                # The `filter_condition` parameter from the design doc would also apply to attributes
+                # in the LanceDB table.
 
-            if filter_condition: # This applies to LanceDB table attributes
-                search_query = search_query.where(filter_condition)
+                if filter_condition: # This applies to LanceDB table attributes
+                    search_query = search_query.where(filter_condition)
 
-            search_query = search_query.limit(limit)
-            # Select object_instance_id and _distance for ranking
-            search_query = search_query.select(["object_instance_id", "_distance"])
-            results_from_lancedb = search_query.to_list() # List of dicts
-            logger.info(f"LanceDB raw search results for ED '{embedding_definition_name}' (query_vector_snippet: {str(query_vector)[:100]}..., limit {limit}):\n{results_from_lancedb}")
+                search_query = search_query.limit(limit)
+                # Select object_instance_id and _distance for ranking
+                search_query = search_query.select(["object_instance_id", "_distance"])
+                results_from_lancedb = search_query.to_list() # List of dicts
+                logger.info(f"LanceDB raw search results for ED '{embedding_definition_name}' (query_vector_snippet: {str(query_vector)[:100]}..., limit {limit}):\n{results_from_lancedb}")
 
-            # Store as (id, distance) tuples
-            candidate_results_with_distance = []
-            for record in results_from_lancedb:
-                try:
-                    obj_id = UUID(record["object_instance_id"])
-                    distance = record["_distance"] # LanceDB returns distance
-                    candidate_results_with_distance.append((obj_id, distance))
-                except (ValueError, TypeError, KeyError):
-                    continue # Skip invalid records
+                # Store as (id, distance) tuples
+                candidate_results_with_distance = []
+                for record in results_from_lancedb:
+                    try:
+                        obj_id = UUID(record["object_instance_id"])
+                        distance = record["_distance"] # LanceDB returns distance
+                        candidate_results_with_distance.append((obj_id, distance))
+                    except (ValueError, TypeError, KeyError):
+                        continue # Skip invalid records
 
-            if initial_ids is not None:
-                initial_ids_set = set(initial_ids)
-                # Filter by initial_ids
-                filtered_by_initial_ids = [
-                    (obj_id, dist) for obj_id, dist in candidate_results_with_distance
-                    if obj_id in initial_ids_set
-                ]
-            else:
-                filtered_by_initial_ids = candidate_results_with_distance
+                if initial_ids is not None:
+                    initial_ids_set = set(initial_ids)
+                    # Filter by initial_ids
+                    filtered_by_initial_ids = [
+                        (obj_id, dist) for obj_id, dist in candidate_results_with_distance
+                        if obj_id in initial_ids_set
+                    ]
+                else:
+                    filtered_by_initial_ids = candidate_results_with_distance
 
-            # Sort by distance (ascending, as lower distance is more similar)
-            filtered_by_initial_ids.sort(key=lambda x: x[1])
+                # Sort by distance (ascending, as lower distance is more similar)
+                filtered_by_initial_ids.sort(key=lambda x: x[1])
 
-            # Apply the limit to the filtered and sorted results.
-            # If initial_ids were provided, the test implies we should effectively take the top 1 from that filtered set,
-            # overriding the general 'limit' for the count if the test's specific expectation of 1 result is to be met.
-            # This is a specific interpretation to make the test_find_object_ids_by_similarity_with_initial_ids pass.
-            if initial_ids is not None:
-                # The limit should apply to the results *after* filtering by initial_ids and sorting.
-                # Now return (id, distance) tuples
-                final_results_with_distance = [(obj_id, dist) for obj_id, dist in filtered_by_initial_ids[:limit]]
-            else:
-                final_results_with_distance = [(obj_id, dist) for obj_id, dist in filtered_by_initial_ids[:limit]]
+                # Apply the limit to the filtered and sorted results.
+                # If initial_ids were provided, the test implies we should effectively take the top 1 from that filtered set,
+                # overriding the general 'limit' for the count if the test's specific expectation of 1 result is to be met.
+                # This is a specific interpretation to make the test_find_object_ids_by_similarity_with_initial_ids pass.
+                if initial_ids is not None:
+                    # The limit should apply to the results *after* filtering by initial_ids and sorting.
+                    # Now return (id, distance) tuples
+                    final_results_with_distance = [(obj_id, dist) for obj_id, dist in filtered_by_initial_ids[:limit]]
+                else:
+                    final_results_with_distance = [(obj_id, dist) for obj_id, dist in filtered_by_initial_ids[:limit]]
 
-            logger.info(f"LanceDBAdapter.find_object_ids_by_similarity returning final_results_with_distance (limit: {limit}, initial_ids was {'None' if initial_ids is None else 'Provided'}): {final_results_with_distance}")
-            return final_results_with_distance
+                logger.info(f"LanceDBAdapter.find_object_ids_by_similarity returning final_results_with_distance (limit: {limit}, initial_ids was {'None' if initial_ids is None else 'Provided'}): {final_results_with_distance}")
+                return final_results_with_distance
 
-        except Exception as e: # pylint: disable=W0718
-            msg = f"LanceDB: Error querying similar object IDs in table '{table_name}': {e}"
-            raise DatabaseError(
-                msg,
-            ) from e
+            except Exception as e: # pylint: disable=W0718
+                msg = f"LanceDB: Error querying similar object IDs in table '{table_name}': {e}"
+                raise DatabaseError(
+                    msg,
+                ) from e
 
 
     # --- Relation Management (Not applicable to LanceDB) ---

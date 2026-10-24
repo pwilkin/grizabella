@@ -16,8 +16,8 @@ from grizabella.core.models import (
     EmbeddingDefinition,
     ObjectInstance,
     ObjectTypeDefinition,
-    # PropertyDefinition, # Not directly used in this file's top-level logic
     PropertyDataType,
+    PropertyDefinition,
     # MemoryInstance, # Not directly used in this file's top-level logic
     RelationInstance,  # Added import
     RelationTypeDefinition,
@@ -441,10 +441,11 @@ class SQLiteAdapter(BaseDBAdapter):  # pylint: disable=R0904
 
     def _row_to_object_instance(
         self, row: sqlite3.Row, otd: ObjectTypeDefinition,
+        properties: Optional[list[PropertyDefinition]] = None,
     ) -> ObjectInstance:
-        """Converts a sqlite3.Row to an ObjectInstance."""
+        """Converts a sqlite3.Row to an ObjectInstance (with only ``properties``, when given)."""
         props = {}
-        for prop_def in otd.properties:
+        for prop_def in otd.properties if properties is None else properties:
             props[prop_def.name] = self._deserialize_value(
                 row[prop_def.name], prop_def.data_type,
             )
@@ -623,14 +624,39 @@ class SQLiteAdapter(BaseDBAdapter):  # pylint: disable=R0904
                 msg,
             ) from e
 
+    @staticmethod
+    def _projected_properties(
+        otd: ObjectTypeDefinition, properties: Optional[list[str]],
+    ) -> Optional[list[PropertyDefinition]]:
+        """The definitions of the named properties, in the order named; None for all of them."""
+        if properties is None:
+            return None
+        by_name = {p.name: p for p in otd.properties}
+        unknown = [name for name in properties if name not in by_name]
+        if unknown:
+            msg = f"Unknown properties {unknown} for object type '{otd.name}'."
+            raise SchemaError(msg)
+        return [by_name[name] for name in dict.fromkeys(properties)]
+
+    @staticmethod
+    def _select_list(projection: Optional[list[PropertyDefinition]]) -> str:
+        if projection is None:
+            return "*"
+        return ", ".join(["id", "weight", "upsert_date", *(f'"{p.name}"' for p in projection)])
+
     def query_object_instances(  # pylint: disable=R0914
         self,
         object_type_name: str,
         conditions: dict[str, Any],
         limit: Optional[int] = None,
         offset: Optional[int] = None,  # Added to match find_object_instances
+        properties: Optional[list[str]] = None,
     ) -> list[ObjectInstance]:
-        """Queries object instances based on a dictionary of conditions."""
+        """Queries object instances based on a dictionary of conditions.
+
+        ``properties`` returns only those properties of each object (its id,
+        weight and upsert date always come back).
+        """
         if not self.conn:
             msg = "SQLite connection not established."
             raise DatabaseError(msg)
@@ -640,6 +666,7 @@ class SQLiteAdapter(BaseDBAdapter):  # pylint: disable=R0904
             raise SchemaError(msg)
 
         table_name = self._get_safe_table_name(object_type_name)
+        projection = self._projected_properties(otd, properties)
 
         where_clauses = []
         query_values = []
@@ -678,7 +705,7 @@ class SQLiteAdapter(BaseDBAdapter):  # pylint: disable=R0904
                     where_clauses.append(f'"{key}" = ?')
                     query_values.append(serialized)
 
-        sql = f'SELECT * FROM "{table_name}"'
+        sql = f'SELECT {self._select_list(projection)} FROM "{table_name}"'
         if where_clauses:
             sql += " WHERE " + " AND ".join(where_clauses)
 
@@ -693,7 +720,7 @@ class SQLiteAdapter(BaseDBAdapter):  # pylint: disable=R0904
         try:
             cursor = self.conn.execute(sql, tuple(query_values))
             for row in cursor:
-                instances.append(self._row_to_object_instance(row, otd))
+                instances.append(self._row_to_object_instance(row, otd, projection))
             return instances
         except sqlite3.Error as e:
             msg = f"Error querying instances from '{table_name}': {e}"

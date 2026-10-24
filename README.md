@@ -72,6 +72,29 @@ with Grizabella(use_gpu=True) as gz:
 # Further operations (querying, adding relations, etc.) would go here.
 ```
 
+## Maintenance
+
+The vector store compacts itself: after 64 writes to a table, or once writes have
+been quiet for five minutes, its fragments are merged and versions older than ten
+minutes are removed. A vector index (IVF_FLAT, exact squared-L2 distances) is
+built once a table passes 50,000 rows; below that a flat scan is exact and takes
+a few milliseconds. `GRIZABELLA_LANCEDB_COMPACT_AFTER_WRITES`,
+`GRIZABELLA_LANCEDB_MAINTENANCE_INTERVAL_S` (0 turns the background pass off),
+`GRIZABELLA_LANCEDB_MAINTENANCE_IDLE_S`, `GRIZABELLA_LANCEDB_CLEANUP_OLDER_THAN_S`
+and `GRIZABELLA_LANCEDB_INDEX_MIN_ROWS` change those numbers.
+
+`grizabella-maintain` works on a database no engine has open:
+
+```bash
+grizabella-maintain --db-path ./mydb stats          # rows, fragments, versions, sizes; graph vs SQLite counts
+grizabella-maintain --db-path ./mydb compact        # compact every vector table, keep only the latest version
+grizabella-maintain --db-path ./mydb rebuild-graph  # recreate the graph tier from SQLite
+```
+
+`rebuild-graph` is the way across a LadybugDB storage-format change: SQLite holds
+every object and relation, so the graph can be recreated from it. The old graph
+files are moved into `graph-backup-<time>/`, not deleted.
+
 ## Contributing
 
 Contributions are welcome! Please see `CONTRIBUTING.md` (to be added) for guidelines on how to contribute to Grizabella.

@@ -151,10 +151,8 @@ def test_upsert_object_generates_embedding(
     assert upserted_instance_to_sqlite.properties == sample_object_instance.properties
 
 
-    # 2. Check existing embeddings were deleted (even if none existed)
-    mock_lance_adapter.delete_embedding_instances_for_object.assert_called_once_with(
-        sample_object_instance.id, sample_ed.name
-    )
+    # 2. The upsert replaces any existing row; nothing is deleted first
+    mock_lance_adapter.delete_embedding_instances_for_object.assert_not_called()
 
     # 3. Check embedding model was fetched
     mock_lance_adapter.get_embedding_model.assert_called_once_with(sample_ed.embedding_model)
@@ -201,7 +199,7 @@ def test_upsert_object_updates_embedding_on_property_change(
     manager.upsert_object_instance(sample_object_instance)
 
     # Assert initial calls
-    mock_lance_adapter.delete_embedding_instances_for_object.assert_called_once()
+    mock_lance_adapter.delete_embedding_instances_for_object.assert_not_called()
     mock_embedding_model_func.compute_source_embeddings.assert_called_once_with([sample_object_instance.properties["content"]])
     mock_lance_adapter.upsert_embedding_instance.assert_called_once()
     
@@ -212,7 +210,7 @@ def test_upsert_object_updates_embedding_on_property_change(
     manager.upsert_object_instance(sample_object_instance)
 
     # Assert calls happened again (total of 2)
-    assert mock_lance_adapter.delete_embedding_instances_for_object.call_count == 2
+    mock_lance_adapter.delete_embedding_instances_for_object.assert_not_called()
     assert mock_embedding_model_func.compute_source_embeddings.call_count == 2
     assert mock_lance_adapter.upsert_embedding_instance.call_count == 2
 
@@ -255,7 +253,7 @@ def test_upsert_object_empty_source_text(
     manager.upsert_object_instance(sample_object_instance)
 
     mock_sql_adapter.upsert_object_instance.assert_called_once_with(sample_object_instance)
-    # Delete should still be called as per logic (defensive deletion)
+    # No text to embed: the old vector would keep matching the old text, so it goes
     mock_lance_adapter.delete_embedding_instances_for_object.assert_called_once_with(
         sample_object_instance.id, sample_ed.name
     )
@@ -280,6 +278,27 @@ def test_upsert_object_source_property_missing(
     )
     mock_lance_adapter.get_embedding_model.assert_not_called()
     mock_lance_adapter.upsert_embedding_instance.assert_not_called()
+
+
+def test_upsert_object_embedding_failure_removes_stale_vector(
+    db_manager_with_mocks, sample_otd, sample_ed, sample_object_instance
+):
+    """A vector of the previous text must not survive a failed re-embedding."""
+    manager, mock_sql_adapter, mock_lance_adapter = db_manager_with_mocks
+    manager.add_object_type_definition(sample_otd, persist=False)
+    manager.add_embedding_definition(sample_ed, persist=False)
+
+    failing_model = MagicMock()
+    failing_model.compute_source_embeddings.side_effect = RuntimeError("model crashed")
+    mock_lance_adapter.get_embedding_model.return_value = failing_model
+
+    manager.upsert_object_instance(sample_object_instance)
+
+    mock_sql_adapter.upsert_object_instance.assert_called_once_with(sample_object_instance)
+    mock_lance_adapter.upsert_embedding_instance.assert_not_called()
+    mock_lance_adapter.delete_embedding_instances_for_object.assert_called_once_with(
+        sample_object_instance.id, sample_ed.name
+    )
 
 
 def test_delete_object_instance_triggers_embedding_deletion(
@@ -348,9 +367,7 @@ def test_upsert_object_multiple_embedding_definitions(db_manager_with_mocks, sam
     assert mock_sql_adapter.upsert_object_instance.call_count == 1
     
     # Deletions
-    assert mock_lance_adapter.delete_embedding_instances_for_object.call_count == 2
-    mock_lance_adapter.delete_embedding_instances_for_object.assert_any_call(sample_object_instance.id, ed1.name)
-    mock_lance_adapter.delete_embedding_instances_for_object.assert_any_call(sample_object_instance.id, ed2.name)
+    mock_lance_adapter.delete_embedding_instances_for_object.assert_not_called()
 
     # Model fetching
     assert mock_lance_adapter.get_embedding_model.call_count == 2

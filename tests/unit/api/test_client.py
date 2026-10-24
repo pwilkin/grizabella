@@ -289,6 +289,14 @@ class TestGrizabellaAPI(unittest.TestCase):
         )
         self.assertEqual(result, expected_objects)
 
+    def test_find_objects_passes_a_projection(self):
+        """find_objects asks the manager for only the named properties."""
+        self.mock_db_manager_instance.query_object_instances.return_value = []
+        self.grizabella_client.find_objects("TestNode", {"status": "active"}, properties=["status", "topic"])
+        self.mock_db_manager_instance.query_object_instances.assert_called_once_with(
+            object_type_name="TestNode", conditions={"status": "active"}, limit=None, properties=["status", "topic"],
+        )
+
     # --- Data Management (Relations) Method Tests (Example) ---
     def test_add_relation_delegates_and_returns(self):
         """Test add_relation delegates and returns the relation."""

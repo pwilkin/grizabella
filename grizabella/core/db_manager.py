@@ -282,13 +282,17 @@ class GrizabellaDBManager: # pylint: disable=R0904, R0902
     def query_object_instances(
         self, object_type_name: str, conditions: dict[str, Any],
         limit: Optional[int] = None, offset: Optional[int] = None,
+        properties: Optional[list[str]] = None,
     ) -> list[ObjectInstance]:
-        """Queries object instances based on specified conditions."""
+        """Queries object instances based on specified conditions.
+
+        ``properties`` returns only those properties of each object.
+        """
         if not self.is_connected:
             msg = "Manager not connected."
             raise DatabaseError(msg)
         return self._instance_manager.query_object_instances(
-            object_type_name, conditions, limit, offset,
+            object_type_name, conditions, limit, offset, properties,
         )
 
     def get_objects_by_ids(
@@ -333,6 +337,7 @@ class GrizabellaDBManager: # pylint: disable=R0904, R0902
         rerank: Optional[bool] = None,
         rerank_model: Optional[str] = None,
         rerank_candidates: Optional[int] = None,
+        columns: Optional[list[str]] = None,
     ) -> list[dict[str, Any]]:
         """Finds objects based on vector similarity of their embeddings."""
         if not self.is_connected:
@@ -348,6 +353,7 @@ class GrizabellaDBManager: # pylint: disable=R0904, R0902
             rerank=rerank,
             rerank_model=rerank_model,
             rerank_candidates=rerank_candidates,
+            columns=columns,
         )
 
     def _process_raw_similarity_results( # pylint: disable=R0914

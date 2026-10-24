@@ -429,7 +429,9 @@ class ThreadSafeKuzuAdapter(KuzuAdapter):  # pylint: disable=R0904
         was never indexed), in which case the caller keeps its previous fallback behaviour."""
         key = str(node_id)
         cached = self._node_table_cache.get(key)
-        if cached is not None:
+        # One id can live in several node tables (a schema migrated to a new type
+        # keeps its ids); the cache remembers only the last one written.
+        if cached is not None and cached in candidate_types:
             return cached
         for tbl in candidate_types:
             try:

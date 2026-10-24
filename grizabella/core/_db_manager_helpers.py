@@ -922,15 +922,15 @@ class _InstanceManager:
             return  # No embeddings to generate for this object type
             
         for embedding_def in applicable_embeddings:
+            # The upsert below replaces the object's row in one commit. Deleting it
+            # first, as this used to, cost a second commit on every write.
             try:
-                # Delete existing embeddings first (defensive deletion)
-                self._conn_helper.lancedb_adapter.delete_embedding_instances_for_object(
-                    instance.id, embedding_def.name
-                )
-                
                 # Get the source text from the specified property
                 source_text = instance.properties.get(embedding_def.source_property_name)
                 if not source_text or not source_text.strip():
+                    self._conn_helper.lancedb_adapter.delete_embedding_instances_for_object(
+                        instance.id, embedding_def.name
+                    )
                     self._logger.warning(
                         f"No source text found for property '{embedding_def.source_property_name}' "
                         f"on instance '{instance.id}' for embedding definition '{embedding_def.name}'. Skipping."
@@ -996,6 +996,16 @@ class _InstanceManager:
                     "Error generating embedding for instance '%s' with definition '%s': %s",
                     instance.id, embedding_def.name, e, exc_info=True
                 )
+                # A vector of the previous text would keep matching it; none is better.
+                try:
+                    self._conn_helper.lancedb_adapter.delete_embedding_instances_for_object(
+                        instance.id, embedding_def.name
+                    )
+                except Exception as delete_err:  # pylint: disable=broad-except
+                    self._logger.error(
+                        "Could not remove the stale embedding of '%s' from '%s': %s",
+                        instance.id, embedding_def.name, delete_err,
+                    )
                 # Continue with other embeddings even if one fails
                 continue
 
@@ -1223,6 +1233,7 @@ class _InstanceManager:
         conditions: dict[str, Any],
         limit: Optional[int] = None,
         offset: Optional[int] = None,
+        properties: Optional[list[str]] = None,
     ) -> list[ObjectInstance]:
         """Queries object instances from SQLite based on specified conditions."""
         if not self._schema_manager.get_object_type_definition(object_type_name):
@@ -1231,8 +1242,9 @@ class _InstanceManager:
             )
             return []
         try:
+            projection = {"properties": properties} if properties is not None else {}
             return self._conn_helper.sqlite_adapter.query_object_instances(
-                object_type_name, conditions, limit, offset,
+                object_type_name, conditions, limit, offset, **projection,
             )
         except (DatabaseError, SchemaError) as e:
             self._logger.error(
@@ -1252,8 +1264,11 @@ class _InstanceManager:
         rerank: Optional[bool] = None,
         rerank_model: Optional[str] = None,
         rerank_candidates: Optional[int] = None,
+        columns: Optional[list[str]] = None,
     ) -> list[dict[str, Any]]:
         """Finds objects based on vector similarity of their embeddings.
+
+        ``columns`` limits each hit to those LanceDB columns plus ``_distance``.
 
         If the EmbeddingDefinition carries a ``reranker_model`` (or the caller
         supplies ``rerank_model``) and ``query_text`` is provided, the vector
@@ -1322,11 +1337,13 @@ class _InstanceManager:
                     raise EmbeddingError(msg)
 
             # Use query_similar_embeddings for similarity search
+            projection = {"columns": columns} if columns else {}
             results = self._conn_helper.lancedb_adapter.query_similar_embeddings(
                 embedding_definition_name=embedding_definition_name,
                 query_vector=query_vector,  # type: ignore[arg-type]  # Validated above to not be None
                 limit=search_limit,
                 filter_condition=filter_condition,
+                **projection,
             )
 
             if rerank_enabled and results:

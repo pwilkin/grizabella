@@ -551,7 +551,9 @@ async def mcp_delete_object(object_id: str, type_name: str) -> bool:
 @app.tool(
     name="find_objects",
     description=(
-        "Finds and retrieves a list of objects of a given type, with optional filtering criteria.\n\n"
+        "Finds and retrieves a list of objects of a given type, with optional filtering criteria. "
+        "`properties` names the only properties to return for each object (its id, weight and "
+        "upsert_date always come back); omit it for every property.\n\n"
         "Example:\n"
         "To find all 'Person' objects where the age is greater than 30:\n"
         '{\n'
@@ -569,6 +571,7 @@ async def mcp_find_objects(
     type_name: str,
     filter_criteria: Optional[dict[str, Any]] = None,
     limit: Optional[int] = None,
+    properties: Optional[list[str]] = None,
 ) -> list[ObjectInstance]:
     """Finds and retrieves a list of objects of a given type, with optional filtering criteria.
     """
@@ -579,6 +582,7 @@ async def mcp_find_objects(
             type_name=type_name,
             filter_criteria=filter_criteria,
             limit=limit,
+            properties=properties,
         )
     except GrizabellaException as e:
         msg = f"MCP: Error finding objects of type '{type_name}': {e}"
@@ -915,6 +919,20 @@ async def mcp_find_similar_by_embedding(args: FindSimilarByEmbeddingArgs) -> lis
     except GrizabellaException as e:
         msg = f"MCP: Error in find_similar_by_embedding for ED '{args.embedding_definition_name}': {e}"
         raise GrizabellaException(msg) from e
+
+
+@app.tool(
+    name="optimize_embeddings",
+    description=(
+        "Compacts the vector store now: merges its fragments, builds the vector index if the table "
+        "is big enough, and removes old versions. Writes are compacted automatically; this is for "
+        "maintenance. Omit embedding_definition_name for every table."
+    ),
+)
+@log_tool_call
+async def mcp_optimize_embeddings(embedding_definition_name: Optional[str] = None) -> list[dict[str, Any]]:
+    gb = get_grizabella_client()
+    return gb.optimize_embeddings(embedding_definition_name)
 
 
 class GetEmbeddingVectorForTextArgs(BaseModel):

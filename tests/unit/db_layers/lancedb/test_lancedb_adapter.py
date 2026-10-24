@@ -249,11 +249,10 @@ def test_get_embedding_model(temp_lancedb_uri):
             MockRegistry.get.assert_called_once_with("huggingface")
             mock_provider.create.assert_called_once_with(name="huggingface/test-model", device='cpu', trust_remote_code=True)
             assert model1 is mock_model_func
-            # Model is loaded directly without caching
 
-            # Second call - should load again (no caching)
+            # Second call - served from the cache
             model2 = adapter.get_embedding_model("huggingface/test-model")
-            assert mock_provider.create.call_count == 2 # Called twice
+            assert mock_provider.create.call_count == 1
             assert model2 is mock_model_func
 
     finally:
@@ -383,7 +382,7 @@ def test_delete_embedding_instances_for_object(temp_lancedb_uri, embedding_def_s
         adapter.create_embedding_table(embedding_def_sample1)
         adapter.upsert_embedding_instance(embedding_instance_sample1, embedding_def_sample1)
         
-        # Create another instance with the same object_id to test deletion of multiple
+        # A second upsert for the same object replaces its row rather than adding one
         same_obj_instance_2 = EmbeddingInstance(
             object_instance_id=embedding_instance_sample1.object_instance_id, # Same object_id
             embedding_definition_name=embedding_def_sample1.name,
@@ -407,7 +406,10 @@ def test_delete_embedding_instances_for_object(temp_lancedb_uri, embedding_def_s
         table_name = adapter._sanitize_table_name(embedding_def_sample1.name)
         assert adapter.db is not None # For Pylance
         tbl = adapter.db.open_table(table_name)
-        assert len(tbl.search().to_list()) == 3 # sample1, same_obj_instance_2, other_instance
+        rows = tbl.search().to_list()
+        assert len(rows) == 2 # same_obj_instance_2 (replacing sample1), other_instance
+        replaced = [r for r in rows if r["object_instance_id"] == str(embedding_instance_sample1.object_instance_id)]
+        assert [r["source_text_preview"] for r in replaced] == ["Same object, second embedding"]
 
         # Delete instances for embedding_instance_sample1.object_instance_id
         adapter.delete_embedding_instances_for_object(embedding_instance_sample1.object_instance_id, embedding_def_sample1.name)

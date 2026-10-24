@@ -415,6 +415,7 @@ class Grizabella:
         type_name: str,
         filter_criteria: Optional[dict[str, Any]] = None,
         limit: Optional[int] = None,
+        properties: Optional[list[str]] = None,
     ) -> list[ObjectInstance]:
         """Finds objects of a given type, optionally matching filter criteria.
 
@@ -426,6 +427,9 @@ class Grizabella:
                 Defaults to None (no filtering).
             limit (Optional[int]): The maximum number of objects to return.
                 Defaults to None (no limit).
+            properties (Optional[List[str]]): Return only these properties of
+                each object (its id, weight and upsert date always come back).
+                Defaults to None (every property).
 
         Returns:
             List[ObjectInstance]: A list of object instances matching the
@@ -437,10 +441,12 @@ class Grizabella:
             NotConnectedError: If the client is not connected to the database.
 
         """
+        projection = {"properties": properties} if properties is not None else {}
         return self._db_manager.query_object_instances(
             object_type_name=type_name,
             conditions=filter_criteria or {},
             limit=limit,
+            **projection,
         )
 
     # --- Data Management (Relations) ---
@@ -762,6 +768,33 @@ class Grizabella:
             self._db_manager.connect()
         return self._db_manager.remove_embedding_definition(name, persist=True)
 
+    def optimize_embeddings(
+        self, embedding_definition_name: Optional[str] = None,
+    ) -> list[dict[str, Any]]:
+        """Compacts the vector store now, rather than at its next scheduled pass.
+
+        Writes are compacted automatically (after a number of writes, or once
+        they go quiet), so this is for maintenance: it compacts the table of
+        ``embedding_definition_name`` (every table by default), builds its
+        vector index if it is big enough, and removes versions older than the
+        adapter's retention.
+
+        Returns:
+            One report per table: rows, fragments before and after, whether an
+            index was built, and the seconds it took.
+
+        """
+        if not self._is_connected:
+            self._db_manager.connect()
+        lancedb_adapter = self._db_manager.lancedb_adapter
+        if embedding_definition_name is None:
+            return lancedb_adapter.optimize_all()
+        if not self._db_manager.get_embedding_definition(embedding_definition_name):
+            msg = f"EmbeddingDefinition '{embedding_definition_name}' not found."
+            raise SchemaError(msg)
+        # pylint: disable-next=protected-access
+        return [lancedb_adapter.optimize_table(lancedb_adapter._sanitize_table_name(embedding_definition_name))]
+
     # --- Querying (Example: Embedding Search) ---
     def search_similar_objects(
         self,
@@ -907,6 +940,8 @@ class Grizabella:
             rerank=rerank,
             rerank_model=rerank_model,
             rerank_candidates=rerank_candidates,
+            # Only ids and distances are used below; the vectors are 4 KB a hit.
+            columns=["object_instance_id"],
         )
 
         if not raw_results:

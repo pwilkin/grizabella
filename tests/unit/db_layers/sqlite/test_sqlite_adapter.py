@@ -351,6 +351,48 @@ class TestSQLiteObjectInstanceOperations:
         assert len(results_limit) == 1
 
 
+    def test_query_object_instances_projection(self, in_memory_adapter: SQLiteAdapter, sample_otd_document: ObjectTypeDefinition):
+        id1 = uuid4()
+        in_memory_adapter.add_object_instance(ObjectInstance(
+            id=id1, object_type_name=sample_otd_document.name,
+            properties={"title": "Projected", "content": "long text", "page_count": 7, "is_published": True},
+        ))
+        in_memory_adapter.add_object_instance(ObjectInstance(
+            object_type_name=sample_otd_document.name, properties={"title": "Other", "page_count": 7},
+        ))
+
+        results = in_memory_adapter.query_object_instances(
+            sample_otd_document.name, {"title": "Projected"}, properties=["page_count", "is_published"],
+        )
+        assert len(results) == 1
+        assert results[0].id == id1
+        assert results[0].properties == {"page_count": 7, "is_published": True}
+
+        everything = in_memory_adapter.query_object_instances(sample_otd_document.name, {"page_count": 7}, properties=["title"])
+        assert sorted(r.properties["title"] for r in everything) == ["Other", "Projected"]
+
+        with pytest.raises(SchemaError):
+            in_memory_adapter.query_object_instances(sample_otd_document.name, {}, properties=["no_such_property"])
+
+    def test_thread_safe_adapter_projection(self, tmp_path: Path, sample_otd_document: ObjectTypeDefinition):
+        from grizabella.db_layers.sqlite.thread_safe_sqlite_adapter import ThreadSafeSQLiteAdapter
+
+        adapter = ThreadSafeSQLiteAdapter(db_path=str(tmp_path / "ts.db"))
+        try:
+            adapter.save_object_type_definition(sample_otd_document)
+            adapter.create_object_type_table(sample_otd_document)
+            adapter.add_object_instance(ObjectInstance(
+                object_type_name=sample_otd_document.name, properties={"title": "T", "content": "c", "page_count": 3},
+            ))
+            (row,) = adapter.query_object_instances(sample_otd_document.name, {}, properties=["title", "page_count"])
+            assert row.properties == {"title": "T", "page_count": 3}
+            (full,) = adapter.query_object_instances(sample_otd_document.name, {})
+            assert full.properties["content"] == "c"
+            with pytest.raises(SchemaError):
+                adapter.query_object_instances(sample_otd_document.name, {}, properties=["nope"])
+        finally:
+            adapter.close()
+
     def test_query_object_instances_multiple_conditions(self, in_memory_adapter: SQLiteAdapter, sample_otd_document: ObjectTypeDefinition):
         id1 = uuid4()
         inst1 = ObjectInstance(id=id1, object_type_name=sample_otd_document.name, properties={"title": "MultiCond", "page_count": 30, "is_published": True})
